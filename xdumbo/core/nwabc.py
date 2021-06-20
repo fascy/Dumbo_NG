@@ -1,0 +1,183 @@
+from gevent import monkey; monkey.patch_all(thread=False)
+import json
+import hashlib, pickle
+from collections import defaultdict
+
+import gevent
+from gevent.event import Event
+
+from crypto.threshsig.boldyreva import serialize, deserialize1
+from gevent.queue import Queue
+import os
+
+
+stop = 0
+
+
+def nwatomicbroadcast(sid, pid, N, f, Bsize, PK1, SK1, leader, input, output, receive, send, logger=None):
+    """nw-abc
+
+    :param sid: session id
+    :param int pid: ``0 <= pid < N``
+    :param int N:  at least 3
+    :param int f: fault tolerance, ``N >= 3f + 1``
+    :param PK1: ``boldyreva.TBLSPublicKey`` with threshold n-f
+    :param SK1: ``boldyreva.TBLSPrivateKey`` with threshold n-f
+    :param int leader: ``0 <= leader < N``
+    :param input: if ``pid == leader``, then :func:`input()` is called
+        to wait for the input value
+    :param receive: :func:`receive()` blocks until a message is
+        received; message is of the form::
+
+            (i, (tag, ...)) = receive()
+
+        where ``tag`` is one of ``{"VAL", "ECHO", "READY"}``
+    :param send: sends (without blocking) a message to a designed
+        recipient ``send(i, (tag, ...))``
+
+    :return str: ``m`` after receiving :math:`2f+1` ``READY`` messages
+        and :math:`N-2f` ``ECHO`` messages
+
+        .. important:: **Messages**
+            ``PROPOSAL( sid, s, tx[s], sigma[s-1])``
+                snet from ``leader`` to all parties
+            ``VOTE( sid, s, sig[s])``
+                sent after receiving ``PROPOSAL`` message
+
+    """
+    # print("pd start pid:", pid, "leder:",leader)
+    assert N >= 3 * f + 1
+    assert f >= 0
+    assert 0 <= leader < N
+    assert 0 <= pid < N
+    # K = N - 2 * f  # Need this many to reconstruct. (# noqa: E221)
+    # EchoThreshold = N - f  # Wait for this many ECHO to send READY. (# noqa: E221)
+    # ReadyThreshold = f + 1  # Wait for this many READY to amplify READY. (# noqa: E221)
+    SignThreshold = 2 * f + 1  # Wait for this many READY to output
+    s = 1
+    Initsnum = 100
+    BATCH_SIZE= Bsize
+    proposals = defaultdict()
+    combine_sig = defaultdict()
+    Txs = defaultdict(lambda: Queue())
+    Sigmas = defaultdict(lambda: Queue(1))
+    voters = defaultdict(lambda:set())
+    votes = defaultdict(lambda : dict())
+
+    msg_signal = Event()
+    msg_signal.set()
+    stop = 0
+    def broadcast(o):
+         #for i in range(N):
+            # send(i, o)
+        send(-1, o)
+
+    if pid == leader:
+        proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
+        # if logger is not None: logger.info("input:", proposals[1])
+        print("input:", proposals[1])
+        broadcast(('PROPOSAL', sid, s, proposals[1], 0))
+        msg_signal.set()
+    stop = 0
+
+    def handel_messages():
+        while True:
+            sender, msg = receive()
+
+            assert sender in range(N)
+            # print(pid, "receive", sender, msg)
+
+            if stop != 0:
+                if logger is not None: logger.info("this nw-abc is stopped")
+                return 0
+
+            if msg[0] == 'PROPOSAL':
+                nonlocal sid
+                # print( pid, "receive proposal :", msg)
+                (_, sid_r, r, tx, raw_sigma) = msg
+                if sender != leader:
+                    if logger is not None: logger.info("PROPOSAL message from other than leader: %d" % sender)
+                    continue
+                assert sid_r == sid
+                if r == 1:
+                    #digest1 = PK1.hash_message(str((sid, r, tx)))
+                    #send(leader, (sid, r, serialize(SK1.sign(digest1))))
+                    Txs[r].put_nowait(tx)
+                    # Sigmas[r-1].put_nowait(sigma)
+                elif r > 1:
+                    sigma = deserialize1(raw_sigma)
+                    Txs[r].put_nowait(tx)
+                    Sigmas[r-1].put_nowait(sigma)
+                    print(pid," stores tx", r, " and sigs", r-1)
+
+            if msg[0] == 'VOTE' and pid == leader:
+                # print ("receive", sender, "'s vote of round ", r, msg[1])
+                (_, sid, r, raw_sigsh) = msg
+                if len(voters[r]) >= N - f:
+                    continue
+
+                sigsh = deserialize1(raw_sigsh)
+                if sender not in voters[r]:
+                    try:
+                        digest1 = PK1.hash_message(str((sid, r, proposals[r])))
+                        assert PK1.verify_share(sigsh, sender, digest1)
+                    except AssertionError:
+                        if logger is not None: logger.info("Signature share failed in vote for %s!" % str(msg))
+                        continue
+                    voters[r].add(sender)
+                    votes[r][sender]=sigsh
+                    print("received voters:", voters)
+                    if len(voters[r]) == N - f:
+                        sigmas1 = dict(list(votes[r].items())[:N - f])
+                        Sigma1 = PK1.combine_shares(sigmas1)
+                        try:
+                            proposals[r+1] = json.dumps([input() for _ in range(BATCH_SIZE)])
+                            # print(r+1, "  input:", proposals[r + 1])
+                        except  Exception as e:
+                            if logger is not None: logger.info("all msg in buffer has been sent!")
+                            proposals[r + 1] = 0
+                            broadcast(('PROPOSAL', sid, r + 1, proposals[r + 1], serialize(Sigma1)))
+                        broadcast(('PROPOSAL', sid, r+1, proposals[r+1], serialize(Sigma1)))
+                        # print("broadcasted", ('PROPOSAL', sid, r + 1, proposals[r+1], serialize(Sigma1)))
+
+    def decide_output():
+        nonlocal sid, s, stop
+        last_tx = 0
+        while True:
+
+            if s > 1:
+                try:
+                    last_sigs = Sigmas[s-1].get()
+                except Exception as e:
+                    if logger is not None: logger.info("fail to get sigmas of tx in round %d" % s-1)
+                    continue
+                try:
+                    digest2 = PK1.hash_message(str((sid, s-1, last_tx)))
+                    assert PK1.verify_signature(last_sigs, digest2)
+                except Exception as e:
+                    if logger is not None: logger.info("Failed to validate PROPOSAL message:", e)
+                    continue
+                if output is not None:
+                    output((sid, s-1, last_tx, last_sigs))
+                    if logger is not None: logger.info("%d: output %s" % (pid, str(sid)+str(s-1)+str(last_tx)+str(last_sigs)))
+            try:
+                tx_s = Txs[s].get()
+            except  Exception as e:
+                if logger is not None: logger.info("Failed to get tx!")
+                continue
+            try:
+                assert tx_s != 0
+            except AssertionError:
+                stop = 1
+                return 0
+            digest1 = PK1.hash_message(str((sid, s, tx_s)))
+            send(leader, ('VOTE', sid, s, serialize(SK1.sign(digest1))))
+            # print(pid, "send vote in round ", s)
+            s = s + 1
+            last_tx = tx_s
+
+
+    recv_thread = gevent.spawn(handel_messages)
+    gevent.sleep(0)
+    outpt_thread = gevent.spawn(decide_output)
+    gevent.joinall([recv_thread, outpt_thread])

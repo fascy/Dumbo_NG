@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  hbbft-env:
+    build:
+      context: .
+      dockerfile: Dockerfile
+  py-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/local/src/HoneyBadgerBFT
+    command: pytest -v --cov=honeybadgerbft
+  builddocs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/local/src/HoneyBadgerBFT
+    command: make -C docs html
+  viewdocs:
+    image: nginx
+    ports:
+      - '52032:80'
+    volumes:
+      - ./docs/_build/html:/usr/share/nginx/html
+  local-no-network-benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/local/src/HoneyBadgerBFT
+    command: python /usr/local/src/HoneyBadgerBFT/myexperiements/my_run_hbbft.py
+  local-network-benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/local/src/HoneyBadgerBFT
+    command: /bin/sh /usr/local/src/HoneyBadgerBFT/run_local_network_test.sh 7 2 100 10

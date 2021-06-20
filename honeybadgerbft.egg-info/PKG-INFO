@@ -1,0 +1,33 @@
+Metadata-Version: 2.1
+Name: honeybadgerbft
+Version: 0.1.0
+Summary: The Honey Badger of BFT Protocols
+Home-page: https://github.com/amiller/HoneyBadgerBFT
+Author: Andrew Miller et al.
+License: CRAPL
+Description: 
+        Most fault tolerant protocols (including RAFT, PBFT, Zyzzyva, Q/U)
+        don't guarantee good performance when there are Byzantine faults. Even
+        the so-called "robust" BFT protocols (like UpRight, RBFT, Prime,
+        Spinning, and Stellar) have various hard-coded timeout parameters, and
+        can only guarantee performance when the network behaves approximately as
+        expected - hence they are best suited to well-controlled settings like
+        corporate data centers.
+        
+        HoneyBadgerBFT is fault tolerance for the wild wild wide-area-network.
+        HoneyBadger nodes can even stay hidden behind anonymizing relays like
+        Tor, and the purely-asynchronous protocol will make progress at whatever
+        rate the network supports.
+        
+        
+Keywords: distributed systems,cryptography,byzantine fault tolerance
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.6
+Requires-Python: >=3.6
+Provides-Extra: test
+Provides-Extra: dev
+Provides-Extra: docs
