@@ -163,7 +163,7 @@ class Nwabc():
         # Start the nwabc thread
         leader = 0
         nwabc_thread = gevent.spawn(nwatomicbroadcast, epoch_id, pid, N, f,  self.FAST_BATCH_SIZE,
-                                    self.sPK1, self.sSK1, leader,
+                                    self.sPK2s, self.sSK2, leader,
                                     self.transaction_buffer.get_nowait, self.output_list.append, recv, send, self.logger)
 
         nwabc_thread.join()
