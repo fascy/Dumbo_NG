@@ -66,6 +66,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     votes = defaultdict(lambda : dict())
 
     stop = 0
+    print(pid, "start to run ", sid)
 
     def hash(x):
         return hashlib.sha256(pickle.dumps(x)).digest()
@@ -78,7 +79,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     if pid == leader:
         proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
         # if logger is not None: logger.info("input:", proposals[1])
-        print("input:", proposals[1])
+        print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], 0))
     stop = 0
 
@@ -110,7 +111,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     # sigma = deserialize1(raw_sigma)
                     Txs[r].put_nowait(tx)
                     Sigmas[r-1].put_nowait(sigma)
-                    # print(pid," stores tx", r, " and sigs", r-1)
+                    # print(pid," stores tx", r, " in ", sid)
 
             if msg[0] == 'VOTE' and pid == leader:
                 # print ("receive", sender, "'s vote of round ", r, msg[1])
@@ -181,7 +182,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
                 if output is not None:
                     output((sid, s-1, last_tx, last_sigs))
-                    if logger is not None: logger.info("%d: output %s" % (pid, str(sid)+str(s-1)+str(last_tx)+str(last_sigs)))
+                    if logger is not None: logger.info("%d: output %s" % (pid, str(sid)+" "+str(s-1)+str(last_tx)+str(last_sigs)))
             try:
                 tx_s = Txs[s].get()
             except  Exception as e:
@@ -196,7 +197,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
             digest1 = hash(str((sid, s, tx_s)))
             sig = ecdsa_sign(SK2, digest1)
             send(leader, ('VOTE', sid, s, sig))
-            print(pid, "send vote in round ", s)
+            # print(pid, "send vote in round ", s)
             s = s + 1
             last_tx = tx_s
 
