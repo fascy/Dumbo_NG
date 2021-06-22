@@ -182,7 +182,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
                 if output is not None:
                     output((sid, s-1, last_tx, last_sigs))
-                    if logger is not None: logger.info("%d: output %s" % (pid, str(sid)+" "+str(s-1)+str(last_tx)+str(last_sigs)))
+                    if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
             try:
                 tx_s = Txs[s].get()
             except  Exception as e:
