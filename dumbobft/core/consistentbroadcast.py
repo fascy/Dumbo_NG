@@ -57,21 +57,22 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
     finalSent = False
     cbc_echo_sshares = defaultdict(lambda: None)
 
-    #print("CBC starts...")
+    # print("CBC starts...")
 
     if pid == leader:
         # The leader sends the input to each participant
-        #print("block to wait for CBC input")
+        # print("block to wait for CBC input")
 
         m = input() # block until an input is received
 
-        #print("CBC input received: ", m)
+        # print("CBC input received: ", m[0])
+
         assert isinstance(m, (str, bytes, list, tuple))
         digestFromLeader = hash((sid, m))
         # print("leader", pid, "has digest:", digestFromLeader)
         cbc_echo_sshares[pid] = ecdsa_sign(SK2, digestFromLeader)
         send(-1, ('CBC_SEND', m))
-        #print("Leader %d broadcasts CBC SEND messages" % leader)
+        # print("Leader %d broadcasts CBC SEND messages" % leader)
 
 
     # Handle all consensus messages
@@ -79,21 +80,21 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
         #gevent.sleep(0)
 
         (j, msg) = receive()
-        #print("recv3", (j, msg))
+        # print("recv3", (j, msg))
 
         if msg[0] == 'CBC_SEND' and digestFromLeader is None:
             # CBC_SEND message
             (_, m) = msg
             if j != leader:
-                print("Node %d receives a CBC_SEND message from node %d other than leader %d" % (pid, j, leader), msg)
+                # print("Node %d receives a CBC_SEND message from node %d other than leader %d" % (pid, j, leader), msg)
                 continue
             digestFromLeader = hash((sid, m))
-            #print("Node", pid, "has digest:", digestFromLeader, "for leader", leader, "session id", sid, "message", m)
+            # print("Node", pid, "has digest:", digestFromLeader, "for leader", leader, "session id", sid, "message", m)
             send(leader, ('CBC_ECHO', ecdsa_sign(SK2, digestFromLeader)))
 
         elif msg[0] == 'CBC_ECHO':
             # CBC_READY message
-            #print("I receive CBC_ECHO from node %d" % j)
+            # print("I receive CBC_ECHO from node %d" % j)
             if pid != leader:
                 print("I reject CBC_ECHO from %d as I am not CBC leader:", j)
                 continue
@@ -114,9 +115,9 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
 
         elif msg[0] == 'CBC_FINAL':
             # CBC_FINAL message
-            #print("I receive CBC_FINAL from node %d" % j)
+            # print("I receive CBC_FINAL from node %d" % j)
             if j != leader:
-                print("Node %d receives a CBC_FINAL message from node %d other than leader %d" % (pid, j, leader), msg)
+                # print("Node %d receives a CBC_FINAL message from node %d other than leader %d" % (pid, j, leader), msg)
                 continue
             (_, m, sigmas) = msg
             try:

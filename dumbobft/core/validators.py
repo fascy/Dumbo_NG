@@ -25,4 +25,5 @@ def cbc_validate(sid, N, f, PK2s, value, proof):
             assert ecdsa_vrfy(PK2s[i], digest, sig_i)
         return True
     except:
+        print("false ecdsa!!")
         return False

@@ -56,12 +56,15 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
     for i in range(N):
         inputs[i].put_nowait("Hello! This is a test message from node %d" % i)
         print("Input to node %d has been provided" % i)
+
     for i in range(N):
         t = Greenlet(dumbo_mvba, sid, i, N, f, PK, SKs[i], PK1, SK1s[i],
                      inputs[i].get, outputs[i].put_nowait, recvs[i], sends[i])
         t.start()
         threads.append(t)
         print("MVBA at node %d has been instantiated" % i)
+
+
 
 
 

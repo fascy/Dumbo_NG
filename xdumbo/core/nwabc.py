@@ -123,7 +123,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 if sender not in voters[r]:
                     try:
                         # digest1 = PK1.hash_message(str((sid, r, proposals[r])))
-                        digest1 = hash(str((sid, r, proposals[r])))
+                        # digest1 = hash(str((sid, r, proposals[r])))
+                        digest1 = hash(str(proposals[r]))+hash(str((sid, r)))
                         # assert PK2.verify_share(sigsh, sender, digest1)
                         assert ecdsa_vrfy(PK2s[sender], digest1, sigsh)
                     except AssertionError:
@@ -172,7 +173,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
 
                 try:
-                    digest2 = hash(str((sid, s - 1, last_tx)))
+                    #digest2 = hash(str((sid, s - 1, last_tx)))
+                    digest2 = hash(str(last_tx))+hash(str((sid, s-1)))
                     for item in last_sigs:
                         #print(Sigma_p)
                         (sender, sig_p) = item
@@ -194,7 +196,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 stop = 1
                 return 0
             # digest1 = PK1.hash_message(str((sid, s, tx_s)))
-            digest1 = hash(str((sid, s, tx_s)))
+            digest1 = hash(str(tx_s))+hash(str((sid, s)))
             sig = ecdsa_sign(SK2, digest1)
             send(leader, ('VOTE', sid, s, sig))
             # print(pid, "send vote in round ", s)

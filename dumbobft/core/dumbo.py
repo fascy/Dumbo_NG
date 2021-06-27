@@ -149,7 +149,6 @@ class Dumbo():
                 try:
                     (sender, (r, msg) ) = self._recv()
                     #self.logger.info('recv1' + str((sender, o)))
-                    #print('recv1' + str((sender, o)))
                     # Maintain an *unbounded* recv queue for each epoch
                     if r not in self._per_round_recv:
                         self._per_round_recv[r] = Queue()

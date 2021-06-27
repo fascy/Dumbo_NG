@@ -78,7 +78,7 @@ class Nwabcs():
         self._recv = recv
         self.logger = set_consensus_log(pid)
         self.transaction_buffer = Queue()
-        self.output_list =defaultdict(lambda: deque())
+        self.output_list =defaultdict(lambda: Queue())
         self.fast_recv = defaultdict(lambda: Queue())
 
         self.K = K
@@ -97,6 +97,7 @@ class Nwabcs():
         :param tx: Transaction to append to the buffer.
         """
         self.transaction_buffer.put_nowait(tx)
+
 
 
     def run_bft(self):
@@ -122,6 +123,16 @@ class Nwabcs():
         self._recv_thread = Greenlet(_recv_loop)
         self._recv_thread.start()
 
+        def _get_output():
+            while True:
+                for i in range(self.N):
+                    if self.output_list[i].qsize()>0:
+                        log = self.output_list[i].get()
+                        print("------------output:", log)
+                    else:
+                        gevent.sleep(0)
+                        continue
+
         self.s_time = time.time()
         if self.logger != None:
             self.logger.info('Node %d starts to run at time:' % self.id + str(self.s_time))
@@ -134,6 +145,9 @@ class Nwabcs():
             recv = self.fast_recv['sidA'+'nw'+str(i)].get
 
             self._run(send, recv, i)
+
+        self._recv_output = Greenlet(_get_output)
+        self._recv_output.start()
         gevent.joinall(self.threads)
         self.e_time = time.time()
 
@@ -166,8 +180,9 @@ class Nwabcs():
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id+str(i), pid, N, f,  self.FAST_BATCH_SIZE,
                                         self.sPK2s, self.sSK2, leader,
-                                        self.transaction_buffer.get_nowait, self.output_list[i].append, recv, send, self.logger)
+                                        self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send, self.logger)
         self.threads.append(t)
         #nwabc_threads.join()
+
 
 

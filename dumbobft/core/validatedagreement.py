@@ -39,7 +39,7 @@ def recv_loop(recv_func, recv_queues):
     while True:
         #gevent.sleep(0)
         sender, (tag, j, msg) = recv_func()
-        #print("recv2", (sender, (tag, j, msg)))
+        # print("recv2", (sender, (tag, j, msg)))
 
         if tag not in MessageTag.__members__:
             raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
@@ -123,7 +123,6 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     )
     recv_loop_thred = Greenlet(recv_loop, receive, recv_queues)
     recv_loop_thred.start()
-
     """ 
     Setup the sub protocols Input Broadcast CBCs"""
 
@@ -135,7 +134,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
                 :param k: Node to send.
                 :param o: Value to send.
                 """
-                #print("node", pid, "is sending", o, "to node", k, "with the leader", j)
+                # print("node", pid, "is sending", o[0], "to node", k, "with the leader", j)
                 send(k, ('VABA_CBC', j, o))
             return cbc_send
 
@@ -146,7 +145,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         # cbc.get is a blocking function to get cbc output
         #cbc_outputs[j].put_nowait(cbc.get())
         cbc_threads[j] = cbc
-
+        # print(pid, "cbc start")
     """ 
     Setup the sub protocols Commit CBCs"""
 
@@ -168,7 +167,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
                            commit_input, commit_recvs[j].get, make_commit_send(j), logger)
         # commit.get is a blocking function to get commit-cbc output
         commit_outputs[j] = commit.get
-
+        # print(pid, "commit start")
     """ 
     Setup the sub protocols permutation coins"""
 
@@ -180,6 +179,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
 
     permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
                                PK, SK, coin_bcast, coin_recv.get, single_bit=False)
+    # print(pid, "coin share start")
     # False means to get a coin of 256 bits instead of a single bit
 
     """ 
@@ -194,16 +194,16 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     Run n CBC instance to consistently broadcast input values
     """
 
-    #cbc_values = [Queue(1) for _ in range(N)]
+    # cbc_values = [Queue(1) for _ in range(N)]
 
     def wait_for_input():
         v = input()
         if logger != None:
             logger.info("VABA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
-        #print("node %d gets VABA input" % pid)
+        # print("node %d gets VABA input" % pid)
 
         my_cbc_input.put_nowait(v)
-
+        # print(v[0])
     gevent.spawn(wait_for_input)
 
     wait_cbc_signal = Event()
@@ -212,6 +212,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     def wait_for_cbc_to_continue(leader):
         # Receive output from CBC broadcast for input values
         msg, sigmas = cbc_threads[leader].get()
+
         if predicate(msg):
             try:
                 if cbc_outputs[leader].empty():
@@ -221,13 +222,13 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
                         wait_cbc_signal.set()
             except:
                 pass
-            #print("Node %d finishes CBC for Leader %d" % (pid, leader) )
-            #print(is_cbc_delivered)
+            # print("Node %d finishes CBC for Leader %d" % (pid, leader) )
+            # print(is_cbc_delivered)
 
     cbc_out_threads = [gevent.spawn(wait_for_cbc_to_continue, node) for node in range(N)]
 
     wait_cbc_signal.wait()
-    #print("Node %d finishes n-f CBC" % pid)
+    # print("Node %d finishes n-f CBC" % pid)
     #print(is_cbc_delivered)
     #print(cbc_values)
 
@@ -242,7 +243,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     #assert all(item == 0 or 1 for item in is_cbc_delivered)
 
     my_commit_input.put_nowait(copy.deepcopy(is_cbc_delivered))  # Deepcopy prevents input changing while executing
-    #print("Provide input to commit CBC")
+    # print("Provide input to commit CBC")
 
     wait_commit_signal = Event()
     wait_commit_signal.clear()
@@ -285,7 +286,6 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
 
     while True:
         #gevent.sleep(0)
-
         a = pi[r]
         if is_cbc_delivered[a] == 1:
             vote = (a, 1, cbc_outputs[a].queue[0])
@@ -300,21 +300,24 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
             #gevent.sleep(0)
             sender, vote = vote_recvs[r].get()
             a, ballot_bit, cbc_out = vote
+            # print("vote:", vote)
             if (pi[r] == a) and (ballot_bit == 0 or ballot_bit == 1):
                 if ballot_bit == 1:
                     try:
                         (m, sigmas) = cbc_out
+                        # print("cbc_out:", cbc_out)
                         cbc_sid = sid + 'CBC' + str(a)
                         assert cbc_validate(cbc_sid, N, f, PK2s, m, sigmas)
-                        votes[r].add((sender, vote))
+                        votes[r].add((sender, str(vote)))
                         ballot_counter += 1
-                    except:
-                        print("Invalid voting ballot")
+                        # print(ballot_counter)
+                    except Exception as e:
+                        print("Invalid voting ballot", e)
                         if logger is not None:
                             logger.info("Invalid voting ballot")
                 else:
                     if commit_values[sender] is not None and commit_values[sender][a] == 0:
-                        votes[r].add((sender, vote))
+                        votes[r].add((sender, str(vote)))
                         ballot_counter += 1
 
             if len(votes[r]) >= N - f:
@@ -323,7 +326,9 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         # print(votes[r])
         aba_r_input = 0
         for vote in votes[r]:
-            _, (_, bit, cbc_out) = vote
+            _, str1 = vote
+            (_, bit, cbc_out) = eval(str1)
+            # _, (_, bit, cbc_out) = vote
             if bit == 1:
                 aba_r_input = 1
                 if is_cbc_delivered[a] == 0:
@@ -365,5 +370,5 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     assert a is not None
     if logger != None:
         logger.info("VABA %s completes at round %d" % (sid, r))
-    #print("node %d output in VABA" % pid)
+    # print("node %d output in VABA" % pid)
     decide(cbc_outputs[a].get()[0])

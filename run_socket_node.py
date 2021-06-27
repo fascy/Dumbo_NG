@@ -12,6 +12,7 @@ from myexperiements.sockettest.rbcmule_node import RbcMuleBFTNode
 from myexperiements.sockettest.hotstuff_node import HotstuffBFTNode
 from myexperiements.sockettest.nwabc_node import NwAbcNode
 from myexperiements.sockettest.nwabcs_node import NwAbcsNode
+from myexperiements.sockettest.xdumbo_node import XDumboNode
 from network.socket_server import NetworkServer
 from network.socket_client import NetworkClient
 from multiprocessing import Value as mpValue, Queue as mpQueue
@@ -35,6 +36,8 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bf
         bft = NwAbcNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
     elif protocol == 'abcs':
         bft = NwAbcsNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
+    elif protocol == 'xdumbo':
+        bft = XDumboNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
     else:
         print("Only support dumbo or sdumbo or mule or hotstuff")
     return bft
