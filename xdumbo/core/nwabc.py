@@ -79,7 +79,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     if pid == leader:
         proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
         # if logger is not None: logger.info("input:", proposals[1])
-        print(pid,  "start as leader in ", sid, proposals[1])
+        # print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], 0))
     stop = 0
 
@@ -184,7 +184,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
                 if output is not None:
                     output((sid, s-1, last_tx, last_sigs))
-                    if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                    # if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
             try:
                 tx_s = Txs[s].get()
             except  Exception as e:

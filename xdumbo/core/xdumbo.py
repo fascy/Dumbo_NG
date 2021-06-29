@@ -207,7 +207,7 @@ class XDumbo:
                         self.logger.info(
                             'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (self.id, r, tx_cnt, self.txcnt))
                     end = time.time()
-
+                    self.txdelay += (end-start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
                     self.round += 1
@@ -242,12 +242,11 @@ class XDumbo:
         self.e_time = time.time()
 
         if self.logger != None:
-            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
-                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay))
-        else:
-            print("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
-                    (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay)
-                    )
+            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay/(self.round+1), self.txcnt/(self.e_time - self.s_time)))
+
+        print("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay/(self.round+1), self.txcnt/(self.e_time - self.s_time)))
 
     def _run_nwabc(self, send, recv, i):
         """Run one NWABC instance.
