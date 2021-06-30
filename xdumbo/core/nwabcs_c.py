@@ -123,16 +123,6 @@ class Nwabcs():
         self._recv_thread = Greenlet(_recv_loop)
         self._recv_thread.start()
 
-        def _get_output():
-            while True:
-                for i in range(self.N):
-                    if self.output_list[i].qsize()>0:
-                        log = self.output_list[i].get()
-                        print("------------output:", log)
-                    else:
-                        gevent.sleep(0)
-                        continue
-
         self.s_time = time.time()
         if self.logger != None:
             self.logger.info('Node %d starts to run at time:' % self.id + str(self.s_time))
@@ -146,18 +136,15 @@ class Nwabcs():
 
             self._run(send, recv, i)
 
-        self._recv_output = Greenlet(_get_output)
-        self._recv_output.start()
         gevent.joinall(self.threads)
         self.e_time = time.time()
 
         if self.logger != None:
             self.logger.info("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
                              (self.id, self.e_time-self.s_time, self.txcnt, self.txdelay) )
-        else:
-            print("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
-                  (self.id, self.e_time-self.s_time, self.txcnt, self.txdelay)
-                  )
+        print("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
+                (self.id, self.e_time-self.s_time, self.txcnt, self.txdelay)
+                 )
 
     #
 
