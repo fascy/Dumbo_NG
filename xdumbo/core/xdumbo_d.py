@@ -1,12 +1,15 @@
+from gevent import monkey;
+
+monkey.patch_all(thread=False)
+
 import hashlib
+import multiprocessing
 import pickle
 import psutil
-from gevent import monkey;
 
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
 from dumbobft.core.validatedagreement import validatedagreement
-
-monkey.patch_all(thread=False)
+from multiprocessing import Process, Queue
 
 import json
 import logging
@@ -45,15 +48,13 @@ class BroadcastTag(Enum):
     X_VABA = 'X-VABA'
 
 
-#BroadcastReceiverQueues = namedtuple(
+# BroadcastReceiverQueues = namedtuple(
 #    'BroadcastReceiverQueues', 'X-VABA')
 
 
 def broadcast_receiver_loop(recv_func, recv_queues):
     while True:
-        # gevent.sleep(0)
-        sender, (tag, j, msg) = recv_func()
-
+        sender, (tag, j, msg) = recv_func(timeout=1000)
         if tag not in BroadcastTag.__members__:
             # TODO Post python 3 port: Add exception chaining.
             # See https://www.python.org/dev/peps/pep-3134/
@@ -61,7 +62,7 @@ def broadcast_receiver_loop(recv_func, recv_queues):
                 tag, BroadcastTag.__members__.keys()))
         recv_queue = recv_queues
 
-        #if tag == BroadcastTag.X_NWABC.value:
+        # if tag == BroadcastTag.X_NWABC.value:
         #    recv_queue = recv_queue[j]
         try:
             # print("receiver_loop:", sender, msg)
@@ -71,7 +72,7 @@ def broadcast_receiver_loop(recv_func, recv_queues):
             traceback.print_exc(e)
 
 
-class XDumbo:
+class XDumbo_d:
     def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False,
                  debug=False):
 
@@ -93,17 +94,19 @@ class XDumbo:
         self._recv = recv
         self.logger = set_consensus_log(pid)
         self.round = 0  # Current block number
-        self.transaction_buffer = Queue()
-        self._per_round_recv = {}  # Buffer of incoming messages
-        self.output_list = defaultdict(lambda: Queue())
-        self.fast_recv = defaultdict(lambda: Queue())
+        self.transaction_buffer = gevent.queue.Queue()
+        self._per_round_recv = [multiprocessing.Queue() for _ in range(100)]
+        # self.output_list = defaultdict(lambda: Queue())
+        self.output_list = [multiprocessing.Queue() for _ in range(N)]
+        self.fast_recv = [multiprocessing.Queue() for _ in range(N)]
+        # self.mvba_recv = multiprocessing.Queue()
         self.K = K
         self.K = K
         self.debug = debug
 
         self.s_time = 0
         self.e_time = 0
-
+        self.tx_cnt = 0
         self.txcnt = 0
         self.txdelay = 0
 
@@ -117,6 +120,8 @@ class XDumbo:
         self.r = 1
         self.hashtable = defaultdict((lambda: defaultdict()))
 
+        self.op = 0
+        self.ap = 0
 
     def submit_tx(self, tx):
         """Appends the given transaction to the transaction buffer.
@@ -139,33 +144,43 @@ class XDumbo:
             self.sigs[i][0] = ()
             self.txs[i][0] = ""
 
-
         def _recv_loop():
             """Receive messages."""
-            # print("start recv loop...")
+            if os.getpid() == self.op:
+                return
+            if os.getpid() == self.ap:
+                return
+            print("start recv loop...", os.getpid())
+
             while True:
                 # gevent.sleep(0)
                 try:
                     (sender, (r, msg)) = self._recv()
 
                     # self.logger.info('recv1' + str((sender, o)))
-                    if msg[0] == 'PROPOSAL' or msg[0] ==  'VOTE':
-                        self.fast_recv[msg[1]].put_nowait((sender, msg))
+                    if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
+                        self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
+                        # print(self.id, 'recv' + str((sender, msg[0],int(msg[1][6:]))))
                     else:
+                        # (tag, j, m) = msg
                         # Maintain an *unbounded* recv queue for each epoch
-                        if r not in self._per_round_recv:
-                            self._per_round_recv[r] = Queue()
                         # Buffer this message
-                        # print(self.id, 'recv' + str((sender, msg)))
+                        # print(self.id, 'recv' + str((sender, msg[0])))
                         self._per_round_recv[r].put_nowait((sender, msg))
+                        # self.mvba_recv.put((sender, (r, msg)))
+                        # print("mvba put:", self._per_round_recv[r])
                 except:
                     continue
 
-        # self._recv_thread = gevent.spawn(_recv_loop)
-        self._recv_thread = Greenlet(_recv_loop)
+        self._recv_thread = Process(target=_recv_loop)
         self._recv_thread.start()
 
+        # self._recv_thread.start()
+
         def _get_output():
+            self.op = os.getpid()
+            print("output process id:", self.op)
+
             count = [0 for _ in range(self.N)]
             while True:
                 r = self.round
@@ -183,14 +198,12 @@ class XDumbo:
 
                         # print("------------output:", out)
                     if self.local_view[i] - self.local_view_s[i] > 0:
-                        count[i]= 1
+                        count[i] = 1
                 # print("round ", r, ":", count)
                 if count.count(1) >= self.N - self.f:
-                    # print(self.id, self.local_view)
+                    print(self.id, self.local_view)
                     vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N)],
                                   [hash(self.txs[j][self.local_view[j]]) for j in range(self.N)])
-                    if r not in self._per_round_recv:
-                        self._per_round_recv[r] = Queue()
 
                     def _make_send(r):
                         def _send(j, o):
@@ -202,18 +215,31 @@ class XDumbo:
                     recv_r = self._per_round_recv[r].get
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
                     if self.logger != None:
-                        tx_cnt = str(vaba_output).count("Dummy TX")
-                        self.txcnt += tx_cnt
+                        self.tx_cnt = str(vaba_output).count("Dummy")
+                        self.txcnt += self.tx_cnt
                         self.logger.info(
-                            'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (self.id, r, tx_cnt, self.txcnt))
+                            'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
+                                self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    self.txdelay += (end-start)
+                    self.txdelay += (end - start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
+
+
+                    if self.logger != None:
+                        self.logger.info(
+                            "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                            (self.id, end - self.s_time, self.txcnt, (end - self.s_time) / (self.round + 1),
+                             self.txcnt / (end - self.s_time)))
+
+                    print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                          (self.id, end - self.s_time, self.txcnt, (end - self.s_time) / (self.round + 1),
+                           self.txcnt / (end - self.s_time)))
                     self.round += 1
+                    count = [0 for _ in range(self.N)]
                     # print(self.round)
                 else:
-                    gevent.sleep(0)
+                    # gevent.sleep(0)
                     # print("not enough tx still")
                     continue
 
@@ -228,25 +254,44 @@ class XDumbo:
             return _send
 
         # run n nwabc instances
-        for i in range(0, self.N):
-            send = _make_send_nwabc()
-            recv = self.fast_recv['sidA' + 'nw' + str(i)].get
+        def abcs():
+            self.ap = os.getpid()
+            print("run n abcs:", os.getpid())
+            for i in range(0, self.N):
+                send = _make_send_nwabc()
+                recv = self.fast_recv[i].get
 
-            self._run_nwabc(send, recv, i)
+                self._run_nwabc(send, recv, i)
+            gevent.joinall(self.threads)
 
-        self._recv_output = Greenlet(_get_output)
+            # return 0
+
+        # self._recv_thread = gevent.spawn(_recv_loop)
+        # abcs()
+
+        self._recv_output = Process(target=_get_output)
+        self._abcs = Process(target=abcs)
+
         self._recv_output.start()
-
-        gevent.joinall(self.threads)
-
+        self._abcs.start()
+        # self._recv_output = gevent.spawn(_get_output)
+        # self._abcs = gevent.spawn(abcs)
+        self._abcs.join()
+        # print("-----------------------------start to join")
+        # self._recv_output.join()
         self.e_time = time.time()
 
         if self.logger != None:
             self.logger.info("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay/(self.round+1), self.txcnt/(self.e_time - self.s_time)))
+                            (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
+                            self.txcnt / (self.e_time - self.s_time)))
 
         print("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay/(self.round+1), self.txcnt/(self.e_time - self.s_time)))
+            (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
+            self.txcnt / (self.e_time - self.s_time)))
+
+        while True:
+            pass
 
     def _run_nwabc(self, send, recv, i):
         """Run one NWABC instance.
@@ -255,7 +300,9 @@ class XDumbo:
         :param send:
         :param recv:
         """
-
+        print("run_nwabc is called! ", os.getpid())
+        if os.getpid() == self.op:
+            return 0
         sid = self.sid
         pid = self.id
         N = self.N
@@ -265,10 +312,11 @@ class XDumbo:
         # hash_genesis = hash(epoch_id)
 
         leader = i
+        print(self.transaction_buffer.qsize())
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
                          self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send,
-                         self.logger)
+                         self.logger, os.getpid())
         self.threads.append(t)
 
     def _run_VABA_round(self, r, tx_to_send, send, recv):
@@ -284,20 +332,21 @@ class XDumbo:
         pid = self.id
         N = self.N
         f = self.f
-        vaba_recv = Queue()
+        vaba_recv = gevent.queue.Queue()
 
-        vaba_input = Queue(1)
-        vaba_output = Queue(1)
+        vaba_input = gevent.queue.Queue(1)
+        vaba_output = gevent.queue.Queue(1)
         vaba_input.put_nowait(tx_to_send)
         # recv_queues = BroadcastReceiverQueues(X-VABA=vaba_recv)
-        bc_recv_loop_thread = Greenlet(broadcast_receiver_loop, recv, vaba_recv)
-        bc_recv_loop_thread.start()
-        # print(pid, "start round", r)
+        bc_recv_loop_thread = gevent.spawn(broadcast_receiver_loop, recv, vaba_recv)
+        # bc_recv_loop_thread.start()
+        print(pid, "start vaba round", r)
+        self.tx_cnt = 0
         def _setup_vaba():
             def vaba_send(k, o):
                 """Threshold encryption broadcast."""
                 """Threshold encryption broadcast."""
-                send(k, ('X_VABA', '',  o))
+                send(k, ('X_VABA', '', o))
 
             def vaba_predicate(vj):
                 siglist = [tuple() for _ in range(N)]
@@ -339,6 +388,7 @@ class XDumbo:
                             return False
                         self.hashtable[i][view[i]] = hashlist[i]
                 return True
+
             if self.debug:
                 vaba_thread = Greenlet(validatedagreement, sid + 'VABA' + str(r), pid, N, f,
                                        self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
@@ -349,13 +399,16 @@ class XDumbo:
                                        self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
                                        vaba_recv.get, vaba_send, vaba_predicate, )
+
             vaba_thread.start()
 
         _setup_vaba()
         out = ""
         try:
+            print("vaba is waiting for output in round ", r)
+            # gevent.sleep(0)
             out = vaba_output.get()
-            # print("vaba out in round ", r, out)
+            print(pid, "vaba out in round ", r, out[0])
         except:
             pass
         s = [tuple() for _ in range(N)]
@@ -367,14 +420,14 @@ class XDumbo:
             # check sigs in s[i][view[i]]
             if self.local_view[i] < view[i]:
                 # TODO: ADD PULLING BLOCK
-                for t in range(self.local_view[i] + 1, view[i]+1):
+                for t in range(self.local_view[i] + 1, view[i] + 1):
                     self.txs[i][t] = "Dummy TX..."
                     self.sigs[i][t] = "some sigs..."
-
-            for t in range(self.local_view_s[i]+1, view[i]+1):
-                # print("append tx", i, t)
+                    print(self.txs[i][t])
+            for t in range(self.local_view_s[i] + 1, view[i] + 1):
+                # print("append tx", i, t, self.txs[i][t])
                 block.append((self.txs[i][t], self.sigs[i][t]))
-                # self.txcnt += 1
-        self.local_view_s=view
+                # self.tx_cnt += 1
+        self.local_view_s = view
         # print(block)
         return block

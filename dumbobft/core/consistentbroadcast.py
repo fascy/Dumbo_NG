@@ -128,6 +128,6 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
             except AssertionError:
                 print("Signature failed!", (sid, pid, j, msg))
                 continue
-            #print("CBC finished for leader", leader)
+            # print("CBC finished for leader", leader)
 
             return m, sigmas

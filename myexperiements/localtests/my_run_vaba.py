@@ -1,6 +1,6 @@
 import random
 import gevent
-from gevent import Greenlet
+from gevent import Greenlet, time
 from gevent.queue import Queue
 from gevent import monkey
 from dumbobft.core.validatedagreement import validatedagreement
@@ -49,7 +49,7 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
     PK, SKs = dealer(N, f + 1)
     PK1, SK1s = dealer(N, N - f)
     PK2s, SK2s = pki(N)
-
+    s_time = time.time()
     rnd = random.Random(seed)
     router_seed = rnd.random()
     # if leader is None: leader = rnd.randint(0, N-1)
@@ -77,6 +77,8 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
         try:
             gevent.joinall(threads)
             print(outs)
+            e_time = time.time()
+            print("running time:", e_time - s_time)
         except gevent.hub.LoopExit:
             pass
     except KeyboardInterrupt:

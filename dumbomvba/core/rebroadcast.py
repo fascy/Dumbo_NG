@@ -9,8 +9,7 @@ from honeybadgerbft.core.reliablebroadcast import merkleTree, getMerkleBranch, m
 def recastsubprotocol(pid, sid, N, f, PK1, SK1, receive, send, store, lock):
 
     def broadcast(o):
-        for i in range(N):
-            send(i, o)
+        send(-1, o)
 
     assert N >= 3 * f + 1
     assert f >= 0
@@ -35,7 +34,7 @@ def recastsubprotocol(pid, sid, N, f, PK1, SK1, receive, send, store, lock):
                 digest = PK1.hash_message(str(('STORED', sid, roothash)))
                 assert PK1.verify_signature(deserialize1(raw_Sigma1), digest)
             except Exception as e:
-                print("????????Failed to validate LOCK message:", e)
+                print("Failed to validate LOCK message:", e)
                 continue
             if not rclocksend:
                 broadcast(('RCLOCK', sid, lock))

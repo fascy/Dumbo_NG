@@ -15,7 +15,7 @@ import os
 stop = 0
 
 
-def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, receive, send, logger=None):
+def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, receive, send, logger=None, pro=0):
     """nw-abc
 
     :param sid: session id
@@ -46,7 +46,9 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 sent after receiving ``PROPOSAL`` message
 
     """
-    # print("pd start pid:", pid, "leder:",leader)
+    if os.getpid() != pro:
+        return
+    print("pd start pid:", pid, "leder:",leader, os.getpid())
     assert N >= 3 * f + 1
     assert f >= 0
     assert 0 <= leader < N
@@ -74,21 +76,23 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     def broadcast(o):
          #for i in range(N):
             # send(i, o)
-        send(-1, o)
+         send(-1, o)
 
     if pid == leader:
+        # print()
         proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
         # if logger is not None: logger.info("input:", proposals[1])
-        # print(pid,  "start as leader in ", sid, proposals[1])
+        print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], 0))
     stop = 0
 
     def handel_messages():
+        print("start to handel msg")
         while True:
-            sender, msg = receive()
-
+            sender, msg = receive(timeout=1)
+            # print(msg[0])
             assert sender in range(N)
-            # print(pid, "receive", sender, msg)
+            # print(pid, "receive", sender, msg[0])
 
             if stop != 0:
                 if logger is not None: logger.info("this nw-abc is stopped")
@@ -96,16 +100,20 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
 
             if msg[0] == 'PROPOSAL':
                 nonlocal sid
+                # print("-----------------------")
                 # print( pid, "receive proposal :", msg)
                 (_, sid_r, r, tx, sigma) = msg
                 if sender != leader:
                     if logger is not None: logger.info("PROPOSAL message from other than leader: %d" % sender)
                     continue
                 assert sid_r == sid
+
                 if r == 1:
                     #digest1 = PK1.hash_message(str((sid, r, tx)))
                     #send(leader, (sid, r, serialize(SK1.sign(digest1))))
                     Txs[r].put_nowait(tx)
+                    # print(pid,"put msg 0 in set")
+
                     # Sigmas[r-1].put_nowait(sigma)
                 elif r > 1:
                     # sigma = deserialize1(raw_sigma)
@@ -124,6 +132,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     try:
                         # digest1 = PK1.hash_message(str((sid, r, proposals[r])))
                         # digest1 = hash(str((sid, r, proposals[r])))
+                        # print(sid, pid, "proposals:", proposals, r)
+
                         digest1 = hash(str(proposals[r]))+hash(str((sid, r)))
                         # assert PK2.verify_share(sigsh, sender, digest1)
                         assert ecdsa_vrfy(PK2s[sender], digest1, sigsh)
@@ -139,13 +149,16 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                         Sigma1 = tuple(votes[r].items())
                         try:
                             proposals[r+1] = json.dumps([input() for _ in range(BATCH_SIZE)])
-                            # print(r+1, "  input:", proposals[r + 1])
+                            # print(sid, pid, "in", r+1, "  input:", proposals)
                         except  Exception as e:
                             if logger is not None: logger.info("all msg in buffer has been sent!")
                             proposals[r + 1] = 0
                             broadcast(('PROPOSAL', sid, r + 1, proposals[r + 1], Sigma1))
                         broadcast(('PROPOSAL', sid, r+1, proposals[r+1], Sigma1))
                         # print("broadcasted", ('PROPOSAL', sid, r + 1, proposals[r+1], serialize(Sigma1)))
+
+            gevent.sleep(0)
+
 
     def decide_output():
         nonlocal sid, s, stop
@@ -184,7 +197,10 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
                 if output is not None:
                     output((sid, s-1, last_tx, last_sigs))
-                    # if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                    if (s-1) % 10 == 0:
+                        print("output", (sid, s-1))
+                    if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                    gevent.sleep(0)
             try:
                 tx_s = Txs[s].get()
             except  Exception as e:
@@ -203,8 +219,12 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
             s = s + 1
             last_tx = tx_s
 
+        gevent.sleep(0)
+
+
 
     recv_thread = gevent.spawn(handel_messages)
     gevent.sleep(0)
     outpt_thread = gevent.spawn(decide_output)
     gevent.joinall([recv_thread, outpt_thread])
+    # outpt_thread.join()

@@ -1,4 +1,3 @@
-# for n pd instances
 import traceback
 import logging
 import gevent
@@ -18,49 +17,42 @@ from honeybadgerbft.exceptions import UnknownTagError
 from crypto.threshsig.boldyreva import serialize, deserialize1
 
 
-
-
 class MessageTag(Enum):
-    MVBA_COIN = 'MVBA_COIN'             # Queue()
-    MVBA_PD = 'MVBA_PD'         # [Queue()] * N
+    MVBA_COIN = 'MVBA_COIN'  # Queue()
+    MVBA_PD = 'MVBA_PD'  # [Queue()] * N
     MVBA_PD_FINISH = 'MVBA_PD_FINISH'
     MVBA_RC_PREPARE = 'MVBA_RC_PREPARE'
     MVBA_RC = 'MVBA_RC'
-    MVBA_ABA = 'MVBA_ABA'   # [Queue()] * Number_of_ABA_Iterations
+    MVBA_ABA = 'MVBA_ABA'  # [Queue()] * Number_of_ABA_Iterations
     MVBA_ABA_COIN = 'MVBA_ABA_COIN'
+
 
 MessageReceiverQueues = namedtuple(
     'MessageReceiverQueues', ('MVBA_COIN', 'MVBA_PD', 'MVBA_PD_FINISH', 'MVBA_RC', 'MVBA_ABA',
                               'MVBA_RC_PREPARE', 'MVBA_ABA_COIN'))
 
-def handle_mvba_messages(recv_func, recv_queues):
-    x = recv_func()
-    #print(x)
-    sender, (tag, j, msg) = x
-    # sender, (tag, j, msg) = recv_func()
-    if tag not in MessageTag.__members__:
-        # TODO Post python 3 port: Add exception chaining.
-        # See https://www.python.org/dev/peps/pep-3134/
-        raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
-            tag, MessageTag.__members__.keys()))
-    recv_queue = recv_queues._asdict()[tag]
-    # print(tag, sender)
-    if tag == MessageTag.MVBA_PD.value or tag in {MessageTag.MVBA_ABA_COIN.value} or tag in {MessageTag.MVBA_ABA.value}:
 
-        recv_queue = recv_queue[j]
-    try:
-        recv_queue.put_nowait((sender, msg))
-    except AttributeError as e:
-        # print((sender, msg))
-        traceback.print_exc(e)
-
-def mvba_msg_receiving_loop(recv_func, recv_queues):
+def recv_loop(recv_func, recv_queues):
     while True:
-        handle_mvba_messages(recv_func, recv_queues)
+        sender, (tag, j, msg) = recv_func()
+        if tag not in MessageTag.__members__:
+            # TODO Post python 3 port: Add exception chaining.
+            # See https://www.python.org/dev/peps/pep-3134/
+            raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
+                tag, MessageTag.__members__.keys()))
+        recv_queue = recv_queues._asdict()[tag]
+        # print(tag, sender)
+        if tag == MessageTag.MVBA_PD.value or tag in {MessageTag.MVBA_ABA_COIN.value} or tag in {
+            MessageTag.MVBA_ABA.value}:
+            recv_queue = recv_queue[j]
+        try:
+            recv_queue.put_nowait((sender, msg))
+        except AttributeError as e:
+            # print((sender, msg))
+            traceback.print_exc(e)
 
-logger = logging.getLogger(__name__)
 
-def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, predicate=lambda x: True, logger=None):
+def mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, predicate=lambda x: True, logger=None):
     """Multi-valued Byzantine consensus. It takes an input ``vi`` and will
     finally writes the decided value into ``decide`` channel.
 
@@ -78,9 +70,9 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
     :param send: send channel
     :param predicate: ``predicate()`` represents the externally validated condition
     """
-    assert PK.k == f+1
+    assert PK.k == f + 1
     assert PK.l == N
-    assert PK1.k == N-f
+    assert PK1.k == N - f
     assert PK1.l == N
 
     pd = [None for n in range(N)]
@@ -119,69 +111,65 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
         MVBA_ABA=aba_recvs,
         MVBA_ABA_COIN=aba_coin_recvs
     )
-    gevent.spawn(mvba_msg_receiving_loop, receive, recv_queues)
+    gevent.spawn(recv_loop, receive, recv_queues)
 
-    """ 
-        Setup the sub protocols Input Broadcast PDs"""
     v = input()
-    #print("mvba input:", v)
-    #my_pd_input.put(v)
-    if predicate(v):
-        my_pd_input.put(str(v))
-    else:
-        my_pd_input.put(str(""))
+    my_pd_input.put(str(v))
+
+    # start n PD instances
     for j in range(N):
-        def make_pd_send(j): # this make will automatically deep copy the enclosed send func
+        def make_pd_send(j):  # this make will automatically deep copy the enclosed send func
             def pd_send(k, o):
                 """PD send operation.
                 :param k: Node to send.
                 :param o: Value to send.
                 """
-                #print("node", pid, "is sending", o, "to node", k, "with the leader", j)
+                # print("node", pid, "is sending", o, "to node", k, "with the leader", j)
                 send(k, ('MVBA_PD', j, o))
+
             return pd_send
 
         # Only leader gets input
-        pd_input = my_pd_input.get if j == pid else None
+        pd_input = my_pd_input.get if j == pid and predicate(v) else None
         #
         pd[j] = gevent.spawn(provabledispersalbroadcast, sid + 'PD' + str(j), pid, N, f, PK1, SK1, j,
-                           pd_input, pd_outputs[j].put_nowait, pd_recvs[j].get, make_pd_send(j))
+                             pd_input, pd_outputs[j].put_nowait, pd_recvs[j].get, make_pd_send(j))
         pd_leader_outputs[j] = pd[j].get
 
-    wait_pd_signal = Event()
-    wait_pd_signal.clear()
+    pd_count = [0 for _ in range(N)]
 
-    def wait_for_pd_to_continue(leader):
-        # Receive output from CBC broadcast for input values
-        msg = pd_leader_outputs[leader]()
-        # print("pd output: ",msg)
-        if msg == 1:
-            is_pd_delivered[leader] = 1
-            # print(sum(is_pd_delivered))
-            if sum(is_pd_delivered) == N:
-                # print(111111)
-                wait_pd_signal.set()
-            # print("Leader %d finishes CBC for node %d" % (leader, pid))
-            # print(is_cbc_delivered)
-    pd_out_threads = [gevent.spawn(wait_for_pd_to_continue, node) for node in range(N)]
-    wait_pd_signal.wait()
+    def output_receve():
+        def o_recv(j):
+            def _recv():
+                (mtype, context, sid_t, pid) = pd_outputs[j].get()
+                # print 'RECV %8s [%2d -> %2d]' % (o[0], i, j)
+                return (mtype, context, sid_t, pid)
 
-    for j in range(N):
-        # print(len(pd_outputs[j]), ":")
-        for _ in range(len(pd_outputs[j])):
-            (mtype, context, sid_t, pid) = pd_outputs[j].get()
-            #print("the out put: ", (mtype, context, sid, pid))
+            return _recv
+
+        return [o_recv(j) for j in range(N)]
+
+    recv_pds = output_receve()
+
+    def get_PD_output(recv_func, j):
+
+        while True:
+            (mtype, context, sid_t, pid) = recv_func()
+            # print("the out put: ", (mtype, context, sid, pid))
             if mtype == 'STORE':
                 store[j] = context
+                pd_count[j] += 1
             elif mtype == 'LOCK':
                 lock[j] = (context[0], serialize(context[1]))
+                pd_count[j] += 1
             elif mtype == 'DONE':
                 done[j] = (context[0], serialize(context[1]))
-                for i in range(N):
-                    # print(pid, "brocast", (i, ('MVBA_PD_FINISH', 'quit', ('DONE', sid_t, done[j]))))
-                    send(i, ('MVBA_PD_FINISH', 'quit', ('DONE', sid_t, done[j])))
+                # print(pid, "brocast", (i, ('MVBA_PD_FINISH', 'quit', ('DONE', sid_t, done[j]))))
+                send(-1, ('MVBA_PD_FINISH', 'quit', ('DONE', sid_t, done[j])))
+                pd_count[j] += 1
+    for j in range(N):
+        gevent.spawn(get_PD_output, recv_pds[j], j)
 
-    output_finish = -1
     def quitPD():
         # print("start to run quit")
         provens = 0
@@ -193,15 +181,12 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
         revfinish = [0 for n in range(N)]
         sendfinish = 0
 
-
         def quitPD_send(k, o):
             # print("node", pid, "is sending", o, "to node", k)
             send(k, ('MVBA_PD_FINISH', 'quit', o))
 
         def broadcast(o):
-            for i in range(N):
-                quitPD_send(i, o)
-
+            quitPD_send(-1, o)
 
         while True:
             sender, msg = pd_finish_recv.get()
@@ -254,7 +239,7 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
             if msg[0] == 'FINISH':
                 (_, sid, raw_Sigma_rdy) = msg
                 Sigma_rdy = deserialize1(raw_Sigma_rdy)
-                #print("from sender:", sender, "to node:", pid, sid)
+                # print("from sender:", sender, "to node:", pid, sid)
                 if revfinish[sender] != 0:
                     print("not the first time receive ready message from node ", sender)
                     continue
@@ -265,7 +250,7 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
                     digest = PK.hash_message(str(('READY', sid)))
                     assert PK.verify_signature(Sigma_rdy, digest)
                 except AssertionError:
-                    print("???????READY Signature verify failed !", (sid, pid, sender, msg))
+                    print("READY Signature verify failed !", (sid, pid, sender, msg))
 
                     continue
                 for j in range(N):
@@ -278,44 +263,37 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
                 return sender
 
     pd_quit = gevent.spawn(quitPD)
-
     output_finish = pd_quit.get()
     wait_finish_signal = Event()
     wait_finish_signal.clear()
+
     def wait_for_finish_to_continue():
-        # Receive output from CBC broadcast for input values
         if output_finish >= 0:
             wait_finish_signal.set()
-            # print("Leader %d finishes CBC for node %d" % (leader, pid) )
-            # print(is_cbc_delivered)
+            # print("finish is output")
 
     finish_out_thread = gevent.spawn(wait_for_finish_to_continue)
-
     wait_finish_signal.wait()
 
     def coin_bcast(o):
         """Common coin multicast operation.
         :param o: Value to multicast.
         """
-        for k in range(N):
-            send(k, ('MVBA_COIN', 'election', o))
+        send(-1, ('MVBA_COIN', 'election', o))
 
-    permutation_coin = shared_coin(sid + 'COIN', pid, N, f,
-                               PK, SK, coin_bcast, coin_recv.get, False)
+    permutation_coin = shared_coin(sid + 'COIN', pid, N, f, PK, SK, coin_bcast, coin_recv.get, False)
 
     """
     Run a Coin instance to permute the nodes' IDs to sequentially elect the leaders
     """
 
     seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
-    # print(seed)
     np.random.seed(seed)
     pi = np.random.permutation(N)
-    # print(pi)
     r = 0
 
     while True:
-        #print(pi[r])
+        # print(pi[r])
         l = pi[r]
         RCmsg = ('RCBALLOTPREPARE', sid + 'RCprepare', l, lock[l])
         for i in range(N):
@@ -323,11 +301,12 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
 
         rc_pre_bottom = [0 for n in range(N)]
         output_rcpre = 0
+
         def RCprepare():
             while True:
                 sender, msg = rc_pre_recv.get()
                 if msg[0] == 'RCBALLOTPREPARE':
-                    (_, PREsid , PREl, PRElock) = msg
+                    (_, PREsid, PREl, PRElock) = msg
 
                     if PRElock != 0:
                         (roothash, raw_Sigma1) = PRElock
@@ -336,7 +315,7 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
                             digest = PK1.hash_message(str(('STORED', sid + 'PD' + str(l), roothash)))
                             assert PK1.verify_signature(Sigma1, digest)
                         except Exception as e:
-                            print("????Failed to validate LOCK message:", e)
+                            print("Failed to validate LOCK message:", e)
                             continue
                         lock[l] = PRElock
                         rc_ballot[l] = 1
@@ -370,20 +349,19 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
                 """Common coin multicast operation.
                 :param o: Value to multicast.
                 """
-                for k in range(N):
-                    send(k, ('MVBA_ABA_COIN', r, o))
+                send(-1, ('MVBA_ABA_COIN', r, o))
 
             return coin_bcast
 
         coin = shared_coin(sid + 'COIN' + str(r), pid, N, f,
-                           PK, SK,
-                           make_coin_bcast(), aba_coin_recvs[r].get)
+                           PK, SK, make_coin_bcast(), aba_coin_recvs[r].get)
         aba = gevent.spawn(binaryagreement, sid + 'ABA' + str(r), pid, N, f, coin,
-                        aba_inputs[r].get, aba_outputs[r].put_nowait,
-                       aba_recvs[r].get, make_aba_send(r))
+                           aba_inputs[r].get, aba_outputs[r].put_nowait,
+                           aba_recvs[r].get, make_aba_send(r))
         # aba.get is a blocking function to get aba output
         aba_inputs[r].put_nowait(output_rcpre)
         aba_r = aba_outputs[r].get()
+
         # print("aba_r:", aba_r)
 
         def make_rc_send():  # this make will automatically deep copy the enclosed send func
@@ -396,6 +374,7 @@ def dumbo_mvba(sid, pid, N, f, PK, SK, PK1, SK1, input, decide, receive, send, p
                 send(k, ('MVBA_RC', 'RC-l', o))
 
             return rc_send
+
         if aba_r == 1:
             if aba_r == 1:
                 rc = gevent.spawn(recastsubprotocol, pid, sid + 'PD' + str(l), N, f, PK1, SK1, rc_recv.get,

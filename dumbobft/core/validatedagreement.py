@@ -37,9 +37,8 @@ MessageReceiverQueues = namedtuple(
 
 def recv_loop(recv_func, recv_queues):
     while True:
-        #gevent.sleep(0)
-        sender, (tag, j, msg) = recv_func()
-        # print("recv2", (sender, (tag, j, msg)))
+        sender, (tag, j, msg) = recv_func(timeout=1000)
+        # print("recv2", (sender, (tag, j, msg[0])))
 
         if tag not in MessageTag.__members__:
             raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
@@ -53,7 +52,7 @@ def recv_loop(recv_func, recv_queues):
         except AttributeError as e:
             # print((sender, msg))
             traceback.print_exc(e)
-
+        gevent.sleep(0)
 
 
 
@@ -78,7 +77,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     :param predicate: ``predicate()`` represents the externally validated condition
     """
 
-    #print("Starts to run validated agreement...")
+    print("Starts to run validated agreement...")
 
     assert PK.k == f+1
     assert PK.l == N
@@ -123,6 +122,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     )
     recv_loop_thred = Greenlet(recv_loop, receive, recv_queues)
     recv_loop_thred.start()
+
     """ 
     Setup the sub protocols Input Broadcast CBCs"""
 
@@ -145,6 +145,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         # cbc.get is a blocking function to get cbc output
         #cbc_outputs[j].put_nowait(cbc.get())
         cbc_threads[j] = cbc
+        # gevent.sleep(0)
         # print(pid, "cbc start")
     """ 
     Setup the sub protocols Commit CBCs"""
@@ -200,7 +201,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         v = input()
         if logger != None:
             logger.info("VABA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
-        # print("node %d gets VABA input" % pid)
+        print("node %d gets VABA input %s" % (pid, v[0]))
 
         my_cbc_input.put_nowait(v)
         # print(v[0])
@@ -262,7 +263,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     commit_out_threads = [gevent.spawn(wait_for_commit_to_continue, node) for node in range(N)]
 
     wait_commit_signal.wait()
-    #print("Node %d finishes n-f Commit CBC" % pid)
+    # print("Node %d finishes n-f Commit CBC" % pid)
     #print(is_commit_delivered)
     #print(commit_values)
 
@@ -370,5 +371,5 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     assert a is not None
     if logger != None:
         logger.info("VABA %s completes at round %d" % (sid, r))
-    # print("node %d output in VABA" % pid)
+    print("node %d output in VABA" % pid)
     decide(cbc_outputs[a].get()[0])

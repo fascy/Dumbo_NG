@@ -85,9 +85,10 @@ class NetworkClient (Process):
     def _handle_send_loop(self):
         while not self.stop.value:
             try:
+
                 j, o = self.client_from_bft()
                 #o = self.send_queue[j].get_nowait()
-                #print('send' + str((j, o)))
+
                 #self.logger.info('send' + str((j, o)))
                 try:
                     #self._send(j, pickle.dumps(o))

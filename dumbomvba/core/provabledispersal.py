@@ -55,8 +55,7 @@ def provabledispersalbroadcast(sid, pid, N, f, PK1, SK1, leader, input, output, 
     SignThreshold = 2 * f + 1  # Wait for this many READY to output
 
     def broadcast(o):
-        for i in range(N):
-            send(i, o)
+        send(-1, o)
 
     if pid == leader:
         m = input()
@@ -163,7 +162,7 @@ def provabledispersalbroadcast(sid, pid, N, f, PK1, SK1, leader, input, output, 
                 digest = PK1.hash_message(str(('STORED', sid, roothash)))
                 assert PK1.verify_signature(Sigma1, digest)
             except Exception as e:
-                print("??Failed to validate LOCK message:", e)
+                print("Failed to validate LOCK message:", e)
                 continue
 
             # UPDATE

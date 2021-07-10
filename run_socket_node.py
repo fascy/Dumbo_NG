@@ -1,4 +1,8 @@
-from gevent import monkey; monkey.patch_all(thread=False)
+from gevent import monkey;
+
+from myexperiements.sockettest.x_d_node import XDNode
+
+monkey.patch_all(thread=False)
 
 import time
 import random
@@ -38,6 +42,8 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bf
         bft = NwAbcsNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
     elif protocol == 'xdumbo':
         bft = XDumboNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
+    elif protocol == 'xd':
+        bft = XDNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
     else:
         print("Only support dumbo or sdumbo or mule or hotstuff")
     return bft
@@ -119,6 +125,7 @@ if __name__ == '__main__':
         client_bft_mpq = mpQueue()
         #client_from_bft = client_bft_mpq.get
         client_from_bft = lambda: client_bft_mpq.get(timeout=0.00001)
+
         bft_to_client = client_bft_mpq.put_nowait
 
         server_bft_mpq = mpQueue()

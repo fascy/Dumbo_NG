@@ -1,15 +1,16 @@
 import random
 import gevent
-from gevent import Greenlet
+from gevent import Greenlet, time
 from gevent.queue import Queue
 from gevent import monkey
+from dumbomvba.core.dumbo_mvba import mvba
 from dumbomvba.core.dumbomvba import dumbo_mvba
 from crypto.threshsig.generate_keys import dealer
 
 monkey.patch_all(thread=False)
 
 # CBC
-def simple_router(N, maxdelay=0.00001, seed=None):
+def simple_router(N, maxdelay=0.001, seed=None):
     """Builds a set of connected channels, with random delay
     @return (receives, sends)
     """
@@ -22,7 +23,11 @@ def simple_router(N, maxdelay=0.00001, seed=None):
         def _send(j, o):
             delay = rnd.random() * maxdelay
             #print 'SEND %8s [%2d -> %2d] %.2f' % (o[0], i, j, delay)
-            gevent.spawn_later(delay, queues[j].put, (i,o))
+            if j == -1:
+                for t in range(N):
+                    gevent.spawn_later(delay, queues[t].put, (i, o))
+            else:
+                gevent.spawn_later(delay, queues[j].put, (i,o))
             #queues[j].put((i, o))
         return _send
 
@@ -43,7 +48,7 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
     # Note thld siganture for CBC has a threshold different from common coin's
     PK, SKs = dealer(N, f + 1)
     PK1, SK1s = dealer(N, N - f)
-
+    s_time = time.time()
     rnd = random.Random(seed)
     router_seed = rnd.random()
     # if leader is None: leader = rnd.randint(0, N-1)
@@ -54,31 +59,30 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
     inputs = [Queue(1) for _ in range(N)]
     outputs = [Queue(1) for _ in range(N)]
     for i in range(N):
-        inputs[i].put_nowait("Hello! This is a test message from node %d" % i)
+        inputs[i].put_nowait(("Hello! This is a test message from node %d" % i, i))
         print("Input to node %d has been provided" % i)
 
     for i in range(N):
-        t = Greenlet(dumbo_mvba, sid, i, N, f, PK, SKs[i], PK1, SK1s[i],
-                     inputs[i].get, outputs[i].put_nowait, recvs[i], sends[i])
+        t = Greenlet(mvba, sid, i, N, f, PK, SKs[i], PK1, SK1s[i], inputs[i].get, outputs[i].put_nowait, recvs[i], sends[i])
+        # t = Greenlet(dumbo_mvba, sid, i, N, f, PK, SKs[i], PK1, SK1s[i], inputs[i].get, outputs[i].put_nowait, recvs[i], sends[i])
         t.start()
         threads.append(t)
         print("MVBA at node %d has been instantiated" % i)
 
 
+    try:
 
-
-
-    # print("this", outputs[0].get)
-    #try:
-
-        #outs = [outputs[i].get() for i in range(N)]
+        outs = [outputs[i].get() for i in range(N)]
+        print(outs)
         try:
             gevent.joinall(threads)
+            e_time = time.time()
+            print("running time:", e_time - s_time)
         except gevent.hub.LoopExit:
             pass
-    # except KeyboardInterrupt:
-        # gevent.killall(threads)
-        #raise
+    except KeyboardInterrupt:
+        gevent.killall(threads)
+        raise
 
     # Assert the CBC-delivered values are same to the input
     # assert [t.value[0] for t in threads] == [m]*N
@@ -88,8 +92,8 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
 
 
 def test_vaba(N, f, seed):
-    _test_vaba(N=N, f=f, seed=seed)
+    _test_vaba(N=N, f=f, leader=1, seed=seed)
 
 
 if __name__ == '__main__':
-    test_vaba(4, 1, None)
+    test_vaba(4, 1, 1)
