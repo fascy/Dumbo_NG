@@ -5,8 +5,6 @@ monkey.patch_all(thread=False)
 import hashlib
 import multiprocessing
 import pickle
-import psutil
-
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
 from dumbobft.core.validatedagreement import validatedagreement
 from multiprocessing import Process, Queue

@@ -1,6 +1,5 @@
 import hashlib
 import pickle
-import psutil
 from gevent import monkey;
 
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
