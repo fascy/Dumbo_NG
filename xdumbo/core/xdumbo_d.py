@@ -95,12 +95,11 @@ class XDumbo_d:
         self.logger = set_consensus_log(pid)
         self.round = 0  # Current block number
         self.transaction_buffer = gevent.queue.Queue()
-        self._per_round_recv = [multiprocessing.Queue() for _ in range(100)]
+        self._per_round_recv = [multiprocessing.Queue() for _ in range(1000)]
         # self.output_list = defaultdict(lambda: Queue())
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N)]
         # self.mvba_recv = multiprocessing.Queue()
-        self.K = K
         self.K = K
         self.debug = debug
 
@@ -216,25 +215,26 @@ class XDumbo_d:
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
                     if self.logger != None:
                         self.tx_cnt = str(vaba_output).count("Dummy")
-                        self.txcnt += self.tx_cnt
+                        if self.round > 10 :
+                            self.txcnt += self.tx_cnt
                         self.logger.info(
                             'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
                                 self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    self.txdelay += (end - start)
+                    if self.round > 10:
+                        self.txdelay += (end - start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-
-                    if self.logger != None:
+                    if self.logger != None and self.round > 10:
                         self.logger.info(
                             "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                            (self.id, end - self.s_time, self.txcnt, (end - self.s_time) / (self.round + 1),
-                             self.txcnt / (end - self.s_time)))
-
-                    print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                          (self.id, end - self.s_time, self.txcnt, (end - self.s_time) / (self.round + 1),
-                           self.txcnt / (end - self.s_time)))
+                            (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
+                             self.txcnt / self.txdelay))
+                    if self.round > 10:
+                        print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                          (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
+                           self.txcnt / self.txdelay))
                     self.round += 1
                     count = [0 for _ in range(self.N)]
                     # print(self.round)
@@ -268,12 +268,13 @@ class XDumbo_d:
 
         # self._recv_thread = gevent.spawn(_recv_loop)
         # abcs()
-
-        self._recv_output = Process(target=_get_output)
         self._abcs = Process(target=abcs)
 
-        self._recv_output.start()
+        self._recv_output = Process(target=_get_output)
+
         self._abcs.start()
+
+        self._recv_output.start()
         # self._recv_output = gevent.spawn(_get_output)
         # self._abcs = gevent.spawn(abcs)
         self._abcs.join()
@@ -283,12 +284,12 @@ class XDumbo_d:
 
         if self.logger != None:
             self.logger.info("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                            (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
-                            self.txcnt / (self.e_time - self.s_time)))
+                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
+                              self.txcnt / (self.e_time - self.s_time)))
 
         print("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-            (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
-            self.txcnt / (self.e_time - self.s_time)))
+              (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
+               self.txcnt / (self.e_time - self.s_time)))
 
         while True:
             pass
@@ -300,7 +301,7 @@ class XDumbo_d:
         :param send:
         :param recv:
         """
-        print("run_nwabc is called! ", os.getpid())
+        # print("run_nwabc is called! ", os.getpid())
         if os.getpid() == self.op:
             return 0
         sid = self.sid
@@ -312,7 +313,7 @@ class XDumbo_d:
         # hash_genesis = hash(epoch_id)
 
         leader = i
-        print(self.transaction_buffer.qsize())
+        # print(self.transaction_buffer.qsize())
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
                          self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send,
@@ -340,8 +341,9 @@ class XDumbo_d:
         # recv_queues = BroadcastReceiverQueues(X-VABA=vaba_recv)
         bc_recv_loop_thread = gevent.spawn(broadcast_receiver_loop, recv, vaba_recv)
         # bc_recv_loop_thread.start()
-        print(pid, "start vaba round", r)
+        # print(pid, "start vaba round", r)
         self.tx_cnt = 0
+
         def _setup_vaba():
             def vaba_send(k, o):
                 """Threshold encryption broadcast."""
@@ -405,10 +407,10 @@ class XDumbo_d:
         _setup_vaba()
         out = ""
         try:
-            print("vaba is waiting for output in round ", r)
+            # print("vaba is waiting for output in round ", r)
             # gevent.sleep(0)
             out = vaba_output.get()
-            print(pid, "vaba out in round ", r, out[0])
+            # print(pid, "vaba out in round ", r, out[0])
         except:
             pass
         s = [tuple() for _ in range(N)]
@@ -421,9 +423,12 @@ class XDumbo_d:
             if self.local_view[i] < view[i]:
                 # TODO: ADD PULLING BLOCK
                 for t in range(self.local_view[i] + 1, view[i] + 1):
-                    self.txs[i][t] = "Dummy TX..."
+                    tx = ""
+                    for d in range(self.B):
+                        tx += "Dummy TX..."
+                    self.txs[i][t] = tx
                     self.sigs[i][t] = "some sigs..."
-                    print(self.txs[i][t])
+                    # print(self.txs[i][t])
             for t in range(self.local_view_s[i] + 1, view[i] + 1):
                 # print("append tx", i, t, self.txs[i][t])
                 block.append((self.txs[i][t], self.sigs[i][t]))
