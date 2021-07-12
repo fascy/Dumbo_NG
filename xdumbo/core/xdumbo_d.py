@@ -213,23 +213,23 @@ class XDumbo_d:
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
                     if self.logger != None:
                         self.tx_cnt = str(vaba_output).count("Dummy")
-                        if self.round > 10 :
+                        if self.round > 5:
                             self.txcnt += self.tx_cnt
                         self.logger.info(
                             'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
                                 self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    if self.round > 10:
+                    if self.round > 5:
                         self.txdelay += (end - start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-                    if self.logger != None and self.round > 10:
+                    if self.logger != None and self.round > 5:
                         self.logger.info(
                             "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
                             (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
                              self.txcnt / self.txdelay))
-                    if self.round > 10:
+                    if self.round > 5:
                         print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
                           (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
                            self.txcnt / self.txdelay))
