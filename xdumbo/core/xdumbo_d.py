@@ -93,7 +93,7 @@ class XDumbo_d:
         self.logger = set_consensus_log(pid)
         self.round = 0  # Current block number
         self.transaction_buffer = gevent.queue.Queue()
-        self._per_round_recv = [multiprocessing.Queue() for _ in range(200)]
+        self._per_round_recv = [multiprocessing.Queue() for _ in range(50)]
         # self.output_list = defaultdict(lambda: Queue())
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N)]
