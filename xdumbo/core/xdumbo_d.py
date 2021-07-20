@@ -169,8 +169,9 @@ class XDumbo_d:
                 except:
                     continue
 
-        self._recv_thread = Process(target=_recv_loop)
-        self._recv_thread.start()
+
+        # self._recv_thread = Process(target=_recv_loop)
+        # self._recv_thread.start()
 
         # self._recv_thread.start()
 
@@ -288,6 +289,8 @@ class XDumbo_d:
         self._abcs.start()
 
         self._recv_output.start()
+        self._recv_thread = gevent.spawn(_recv_loop)
+        self._recv_thread.join()
         # self._recv_output = gevent.spawn(_get_output)
         # self._abcs = gevent.spawn(abcs)
         self._abcs.join()
