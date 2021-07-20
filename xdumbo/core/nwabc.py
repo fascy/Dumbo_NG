@@ -196,10 +196,10 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     if logger is not None: logger.info("ecdsa signature failed!")
                     continue
                 if output is not None:
-                    output((sid, s-1, last_tx, last_sigs))
+                    output((sid, s-1, hash(str(last_tx)), last_sigs))
                     # if (s-1) % 10 == 0:
                         # print("output", (sid, s-1))
-                    if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                    # if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
                     gevent.sleep(0)
             try:
                 tx_s = Txs[s].get()

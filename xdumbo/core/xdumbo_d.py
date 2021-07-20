@@ -93,11 +93,11 @@ class XDumbo_d:
         self.logger = set_consensus_log(pid)
         self.round = 0  # Current block number
         self.transaction_buffer = gevent.queue.Queue()
-        self._per_round_recv = [multiprocessing.Queue() for _ in range(50)]
+        self._per_round_recv = multiprocessing.Queue()
         # self.output_list = defaultdict(lambda: Queue())
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N)]
-        # self.mvba_recv = multiprocessing.Queue()
+        self.mvba_recv = multiprocessing.Queue()
         self.K = K
         self.debug = debug
 
@@ -163,8 +163,8 @@ class XDumbo_d:
                         # Maintain an *unbounded* recv queue for each epoch
                         # Buffer this message
                         # print(self.id, 'recv' + str((sender, msg[0])))
-                        self._per_round_recv[r].put_nowait((sender, msg))
-                        # self.mvba_recv.put((sender, (r, msg)))
+                        # self._per_round_recv.put_nowait((r, (sender, msg)))
+                        self.mvba_recv.put((r, (sender, msg)))
                         # print("mvba put:", self._per_round_recv[r])
                 except:
                     continue
@@ -175,8 +175,22 @@ class XDumbo_d:
         # self._recv_thread.start()
 
         def _get_output():
+            self._per_round_recv = {}  # Buffer of incoming messages
             self.op = os.getpid()
             print("output process id:", self.op)
+
+            def handelmsg():
+                if os.getpid()!= self.op:
+                    return
+                while True:
+                    (r0, (sender, msg)) = self.mvba_recv.get(timeout=100)
+                    if r0 not in self._per_round_recv:
+                        self._per_round_recv[r0] = gevent.queue.Queue()
+
+                    self._per_round_recv[r0].put_nowait((sender, msg))
+
+            self._recv_thread = Greenlet(handelmsg)
+            self._recv_thread.start()
 
             count = [0 for _ in range(self.N)]
             while True:
@@ -200,8 +214,9 @@ class XDumbo_d:
                 if count.count(1) >= self.N - self.f:
                     print(self.id, self.local_view)
                     vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N)],
-                                  [hash(self.txs[j][self.local_view[j]]) for j in range(self.N)])
-
+                                  [self.txs[j][self.local_view[j]] for j in range(self.N)])
+                    if r not in self._per_round_recv:
+                        self._per_round_recv[r] = gevent.queue.Queue()
                     def _make_send(r):
                         def _send(j, o):
                             self._send(j, (r, o))
@@ -212,26 +227,26 @@ class XDumbo_d:
                     recv_r = self._per_round_recv[r].get
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
                     if self.logger != None:
-                        self.tx_cnt = str(vaba_output).count("Dummy")
-                        if self.round > 2:
+                        # self.tx_cnt = str(vaba_output).count("Dummy")
+                        if self.round > 5:
                             self.txcnt += self.tx_cnt
                         self.logger.info(
                             'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
                                 self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    if self.round > 2:
+                    if self.round > 5:
                         self.txdelay += (end - start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-                    if self.logger != None and self.round > 2:
+                    if self.logger != None and self.round > 5:
                         self.logger.info(
                             "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                            (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
+                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-5),
                              self.txcnt / self.txdelay))
-                    if self.round > 2:
+                    if self.round > 5:
                         print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                          (self.id, end - self.s_time, self.txcnt, self.txdelay / self.round,
+                          (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-5),
                            self.txcnt / self.txdelay))
                     self.round += 1
                     count = [0 for _ in range(self.N)]
@@ -365,14 +380,16 @@ class XDumbo_d:
                     # find tx in local first
                     if view[i] <= self.local_view[i]:
                         try:
-                            assert hash(self.txs[i][view[i]]) == hashlist[i]
+                            assert self.txs[i][view[i]] == hashlist[i]
                         except:
+                            print("error 1")
                             return False
                     # then find in hash table
                     elif view[i] in self.hashtable[i].keys():
                         try:
                             assert self.hashtable[i][view[i]] == hashlist[i]
                         except:
+                            print("error 2")
                             return False
                     # have to check sig and regist in hash table
                     else:
@@ -385,6 +402,7 @@ class XDumbo_d:
                                 assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
                         except AssertionError:
                             if self.logger is not None: self.logger.info("ecdsa signature failed!")
+                            print("ecdsa signature failed!")
                             return False
                         self.hashtable[i][view[i]] = hashlist[i]
                 return True
@@ -430,7 +448,7 @@ class XDumbo_d:
             for t in range(self.local_view_s[i] + 1, view[i] + 1):
                 # print("append tx", i, t, self.txs[i][t])
                 block.append((self.txs[i][t], self.sigs[i][t]))
-                # self.tx_cnt += 1
+                self.tx_cnt += 1 * self.B
         self.local_view_s = view
         # print(block)
         return block
