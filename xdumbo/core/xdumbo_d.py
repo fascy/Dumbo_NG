@@ -227,27 +227,28 @@ class XDumbo_d:
                     send_r = _make_send(r)
                     recv_r = self._per_round_recv[r].get
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
+                    countpoint = 1
                     if self.logger != None:
                         # self.tx_cnt = str(vaba_output).count("Dummy")
-                        if self.round > 5:
+                        if self.round > countpoint:
                             self.txcnt += self.tx_cnt
                         self.logger.info(
                             'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
                                 self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    if self.round > 5:
+                    if self.round > countpoint:
                         self.txdelay += (end - start)
                     if self.logger != None:
                         self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-                    if self.logger != None and self.round > 5:
+                    if self.logger != None and self.round > countpoint:
                         self.logger.info(
                             "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-5),
+                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-countpoint),
                              self.txcnt / self.txdelay))
-                    if self.round > 5:
+                    if self.round > countpoint:
                         print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                          (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-5),
+                          (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-countpoint),
                            self.txcnt / self.txdelay))
                     self.round += 1
                     count = [0 for _ in range(self.N)]
@@ -333,7 +334,7 @@ class XDumbo_d:
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
                          self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send,
-                         self.logger, os.getpid())
+                         self.logger, 1)
         self.threads.append(t)
 
     def _run_VABA_round(self, r, tx_to_send, send, recv):

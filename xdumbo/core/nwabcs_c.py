@@ -136,14 +136,16 @@ class Nwabcs():
 
             self._run(send, recv, i)
 
-        gevent.joinall(self.threads)
+        gevent.joinall(self.threads,timeout=100)
         self.e_time = time.time()
-
+        self.txcnt=0
+        for i in range(self.N):
+            self.txcnt += self.output_list[i].qsize()*self.FAST_BATCH_SIZE
         if self.logger != None:
-            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
-                             (self.id, self.e_time-self.s_time, self.txcnt, self.txdelay) )
-        print("node %d breaks in %f seconds with total delivered Txs %d and average delay %f" %
-                (self.id, self.e_time-self.s_time, self.txcnt, self.txdelay)
+            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d and tps %f" %
+                             (self.id, self.e_time-self.s_time, self.txcnt, self.txcnt/(self.e_time-self.s_time)) )
+        print("node %d breaks in %f seconds with total delivered Txs %d and tps %f" %
+                (self.id, self.e_time-self.s_time, self.txcnt, self.txcnt/(self.e_time-self.s_time))
                  )
 
     #

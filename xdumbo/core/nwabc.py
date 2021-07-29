@@ -46,8 +46,9 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 sent after receiving ``PROPOSAL`` message
 
     """
-    if os.getpid() != pro:
-        return
+    #if os.getpid() != pro:
+    #    print("this")
+    #    return
     print("pd start pid:", pid, "leder:",leader, os.getpid())
     assert N >= 3 * f + 1
     assert f >= 0
@@ -198,8 +199,9 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 if output is not None:
                     output((sid, s-1, hash(str(last_tx)), last_sigs))
                     # if (s-1) % 10 == 0:
-                        # print("output", (sid, s-1))
-                    # if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                    # print("output", (sid, s-1))
+                    if pro==0:
+                        if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
                     gevent.sleep(0)
             try:
                 tx_s = Txs[s].get()
