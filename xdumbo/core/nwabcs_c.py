@@ -91,6 +91,7 @@ class Nwabcs():
 
         self.mute = mute
         self.threads = []
+
     def submit_tx(self, tx):
         """Appends the given transaction to the transaction buffer.
 
@@ -136,7 +137,9 @@ class Nwabcs():
 
             self._run(send, recv, i)
 
-        gevent.joinall(self.threads,timeout=100)
+        gevent.joinall(self.threads,timeout=50)
+
+
         self.e_time = time.time()
         self.txcnt=0
         for i in range(self.N):
@@ -144,6 +147,7 @@ class Nwabcs():
         if self.logger != None:
             self.logger.info("node %d breaks in %f seconds with total delivered Txs %d and tps %f" %
                              (self.id, self.e_time-self.s_time, self.txcnt, self.txcnt/(self.e_time-self.s_time)) )
+            
         print("node %d breaks in %f seconds with total delivered Txs %d and tps %f" %
                 (self.id, self.e_time-self.s_time, self.txcnt, self.txcnt/(self.e_time-self.s_time))
                  )
@@ -169,7 +173,7 @@ class Nwabcs():
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id+str(i), pid, N, f,  self.FAST_BATCH_SIZE,
                                         self.sPK2s, self.sSK2, leader,
-                                        self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send, self.logger)
+                                        self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send, self.logger, 1)
         self.threads.append(t)
         #nwabc_threads.join()
 

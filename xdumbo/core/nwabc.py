@@ -2,6 +2,7 @@ from gevent import monkey; monkey.patch_all(thread=False)
 import json
 import hashlib, pickle
 from collections import defaultdict
+import time
 
 import gevent
 from gevent.event import Event
@@ -15,7 +16,7 @@ import os
 stop = 0
 
 
-def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, receive, send, logger=None, pro=0):
+def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, receive, send, logger=None, pro=1):
     """nw-abc
 
     :param sid: session id
@@ -71,6 +72,10 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     stop = 0
     # print(pid, "start to run ", sid)
 
+    s_time = 0
+    e_time = 0
+    tps = 0
+
     def hash(x):
         return hashlib.sha256(pickle.dumps(x)).digest()
 
@@ -86,6 +91,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
         # print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], 0))
     stop = 0
+
+    s_time = time.time()
 
     def handel_messages():
         print("start to handel msg")
@@ -229,4 +236,10 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     gevent.sleep(0)
     outpt_thread = gevent.spawn(decide_output)
     gevent.joinall([recv_thread, outpt_thread])
+    e_time = time.time()
+
+    tps = Bsize * (s - 1) / (e_time - s_time)
+    if logger is not None: logger.info(
+        "node: %d sid: %s tps: %d" % (pid, str(sid) + " " + str(s - 1), tps))
+
     # outpt_thread.join()
