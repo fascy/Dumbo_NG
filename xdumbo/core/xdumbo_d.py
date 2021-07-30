@@ -198,19 +198,23 @@ class XDumbo_d:
                 r = self.round
                 # print(r, "start!")
                 start = time.time()
-                for i in range(self.N):
-                    # print("output list:", self.output_list[i])
-                    while self.output_list[i].qsize() > 0:
-                        out = self.output_list[i].get()
-                        # print("nwabc out:", out)
-                        (_, s, tx, sig) = out
-                        self.local_view[i] += 1
-                        self.txs[i][self.local_view[i]] = tx
-                        self.sigs[i][self.local_view[i]] = sig
+                while True:
+                    for i in range(self.N):
+                        # print("output list:", self.output_list[i])
+                        while self.output_list[i].qsize() > 0:
+                            out = self.output_list[i].get()
+                            # print("nwabc out:", out)
+                            (_, s, tx, sig) = out
+                            self.local_view[i] += 1
+                            self.txs[i][self.local_view[i]] = tx
+                            self.sigs[i][self.local_view[i]] = sig
 
-                        # print("------------output:", out)
-                    if self.local_view[i] - self.local_view_s[i] > 0:
-                        count[i] = 1
+                            # print("------------output:", out)
+                        if self.local_view[i] - self.local_view_s[i] > 0:
+                            count[i] = 1
+                    if count.count(1) >= self.N - self.f:
+                        break
+                    time.sleep(0.001)
                 # print("round ", r, ":", count)
                 if count.count(1) >= self.N - self.f:
                     print(self.id, self.local_view)
