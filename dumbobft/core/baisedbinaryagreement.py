@@ -1,3 +1,6 @@
+import hashlib
+import pickle
+
 from gevent import monkey; monkey.patch_all(thread=False)
 import time
 
@@ -6,6 +9,8 @@ from gevent.event import Event
 from collections import defaultdict
 from honeybadgerbft.exceptions import RedundantMessageError, AbandonedNodeError
 
+def hash(x):
+    return hashlib.sha256(pickle.dumps(x)).digest()
 
 def handle_conf_messages(*, sender, message, conf_values, pid, bv_signal):
     _, r, v = message
@@ -132,7 +137,7 @@ def baisedbinaryagreement(sid, pid, N, f, coin, input, decide, receive, send, lo
 
     start = time.time()
     # print(pid, sid, 'PRE-EXITING CRITICAL', vi)
-
+    cheap_coins = int.from_bytes(hash(sid), byteorder='big')
     assert vi in (0, 1)
     est = vi
     r = 0
@@ -204,7 +209,10 @@ def baisedbinaryagreement(sid, pid, N, f, coin, input, decide, receive, send, lo
         if r == 0:
             s = 1
         else:
-            s = coin(r)
+            if r < 15:
+                s = (cheap_coins >> r) & 1
+            else:
+                s = coin(r)
 
         try:
             assert s in (0, 1)

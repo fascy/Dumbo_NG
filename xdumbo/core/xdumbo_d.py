@@ -119,7 +119,7 @@ class XDumbo_d:
 
         self.op = 0
         self.ap = 0
-
+        self.countpoint = 1
     def submit_tx(self, tx):
         """Appends the given transaction to the transaction buffer.
 
@@ -227,29 +227,29 @@ class XDumbo_d:
                     send_r = _make_send(r)
                     recv_r = self._per_round_recv[r].get
                     vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
-                    countpoint = 1
+
                     if self.logger != None:
                         # self.tx_cnt = str(vaba_output).count("Dummy")
-                        if self.round > countpoint:
+                        if self.round > self.countpoint:
                             self.txcnt += self.tx_cnt
-                        self.logger.info(
-                            'Node %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
-                                self.id, r, self.tx_cnt, self.txcnt))
+                        #self.logger.info(
+                            #'Node: %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
+                                #self.id, r, self.tx_cnt, self.txcnt))
                     end = time.time()
-                    if self.round > countpoint:
+                    if self.round > self.countpoint:
                         self.txdelay += (end - start)
-                    if self.logger != None:
-                        self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
+                    #if self.logger != None:
+                    #    self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-                    if self.logger != None and self.round > countpoint:
+                    if self.logger != None and self.round > self.countpoint:
                         self.logger.info(
-                            "node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-countpoint),
+                            "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
+                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
                              self.txcnt / self.txdelay))
-                    if self.round > countpoint:
-                        print("node %d has run %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                          (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round-countpoint),
-                           self.txcnt / self.txdelay))
+                    if self.round > self.countpoint:
+                        print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
+                         (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
+                          self.txcnt / self.txdelay))
                     self.round += 1
                     count = [0 for _ in range(self.N)]
                     # print(self.round)
@@ -291,25 +291,25 @@ class XDumbo_d:
 
         self._recv_output.start()
         self._recv_thread = gevent.spawn(_recv_loop)
-        self._recv_thread.join()
+        # self._recv_thread.join()
         # self._recv_output = gevent.spawn(_get_output)
         # self._abcs = gevent.spawn(abcs)
-        self._abcs.join()
+        self._abcs.join(timeout=1000)
         # print("-----------------------------start to join")
         # self._recv_output.join()
         self.e_time = time.time()
 
-        if self.logger != None:
-            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-                             (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
-                              self.txcnt / (self.e_time - self.s_time)))
+        #if self.logger != None:
+            # self.logger.info("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+                             # (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
+                             #  self.txcnt / (self.e_time - self.s_time)))
 
-        print("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
-              (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round + 1),
-               self.txcnt / (self.e_time - self.s_time)))
+        # print("node %d breaks in %f seconds with total delivered Txs %d, average delay %f, tps: %f" %
+              # (self.id, self.e_time - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
+              #  self.txcnt / (self.e_time - self.s_time)))
 
-        while True:
-            pass
+        # while True:
+        #     pass
 
     def _run_nwabc(self, send, recv, i):
         """Run one NWABC instance.

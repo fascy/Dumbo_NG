@@ -201,7 +201,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     # if (s-1) % 10 == 0:
                     # print("output", (sid, s-1))
                     if pro==0:
-                        if logger is not None: logger.info("%d: output %s, %d txs has output" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
+                        if logger is not None: logger.info("node: %d sid: %s total: %d" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
                     gevent.sleep(0)
             try:
                 tx_s = Txs[s].get()

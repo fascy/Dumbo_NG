@@ -77,7 +77,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     :param predicate: ``predicate()`` represents the externally validated condition
     """
 
-    print("Starts to run validated agreement...")
+    # print("Starts to run validated agreement...")
 
     assert PK.k == f+1
     assert PK.l == N
@@ -280,6 +280,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     """
     Repeatedly run biased ABA instances until 1 is output 
     """
+
 
     r = 0
     a = None
