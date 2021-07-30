@@ -137,7 +137,7 @@ class Nwabcs():
 
             self._run(send, recv, i)
 
-        gevent.joinall(self.threads,timeout=50)
+        gevent.joinall(self.threads,timeout=45)
 
 
         self.e_time = time.time()
@@ -173,7 +173,7 @@ class Nwabcs():
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id+str(i), pid, N, f,  self.FAST_BATCH_SIZE,
                                         self.sPK2s, self.sSK2, leader,
-                                        self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send, self.logger, 1)
+                                        self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send, self.logger)
         self.threads.append(t)
         #nwabc_threads.join()
 
