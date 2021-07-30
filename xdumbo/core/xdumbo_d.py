@@ -193,11 +193,11 @@ class XDumbo_d:
             self._recv_thread = Greenlet(handelmsg)
             self._recv_thread.start()
 
-            count = [0 for _ in range(self.N)]
             while True:
-                r = self.round
+
                 # print(r, "start!")
                 start = time.time()
+                count = [0 for _ in range(self.N)]
                 while True:
                     for i in range(self.N):
                         # print("output list:", self.output_list[i])
@@ -215,52 +215,50 @@ class XDumbo_d:
                     if count.count(1) >= self.N - self.f:
                         break
                     time.sleep(0.001)
-                # print("round ", r, ":", count)
-                if count.count(1) >= self.N - self.f:
-                    print(self.id, self.local_view)
-                    vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N)],
-                                  [self.txs[j][self.local_view[j]] for j in range(self.N)])
-                    if r not in self._per_round_recv:
-                        self._per_round_recv[r] = gevent.queue.Queue()
-                    def _make_send(r):
-                        def _send(j, o):
-                            self._send(j, (r, o))
 
-                        return _send
+                print(self.id, self.round, os.getpid(), self.local_view)
 
-                    send_r = _make_send(r)
-                    recv_r = self._per_round_recv[r].get
-                    vaba_output = self._run_VABA_round(r, vaba_input, send_r, recv_r)
+                vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N)],
+                              [self.txs[j][self.local_view[j]] for j in range(self.N)])
 
-                    if self.logger != None:
-                        # self.tx_cnt = str(vaba_output).count("Dummy")
-                        if self.round > self.countpoint:
-                            self.txcnt += self.tx_cnt
-                        #self.logger.info(
-                            #'Node: %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
-                                #self.id, r, self.tx_cnt, self.txcnt))
-                    end = time.time()
+                if self.round not in self._per_round_recv:
+                    self._per_round_recv[self.round] = gevent.queue.Queue()
+
+                def _make_send(r):
+                    def _send(j, o):
+                        self._send(j, (r, o))
+
+                    return _send
+
+                send_r = _make_send(self.round)
+                recv_r = self._per_round_recv[self.round].get
+
+                self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
+
+                if self.logger != None:
                     if self.round > self.countpoint:
-                        self.txdelay += (end - start)
-                    #if self.logger != None:
-                    #    self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
+                        self.txcnt += self.tx_cnt
+                    #self.logger.info(
+                        #'Node: %d Delivers ACS Block in Round %d with having %d TXs, %d TXs in total' % (
+                            #self.id, r, self.tx_cnt, self.txcnt))
+                end = time.time()
+                if self.round > self.countpoint:
+                    self.txdelay += (end - start)
+                #if self.logger != None:
+                #    self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
-                    if self.logger != None and self.round > self.countpoint:
-                        self.logger.info(
-                            "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
-                            (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
-                             self.txcnt / self.txdelay))
-                    if self.round > self.countpoint:
-                        print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
-                         (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
-                          self.txcnt / self.txdelay))
-                    self.round += 1
-                    count = [0 for _ in range(self.N)]
-                    # print(self.round)
-                else:
-                    # gevent.sleep(0)
-                    # print("not enough tx still")
-                    continue
+                if self.logger != None and self.round > self.countpoint:
+                    self.logger.info(
+                        "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
+                        (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
+                         self.txcnt / self.txdelay))
+                if self.round > self.countpoint:
+                    print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
+                     (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
+                      self.txcnt / self.txdelay))
+                self.round += 1
+
+
 
         self.s_time = time.time()
         if self.logger != None:
@@ -429,19 +427,12 @@ class XDumbo_d:
             vaba_thread.start()
 
         _setup_vaba()
-        out = ""
-        try:
-            # print("vaba is waiting for output in round ", r)
-            # gevent.sleep(0)
-            out = vaba_output.get()
-            # print(pid, "vaba out in round ", r, out[0])
-        except:
-            pass
-        s = [tuple() for _ in range(N)]
-        view = []
+
+        out = vaba_output.get()
+
         (view, s, txhash) = out
         # print("view:", view, "  v_s", self.local_view_s, "v:", self.local_view)
-        block = []
+        #block = []
         for i in range(N):
             # check sigs in s[i][view[i]]
             if self.local_view[i] < view[i]:
@@ -455,8 +446,8 @@ class XDumbo_d:
                     # print(self.txs[i][t])
             for t in range(self.local_view_s[i] + 1, view[i] + 1):
                 # print("append tx", i, t, self.txs[i][t])
-                block.append((self.txs[i][t], self.sigs[i][t]))
+                #block.append((self.txs[i][t], self.sigs[i][t]))
                 self.tx_cnt += 1 * self.B
         self.local_view_s = view
         # print(block)
-        return block
+        return []

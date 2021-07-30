@@ -102,7 +102,7 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
             try:
                 assert ecdsa_vrfy(PK2s[j], digestFromLeader, sig)
             except AssertionError:
-                print("Signature share failed in CBC!", (sid, pid, j, msg))
+                #print("Signature share failed in CBC!", (sid, pid, j, msg))
                 continue
             #print("I accept CBC_ECHO from node %d" % j)
             cbc_echo_sshares[j] = sig
@@ -126,7 +126,7 @@ def consistentbroadcast(sid, pid, N, f, PK2s, SK2, leader, input, receive, send,
                 for (i, sig_i) in sigmas:
                     assert ecdsa_vrfy(PK2s[i], digest, sig_i)
             except AssertionError:
-                print("Signature failed!", (sid, pid, j, msg))
+                #print("Signature failed!", (sid, pid, j, msg))
                 continue
             # print("CBC finished for leader", leader)
 

@@ -1,4 +1,6 @@
 from gevent import monkey; monkey.patch_all(thread=False)
+import hashlib
+import pickle
 
 import copy
 import time
@@ -54,7 +56,8 @@ def recv_loop(recv_func, recv_queues):
             traceback.print_exc(e)
         gevent.sleep(0)
 
-
+def hash(x):
+    return hashlib.sha256(pickle.dumps(x)).digest()
 
 def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decide, receive, send, predicate=lambda x: True, logger=None):
     """Multi-valued Byzantine consensus. It takes an input ``vi`` and will
@@ -178,8 +181,12 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         """
         send(-1, ('VABA_COIN', 'leader_election', o))
 
+
+
+
     permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
                                PK, SK, coin_bcast, coin_recv.get, single_bit=False)
+
     # print(pid, "coin share start")
     # False means to get a coin of 256 bits instead of a single bit
 
@@ -270,7 +277,11 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     """
     Run a Coin instance to permute the nodes' IDs to sequentially elect the leaders
     """
-    seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
+
+    seed = int.from_bytes(hash(sid), byteorder='big') % (2**10 - 1)
+
+    #seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
+
     # print(seed)
     np.random.seed(seed)
     pi = np.random.permutation(N)
@@ -281,12 +292,17 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     Repeatedly run biased ABA instances until 1 is output 
     """
 
-
     r = 0
     a = None
     votes = defaultdict(set)
 
     while True:
+
+        if r == 10:
+            seed = permutation_coin('permutation')
+            np.random.seed(seed)
+            pi = np.random.permutation(N)
+
         #gevent.sleep(0)
         a = pi[r]
         if is_cbc_delivered[a] == 1:
