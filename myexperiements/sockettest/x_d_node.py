@@ -68,7 +68,7 @@ class XDNode (XDumbo_d):
         tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
         if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
             k = 0
-            for _ in range(self.K + 1):
+            for _ in range(self.K):
                 for r in range(max(self.B * self.SLOTS_NUM, 1)):
                     suffix = hex(self.id) + hex(r) + ">"
                     XDumbo_d.submit_tx(self, tx[:-len(suffix)] + suffix)

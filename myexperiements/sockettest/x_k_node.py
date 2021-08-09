@@ -1,7 +1,10 @@
 import gevent
-from gevent import monkey, Greenlet; monkey.patch_all(thread=False)
+from gevent import monkey, Greenlet;
 
-from xdumbo.core.nwabcs_c import Nwabcs
+from xdumbo.core.xdumbo_k import XDumbo_k
+
+monkey.patch_all(thread=False)
+
 
 from typing import List, Callable
 import os
@@ -42,7 +45,7 @@ def load_key(id, N):
     return sPK, sPK1, sPK2s, ePK, sSK, sSK1, sSK2, eSK
 
 
-class NwAbcsNode (Nwabcs):
+class XDKNode (XDumbo_k):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
                  bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
@@ -54,7 +57,7 @@ class NwAbcsNode (Nwabcs):
         self.ready = ready
         self.stop = stop
         self.mode = mode
-        Nwabcs.__init__(self,sid, id, max(S, 10), max(int(Bfast), 1), N, f,
+        XDumbo_k.__init__(self,sid, id, max(S, 10), max(int(Bfast), 1), N, f,
                        self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
                        send=None, recv=None, K=K, mute=mute)
 
@@ -65,14 +68,13 @@ class NwAbcsNode (Nwabcs):
         tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
         if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
             k = 0
-            for _ in range(self.K):
-                for r in range(max(self.FAST_BATCH_SIZE * self.SLOTS_NUM, 1)):
+            for k in range(self.K):
+                for r in range(max(self.B * self.SLOTS_NUM, 1)):
                     suffix = hex(self.id) + hex(r) + ">"
-                    Nwabcs.submit_tx(self, tx[:-len(suffix)] + suffix)
+                    XDumbo_k.submit_tx(self, tx[:-len(suffix)] + suffix, k)
                     # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
-                    k += 1
                     if r % 50000 == 0:
-                        self.logger.info('node id %d just inserts 50000 TXs' % (self.id))
+                        self.logger.info('node id %d just inserts 50000 TXs into instance %d' % (self.id, k))
         else:
             pass
             # TODO: submit transactions through tx_buffer

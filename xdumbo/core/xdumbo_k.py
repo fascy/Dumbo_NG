@@ -23,7 +23,7 @@ from honeybadgerbft.core.honeybadger_block import honeybadger_block
 from honeybadgerbft.exceptions import UnknownTagError
 from xdumbo.core.nwabc import nwatomicbroadcast
 
-# v:multiprocess
+# v : k nwabc instances
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -71,7 +71,7 @@ def broadcast_receiver_loop(recv_func, recv_queues):
             traceback.print_exc(e)
 
 
-class XDumbo_d:
+class XDumbo_k:
     def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False,
                  debug=False):
 
@@ -92,14 +92,15 @@ class XDumbo_d:
         self._send = send
         self._recv = recv
         self.logger = set_consensus_log(pid)
+        self.K = K
         self.round = 0  # Current block number
-        self.transaction_buffer = gevent.queue.Queue()
+        self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
         self._per_round_recv = multiprocessing.Queue()
         # self.output_list = defaultdict(lambda: Queue())
-        self.output_list = [multiprocessing.Queue() for _ in range(N)]
-        self.fast_recv = [multiprocessing.Queue() for _ in range(N)]
+        self.output_list = [multiprocessing.Queue() for _ in range(N*self.K)]
+        self.fast_recv = [multiprocessing.Queue() for _ in range(N*self.K)]
         self.mvba_recv = multiprocessing.Queue()
-        self.K = K
+
         self.debug = debug
 
         self.s_time = 0
@@ -111,8 +112,8 @@ class XDumbo_d:
         self.mute = mute
         self.threads = []
 
-        self.local_view = [0] * N
-        self.local_view_s = [0] * N
+        self.local_view = [0] * (N*self.K)
+        self.local_view_s = [0] * (N*self.K)
         self.txs = defaultdict(lambda: defaultdict())
         self.sigs = defaultdict(lambda: defaultdict(lambda: tuple()))
         self.r = 1
@@ -121,12 +122,12 @@ class XDumbo_d:
         self.op = 0
         self.ap = 0
         self.countpoint = 1
-    def submit_tx(self, tx):
+    def submit_tx(self, tx, j):
         """Appends the given transaction to the transaction buffer.
 
         :param tx: Transaction to append to the buffer.
         """
-        self.transaction_buffer.put_nowait(tx)
+        self.transaction_buffer[j].put_nowait(tx)
 
     def run_bft(self):
         """Run the XDumbo protocol."""
@@ -138,7 +139,7 @@ class XDumbo_d:
                 while True:
                     time.sleep(10)
 
-        for i in range(self.N):
+        for i in range(self.N*self.K):
             self.sigs[i][0] = ()
             self.txs[i][0] = ""
 
@@ -158,7 +159,7 @@ class XDumbo_d:
                     # self.logger.info('recv1' + str((sender, o)))
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
                         self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
-                        # print(self.id, 'recv' + str((sender, msg[0],int(msg[1][6:]))))
+                        print(self.id, 'recv' + str((sender, msg[0],int(msg[1]))))
                     else:
                         # (tag, j, m) = msg
                         # Maintain an *unbounded* recv queue for each epoch
@@ -201,26 +202,27 @@ class XDumbo_d:
                 count = [0 for _ in range(self.N)]
                 while True:
                     for i in range(self.N):
-                        # print("output list:", self.output_list[i])
-                        while self.output_list[i].qsize() > 0:
-                            out = self.output_list[i].get()
-                            # print("nwabc out:", out)
-                            (_, s, tx, sig) = out
-                            self.local_view[i] += 1
-                            self.txs[i][self.local_view[i]] = tx
-                            self.sigs[i][self.local_view[i]] = sig
+                        for j in range(self.K):
+                            # print("output list:", self.output_list[i])
+                            while self.output_list[i*self.K+j].qsize() > 0:
+                                out = self.output_list[i*self.K+j].get()
+                                # print("nwabc out:", out)
+                                (_, s, tx, sig) = out
+                                self.local_view[i*self.K+j] += 1
+                                self.txs[i*self.K+j][self.local_view[i*self.K+j]] = tx
+                                self.sigs[i*self.K+j][self.local_view[i*self.K+j]] = sig
 
-                            # print("------------output:", out)
-                        if self.local_view[i] - self.local_view_s[i] > 0:
-                            count[i] = 1
+                                # print("------------output:", out)
+                            if self.local_view[i*self.K+j] - self.local_view_s[i*self.K+j] > 0:
+                                count[i] = 1
                     if count.count(1) >= self.N - self.f:
                         break
                     time.sleep(0.001)
 
                 print(self.id, self.round, os.getpid(), self.local_view)
 
-                vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N)],
-                              [self.txs[j][self.local_view[j]] for j in range(self.N)])
+                vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N*self.K)],
+                              [self.txs[j][self.local_view[j]] for j in range(self.N*self.K)])
 
                 if self.round not in self._per_round_recv:
                     self._per_round_recv[self.round] = gevent.queue.Queue()
@@ -274,12 +276,13 @@ class XDumbo_d:
         # run n nwabc instances
         def abcs():
             self.ap = os.getpid()
-            print("run n abcs:", os.getpid())
+            print("run n*k abcs:", os.getpid())
             for i in range(0, self.N):
-                send = _make_send_nwabc()
-                recv = self.fast_recv[i].get
+                for j in range(self.K):
+                    send = _make_send_nwabc()
+                    recv = self.fast_recv[i * self.K + j].get
 
-                self._run_nwabc(send, recv, i)
+                    self._run_nwabc(send, recv, i, j)
             gevent.joinall(self.threads)
 
             # return 0
@@ -314,7 +317,7 @@ class XDumbo_d:
         # while True:
         #     pass
 
-    def _run_nwabc(self, send, recv, i):
+    def _run_nwabc(self, send, recv, i, j):
         """Run one NWABC instance.
 
         :param int e: epoch id
@@ -334,9 +337,9 @@ class XDumbo_d:
 
         leader = i
         # print(self.transaction_buffer.qsize())
-        t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i), pid, N, f, self.B,
+        t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i*self.K+j), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
-                         self.transaction_buffer.get_nowait, self.output_list[i].put_nowait, recv, send,
+                         self.transaction_buffer[j].get_nowait, self.output_list[i * self.K + j].put_nowait, recv, send,
                          self.logger, 1)
         self.threads.append(t)
 
@@ -371,47 +374,51 @@ class XDumbo_d:
                 send(k, ('X_VABA', '', o))
 
             def vaba_predicate(vj):
-                siglist = [tuple() for _ in range(N)]
+                siglist = [tuple() for _ in range(N*self.K)]
                 (view, siglist, hashlist) = vj
                 # check n-f gorws
                 cnt2 = 0
                 for i in range(N):
-                    if view[i] == 0:
-                        continue
-                    if view[i] - self.local_view_s[i] > 0:
-                        cnt2 += 1
+                    for j in range(self.K):
+                        if view[i*self.K+j] == 0:
+                            continue
+                        if view[i*self.K+j] - self.local_view_s[i*self.K+j] > 0:
+                            cnt2 += 1
+                            break
+
                 if cnt2 < N - f:
                     return False
                 # check all sig
                 for i in range(N):
+                    for j in range(self.K):
                     # find tx in local first
-                    if view[i] <= self.local_view[i]:
-                        try:
-                            assert self.txs[i][view[i]] == hashlist[i]
-                        except:
-                            print("error 1")
-                            return False
-                    # then find in hash table
-                    elif view[i] in self.hashtable[i].keys():
-                        try:
-                            assert self.hashtable[i][view[i]] == hashlist[i]
-                        except:
-                            print("error 2")
-                            return False
-                    # have to check sig and regist in hash table
-                    else:
-                        sid_r = self.sid + 'nw' + str(i)
-                        try:
-                            digest2 = hashlist[i] + hash(str((sid_r, view[i])))
-                            for item in siglist[i]:
-                                # print(Sigma_p)
-                                (sender, sig_p) = item
-                                assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
-                        except AssertionError:
-                            if self.logger is not None: self.logger.info("ecdsa signature failed!")
-                            print("ecdsa signature failed!")
-                            return False
-                        self.hashtable[i][view[i]] = hashlist[i]
+                        if view[i*self.K+j] <= self.local_view[i*self.K+j]:
+                            try:
+                                assert self.txs[i*self.K+j][view[i*self.K+j]] == hashlist[i*self.K+j]
+                            except:
+                                print("error 1")
+                                return False
+                        # then find in hash table
+                        elif view[i*self.K+j] in self.hashtable[i*self.K+j].keys():
+                            try:
+                                assert self.hashtable[i*self.K+j][view[i*self.K+j]] == hashlist[i*self.K+j]
+                            except:
+                                print("error 2")
+                                return False
+                        # have to check sig and regist in hash table
+                        else:
+                            sid_r = self.sid + 'nw' + str(i*self.K+j)
+                            try:
+                                digest2 = hashlist[i*self.K+j] + hash(str((sid_r, view[i*self.K+j])))
+                                for item in siglist[i*self.K+j]:
+                                    # print(Sigma_p)
+                                    (sender, sig_p) = item
+                                    assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
+                            except AssertionError:
+                                if self.logger is not None: self.logger.info("ecdsa signature failed!")
+                                print("ecdsa signature failed!")
+                                return False
+                            self.hashtable[i*self.K+j][view[i*self.K+j]] = hashlist[i*self.K+j]
                 return True
 
             if self.debug:
@@ -435,20 +442,21 @@ class XDumbo_d:
         # print("view:", view, "  v_s", self.local_view_s, "v:", self.local_view)
         #block = []
         for i in range(N):
-            # check sigs in s[i][view[i]]
-            if self.local_view[i] < view[i]:
-                # TODO: ADD PULLING BLOCK
-                for t in range(self.local_view[i] + 1, view[i] + 1):
-                    tx = ""
-                    for d in range(self.B):
-                        tx += "Dummy TX..."
-                    self.txs[i][t] = tx
-                    self.sigs[i][t] = "some sigs..."
-                    # print(self.txs[i][t])
-            for t in range(self.local_view_s[i] + 1, view[i] + 1):
-                # print("append tx", i, t, self.txs[i][t])
-                #block.append((self.txs[i][t], self.sigs[i][t]))
-                self.tx_cnt += 1 * self.B
+            for j in range(self.K):
+                # check sigs in s[i][view[i]]
+                if self.local_view[i*self.K+j] < view[i*self.K+j]:
+                    # TODO: ADD PULLING BLOCK
+                    for t in range(self.local_view[i*self.K+j] + 1, view[i*self.K+j] + 1):
+                        tx = ""
+                        for d in range(self.B):
+                            tx += "Dummy TX..."
+                        self.txs[i*self.K+j][t] = tx
+                        self.sigs[i*self.K+j][t] = "some sigs..."
+                        # print(self.txs[i][t])
+                for t in range(self.local_view_s[i*self.K+j] + 1, view[i*self.K+j] + 1):
+                    # print("append tx", i, t, self.txs[i][t])
+                    #block.append((self.txs[i][t], self.sigs[i][t]))
+                    self.tx_cnt += 1 * self.B
         self.local_view_s = view
         # print(block)
         return []
