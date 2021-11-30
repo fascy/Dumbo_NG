@@ -4,9 +4,8 @@ import gevent
 from gevent import Greenlet
 from gevent.queue import Queue
 
-from crypto.ecdsa.ecdsa import pki
-from dumbobft.core.consistentbroadcast import consistentbroadcast
-from crypto.threshsig import dealer
+from speedmbva.core.spbc import strongprovablebroadcast
+from crypto.threshsig.boldyreva import dealer
 
 
 # CBC
@@ -41,9 +40,8 @@ def simple_router(N, maxdelay=0.01, seed=None):
 def _test_cbc(N=4, f=1, leader=None, seed=None):
     # Test everything when runs are OK
     sid = 'sidA'
-    # Note thld siganture for CBC has a threshold different from common coin's
-    # PK, SKs = dealer(N, N - f)
-    PK2s, SK2s = pki(N)
+    # Generate threshold sig keys
+    sPK, sSKs = dealer(N, N-f, seed=seed)
 
     rnd = random.Random(seed)
     router_seed = rnd.random()
@@ -53,9 +51,10 @@ def _test_cbc(N=4, f=1, leader=None, seed=None):
 
     threads = []
     leader_input = Queue(1)
+    output_list = Queue()
     for i in range(N):
         input = leader_input.get if i == leader else None
-        t = Greenlet(consistentbroadcast, sid, i, N, f, PK2s, SK2s[i], leader, input, recvs[i], sends[i])
+        t = Greenlet(strongprovablebroadcast, sid, i, N, f, sPK, sSKs[i], leader, input,output_list.put_nowait, recvs[i], sends[i])
         t.start()
         threads.append(t)
 
@@ -64,6 +63,14 @@ def _test_cbc(N=4, f=1, leader=None, seed=None):
     gevent.joinall(threads)
     for t in threads:
         print(t.value)
+        while output_list.qsize() > 0:
+            print("---", output_list.get())
+    # Assert the CBC-delivered values are same to the input
+
+    assert [t.value[0] for t in threads] == [m]*N
+    # Assert the CBC-delivered authentications (i.e., signature) are valid
+    digest = sPK.hash_message(str((sid, m, "FINAL")))
+    assert [sPK.verify_signature(t.value[1], digest) for t in threads] == [True]*N
 
 
 def test_cbc(N, f, seed):
@@ -71,4 +78,4 @@ def test_cbc(N, f, seed):
 
 
 if __name__ == '__main__':
-    test_cbc(100, 33, None)
+    test_cbc(4, 1, None)

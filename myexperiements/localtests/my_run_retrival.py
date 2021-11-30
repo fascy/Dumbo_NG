@@ -5,8 +5,10 @@ from gevent import Greenlet
 from gevent.queue import Queue
 
 from crypto.ecdsa.ecdsa import pki
+from dispersedledger.core.PCBC import provablecbc
+from dispersedledger.core.retrival import retrival
 from dumbobft.core.consistentbroadcast import consistentbroadcast
-from crypto.threshsig import dealer
+from crypto.threshsig.boldyreva import dealer
 
 
 # CBC
@@ -42,9 +44,7 @@ def _test_cbc(N=4, f=1, leader=None, seed=None):
     # Test everything when runs are OK
     sid = 'sidA'
     # Note thld siganture for CBC has a threshold different from common coin's
-    # PK, SKs = dealer(N, N - f)
     PK2s, SK2s = pki(N)
-
     rnd = random.Random(seed)
     router_seed = rnd.random()
     if leader is None: leader = rnd.randint(0, N-1)
@@ -52,23 +52,36 @@ def _test_cbc(N=4, f=1, leader=None, seed=None):
     sends, recvs = simple_router(N, seed=seed)
 
     threads = []
+    threads2 = []
     leader_input = Queue(1)
     for i in range(N):
         input = leader_input.get if i == leader else None
-        t = Greenlet(consistentbroadcast, sid, i, N, f, PK2s, SK2s[i], leader, input, recvs[i], sends[i])
+
+        t = Greenlet(provablecbc, sid, i, N, f, PK2s, SK2s[i], leader, input, recvs[i], sends[i])
         t.start()
         threads.append(t)
 
     m = "Hello! This is a test message."
     leader_input.put(m)
     gevent.joinall(threads)
+    store = [None for _ in range(N)]
+    c = 0
     for t in threads:
-        print(t.value)
+        store[c] = t.value[0]
+        print(c, store[c])
+        c += 1
+    for i in range(N):
+        rt = Greenlet(retrival, i, sid, N, f, PK2s, SK2s[i], 0, recvs[i], sends[i], store[i])
+        rt.start()
+        threads2.append(rt)
 
+    gevent.joinall(threads2)
+    for t in threads2:
+        print(t.value)
 
 def test_cbc(N, f, seed):
     _test_cbc(N=N, f=f, seed=seed)
 
 
 if __name__ == '__main__':
-    test_cbc(100, 33, None)
+    test_cbc(4, 1, None)

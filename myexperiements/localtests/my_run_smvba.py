@@ -3,9 +3,10 @@ import gevent
 from gevent import Greenlet, time
 from gevent.queue import Queue
 from gevent import monkey
-from dumbobft.core.validatedagreement import validatedagreement
 from crypto.threshsig.generate_keys import dealer
 from crypto.ecdsa.ecdsa import pki
+# from speedmbva.core.smvba import speedmvba
+from speedmbva.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 
@@ -44,16 +45,13 @@ def simple_router(N, maxdelay=0.001, seed=None):
 
 def _test_vaba(N=4, f=1, leader=None, seed=None):
     # Test everything when runs are OK
-    sid = 'ISCAS'
+    sid = 'SMVBA'
     # Note thld siganture for CBC has a threshold different from common coin's
     PK, SKs = dealer(N, f + 1)
     PK1, SK1s = dealer(N, N - f)
     PK2s, SK2s = pki(N)
     s_time = time.time()
-    rnd = random.Random(seed)
-    router_seed = rnd.random()
     # if leader is None: leader = rnd.randint(0, N-1)
-    print("The leader is: ", leader)
     sends, recvs = simple_router(N, seed=seed)
 
     threads = []
@@ -64,12 +62,11 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
         print("Input to node %d has been provided" % i)
 
     for i in range(N):
-        t = Greenlet(validatedagreement, sid, i, N, f, PK, SKs[i], PK1, SK1s[i],PK2s, SK2s[i],
+        t = Greenlet(speedmvba, sid, i, N, f, PK, SKs[i], PK2s, SK2s[i],
                      inputs[i].get, outputs[i].put_nowait, recvs[i], sends[i])
         t.start()
         threads.append(t)
-        print("VABA at node %d has been instantiated" % i)
-
+        print("sMVBA at node %d has been instantiated" % i)
 
     try:
         outs = [outputs[i].get() for i in range(N)]
@@ -97,4 +94,4 @@ def test_vaba(N, f, seed):
 
 
 if __name__ == '__main__':
-    test_vaba(64, 21, None)
+    test_vaba(4, 1, None)

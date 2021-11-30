@@ -5,11 +5,11 @@ from gevent import Greenlet
 from gevent.queue import Queue
 
 from crypto.ecdsa.ecdsa import pki
-from dumbobft.core.consistentbroadcast import consistentbroadcast
-from crypto.threshsig import dealer
+from dispersedledger.core.PVID import provablevid
+from dumbobft.core.provablereliablebroadcast import provablereliablebroadcast, encode, merkleTree
 
 
-# CBC
+### pvid
 def simple_router(N, maxdelay=0.01, seed=None):
     """Builds a set of connected channels, with random delay
     @return (receives, sends)
@@ -38,37 +38,40 @@ def simple_router(N, maxdelay=0.01, seed=None):
             [makeRecv(j) for j in range(N)])
 
 
-def _test_cbc(N=4, f=1, leader=None, seed=None):
+
+
+def _test_rbc1(N=4, f=1, leader=None, seed=None):
     # Test everything when runs are OK
+    #if seed is not None: print 'SEED:', seed
     sid = 'sidA'
     # Note thld siganture for CBC has a threshold different from common coin's
-    # PK, SKs = dealer(N, N - f)
     PK2s, SK2s = pki(N)
+    # PK, SKs = dealer(N, N - f)
 
     rnd = random.Random(seed)
     router_seed = rnd.random()
-    if leader is None: leader = rnd.randint(0, N-1)
-    print("The leader is: ", leader)
+    if leader is None: leader = rnd.randint(0,N-1)
     sends, recvs = simple_router(N, seed=seed)
-
     threads = []
     leader_input = Queue(1)
     for i in range(N):
         input = leader_input.get if i == leader else None
-        t = Greenlet(consistentbroadcast, sid, i, N, f, PK2s, SK2s[i], leader, input, recvs[i], sends[i])
+        t = Greenlet(provablevid, sid, i, N, f, PK2s, SK2s[i], leader, input, recvs[i], sends[i])
         t.start()
         threads.append(t)
 
-    m = "Hello! This is a test message."
+    m = b"Hello! This is a test message."
     leader_input.put(m)
     gevent.joinall(threads)
     for t in threads:
         print(t.value)
+    # assert [t.value[0] for t in threads] == [m]*N
 
 
-def test_cbc(N, f, seed):
-    _test_cbc(N=N, f=f, seed=seed)
+
+def test_rbc1(N, f, seed):
+    _test_rbc1(N=N, f=f, seed=seed)
 
 
 if __name__ == '__main__':
-    test_cbc(100, 33, None)
+    test_rbc1(4, 1, None)

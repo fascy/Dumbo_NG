@@ -39,7 +39,7 @@ MessageReceiverQueues = namedtuple(
 
 def recv_loop(recv_func, recv_queues):
     while True:
-        sender, (tag, j, msg) = recv_func(timeout=1000)
+        sender, (tag, j, msg) = recv_func()
         # print("recv2", (sender, (tag, j, msg[0])))
 
         if tag not in MessageTag.__members__:

@@ -3,6 +3,7 @@ from gevent import monkey;
 from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
 from myexperiements.sockettest.x_d_node import XDNode
 from myexperiements.sockettest.x_k_node import XDKNode
+from myexperiements.sockettest.x_k_s_node import XDSNode
 
 monkey.patch_all(thread=False)
 
@@ -50,6 +51,8 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bf
         bft = XDNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
     elif protocol == 'xk':
         bft = XDKNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
+    elif protocol == 'xs':
+        bft = XDSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
 
     else:
         print("Only support dumbo or sdumbo or mule or hotstuff")

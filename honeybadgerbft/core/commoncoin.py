@@ -114,7 +114,7 @@ def shared_coin(sid, pid, N, f, PK, SK, broadcast, receive, single_bit=True, log
         broadcast(('COIN', round, g12serialize(sig)))
         PK.verify_share(sig, pid, h)
         coin = outputQueue[round].get()
-        #print('debug', 'node %d gets a coin %d for round %d in %s' % (pid, coin, round, sid))
+        # print('debug', 'node %d gets a coin %d for round %d in %s' % (pid, coin, round, sid)
         return coin
 
     return getCoin

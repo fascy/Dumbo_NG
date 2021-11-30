@@ -27,3 +27,15 @@ def cbc_validate(sid, N, f, PK2s, value, proof):
     except:
         print("false ecdsa!!")
         return False
+
+def pcbc_validate(sid, N, f, PK2s, proof):
+    try:
+        _sid, roothash, sigmas = proof
+        assert _sid == sid
+        assert len(sigmas) == N - f and len(set(sigmas)) == N - f
+        digest = hash((sid, roothash))
+        for (i, sig_i) in sigmas:
+            assert ecdsa_vrfy(PK2s[i], digest, sig_i)
+        return True
+    except:
+        return False

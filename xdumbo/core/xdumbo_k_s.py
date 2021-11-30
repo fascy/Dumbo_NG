@@ -1,12 +1,13 @@
 from gevent import monkey;
 
+from speedmbva.core.smvba_e import speedmvba
+
 monkey.patch_all(thread=False)
 
 import hashlib
 import multiprocessing
 import pickle
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
-from dumbobft.core.validatedagreement import validatedagreement
 from multiprocessing import Process, Queue
 
 import json
@@ -24,6 +25,7 @@ from honeybadgerbft.exceptions import UnknownTagError
 from xdumbo.core.nwabc import nwatomicbroadcast
 
 # v : k nwabc instances
+# using smvba
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -71,7 +73,7 @@ def broadcast_receiver_loop(recv_func, recv_queues):
             traceback.print_exc(e)
 
 
-class XDumbo_k:
+class XDumbo_k_s:
     def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False,
                  debug=False):
 
@@ -427,13 +429,13 @@ class XDumbo_k:
                 return True
 
             if self.debug:
-                vaba_thread = Greenlet(validatedagreement, sid + 'VABA' + str(r), pid, N, f,
-                                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
+                                       self.sPK, self.sSK,  self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
                                        vaba_recv.get, vaba_send, vaba_predicate, self.logger)
             else:
-                vaba_thread = Greenlet(validatedagreement, sid + 'VABA' + str(r), pid, N, f,
-                                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
+                                       self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
                                        vaba_recv.get, vaba_send, vaba_predicate, )
 

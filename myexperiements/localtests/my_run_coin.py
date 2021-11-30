@@ -3,7 +3,7 @@ import gevent
 import random
 from gevent.queue import Queue
 from honeybadgerbft.core.commoncoin import shared_coin
-from crypto.threshsig import dealer
+from crypto.threshsig.boldyreva import dealer
 
 def simple_router(N, maxdelay=0.01, seed=None):
     """Builds a set of connected channels, with random delay
@@ -47,7 +47,7 @@ def _test_commoncoin(N=4, f=1, seed=None):
     sends, recvs = simple_router(N, seed=seed)
     coins = [shared_coin(sid, i, N, f, PK, SKs[i], sends[i], recvs[i]) for i in range(N)]
 
-    for i in range(10):
+    for i in range(1):
         threads = [gevent.spawn(c, i) for c in coins]
         gevent.joinall(threads)
         assert len(set([t.value for t in threads])) == 1
