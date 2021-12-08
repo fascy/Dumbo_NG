@@ -29,18 +29,13 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
         to wait for the input value
     :param receive: :func:`receive()` blocks until a message is
         received; message is of the form::
-
             (i, (tag, ...)) = receive()
-
         where ``tag`` is one of ``{"VAL", "ECHO", "READY"}``
     :param send: sends (without blocking) a message to a designed
         recipient ``send(i, (tag, ...))``
-
     :return str: ``m`` after receiving ``CBC-FINAL`` message
         from the leader
-
         .. important:: **Messages**
-
             ``CBC_VAL( m )``
                 sent from ``leader`` to each other party
             ``CBC_ECHO( m, sigma )``

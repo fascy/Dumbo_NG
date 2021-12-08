@@ -6,12 +6,12 @@ from gevent import monkey
 from crypto.threshsig.generate_keys import dealer
 from crypto.ecdsa.ecdsa import pki
 # from speedmbva.core.smvba import speedmvba
-from speedmbva.core.smvba_e import speedmvba
+from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 
 # CBC
-def simple_router(N, maxdelay=0.001, seed=None):
+def simple_router(N, maxdelay=0.1, seed=None):
     """Builds a set of connected channels, with random delay
     @return (receives, sends)
     """
@@ -90,7 +90,9 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
 
 
 def test_vaba(N, f, seed):
-    _test_vaba(N=N, f=f, seed=seed)
+    for k in range(1000):
+        print("round", k)
+        _test_vaba(N=N, f=f, seed=seed)
 
 
 if __name__ == '__main__':

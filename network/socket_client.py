@@ -72,6 +72,7 @@ class NetworkClient (Process):
             #gevent.sleep(0)
             #self.sock_locks[j].acquire()
             o = self.sock_queues[j].get()
+            # print("!!!!!!!!!!!!!!!!!!!!11", o)
             try:
                 self.socks[j].sendall(pickle.dumps(o) + self.SEP)
             except:
@@ -87,6 +88,7 @@ class NetworkClient (Process):
             try:
 
                 j, o = self.client_from_bft()
+                # print("！！！！！！！！！！！！1", j, o)
                 #o = self.send_queue[j].get_nowait()
 
                 #self.logger.info('send' + str((j, o)))

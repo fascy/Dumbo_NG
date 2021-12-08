@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from speedmbva.core.smvba_e import speedmvba
+from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 

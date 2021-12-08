@@ -63,12 +63,11 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
     MyChunk = None
     finalSent = False
     cbc_echo_sshares = defaultdict(lambda: None)
-
     # print(sid, "PCBC starts...")
     def broadcast(o):
-        for i in range(N):
-            send(i, o)
-        # send(-1, o)
+        #for i in range(N):
+        #    send(i, o)
+        send(-1, o)
 
     def decode_output(roothash):
         # Rebuild the merkle tree to guarantee decoding is correct
@@ -83,7 +82,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
 
         m = input()  # block until an input is received
 
-        # print("CBC input received: ", m[0])
+        # print("CBC input received: ", m)
 
         assert isinstance(m, (str, bytes, list, tuple))
         stripes = encode(K, N, m)
@@ -96,6 +95,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
 
     # Handle all consensus messages
     while True:
+        # print("???")
         # gevent.sleep(0)
 
         (j, msg) = receive()
@@ -137,7 +137,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
                 sigmas = tuple(list(cbc_echo_sshares.items())[:N - f])
                 # assert PK.verify_signature(Sigma, digestFromLeader)
                 finalSent = True
-                broadcast(('CBC_FINAL', fromLeader, sigmas))
+                broadcast(('CBC_FINAL', roothash, sigmas))
                 # print("Leader %d broadcasts CBC FINAL messages" % leader)
 
         elif msg[0] == 'CBC_FINAL':

@@ -24,6 +24,7 @@ from myexperiements.sockettest.xdumbo_node import XDumboNode
 from network.socket_server import NetworkServer
 from network.socket_client import NetworkClient
 from multiprocessing import Value as mpValue, Queue as mpQueue
+from multiprocessing.managers import BaseManager
 from ctypes import c_bool
 
 
