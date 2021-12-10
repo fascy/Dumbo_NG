@@ -48,18 +48,20 @@ def load_key(id, N):
 class DLNode (DL):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
-                 bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
+                 bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         #self.recv_queue = recv_q
         #self.send_queue = send_q
-        self.bft_from_server = bft_from_server
-        self.bft_to_client = bft_to_client
+        self.bft_from_server1 = bft_from_server1
+        self.bft_to_client1 = bft_to_client1
+        self.bft_to_client2 = bft_to_client2
+        self.bft_from_server2 = bft_from_server2
         self.ready = ready
         self.stop = stop
         self.mode = mode
         DL.__init__(self,sid, id, max(int(Bfast), 1), N, f,
                        self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                       send=None, recv=None, K=K, mute=mute)
+                       send1=None, recv1=None, send2=None, recv2=None, K=K, mute=mute)
 
         # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
@@ -85,8 +87,10 @@ class DLNode (DL):
         pid = os.getpid()
         self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, pid))
 
-        self._send = lambda j, o: self.bft_to_client((j, o))
-        self._recv = lambda: self.bft_from_server()
+        self._send1 = lambda j, o: self.bft_to_client1((j, o))
+        self._recv1 = lambda: self.bft_from_server1()
+        self._send2 = lambda j, o: self.bft_to_client2((j, o))
+        self._recv2 = lambda: self.bft_from_server2()
 
         self.prepare_bootstrap()
 

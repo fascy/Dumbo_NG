@@ -50,9 +50,9 @@ def recv_loop(recv_func, recv_queues):
                 tag, MessageTag.__members__.keys()))
         recv_queue = recv_queues._asdict()[tag]
         if tag in {MessageTag.MVBA_SPBC.value}:
-            recv_queue = recv_queue[r % 5][j]
+            recv_queue = recv_queue[r][j]
         elif tag not in {MessageTag.MVBA_ELECT.value, MessageTag.MVBA_HALT.value}:
-            recv_queue = recv_queue[j]
+            recv_queue = recv_queue[r]
         try:
             recv_queue.put_nowait((sender, msg))
         except AttributeError as e:
@@ -103,7 +103,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     vote_recvs = defaultdict(lambda: Queue())
     aba_recvs = defaultdict(lambda: Queue())
 
-    spbc_recvs = [[Queue() for _ in range(N)] for _ in range(5)]
+    # spbc_recvs = [[Queue() for _ in range(N)] for _ in range(20)]
+    spbc_recvs = defaultdict(lambda: [Queue() for _ in range(N)])
     coin_recv = Queue()
     commit_recvs = [Queue() for _ in range(N)]
     halt_recv = Queue()
@@ -210,8 +211,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # Only leader gets input
             spbc_input = my_spbc_input.get if j == pid else None
             spbc = gevent.spawn(strongprovablebroadcast, sid + 'SPBC' + str(j), pid, N, f, PK2s, SK2, j,
-                                spbc_input, spbc_s1_list[j].put_nowait, spbc_recvs[r % 5][j].get, make_spbc_send(j, r),
-                                logger, spbc_pridict)
+                                spbc_input, spbc_s1_list[j].put_nowait, spbc_recvs[r][j].get, make_spbc_send(j, r),
+                                r, logger, spbc_pridict)
             # cbc.get is a blocking function to get cbc output
             # cbc_outputs[j].put_nowait(cbc.get())
             spbc_threads[j] = spbc
@@ -441,12 +442,14 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         my_spbc_input.put_nowait((my_msg, pis, r, 'no'))
                         # my_spbc_input.put_nowait(my_msg)
                         r += 1
+                        # r = r % 10
                         break
                 # both vote no and vote yes
                 if (len(vote_no_shares) > 0) and (len(vote_yes_shares) > 0):
                     # print("both vote no and vote yes, move to next round with")
-                    my_spbc_input.put_nowait((vote_yes_msg[0], vote_msg[3], r, 'yn'))
+                    my_spbc_input.put_nowait((vote_yes_msg, vote_msg[3], r, 'yn'))
                     # print("------------------------------------", vote_yes_msg)
                     # my_spbc_input.put_nowait(vote_yes_msg)
                     r += 1
+                    # r = r % 10
                     break

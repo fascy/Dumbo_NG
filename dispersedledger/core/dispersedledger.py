@@ -104,7 +104,7 @@ class DL:
         self.share_bc = multiprocessing.Queue()
 
         # self.bc_instances = multiprocessing.Manager().dict(multiprocessing.Manager().dict())
-        self.re_instances = defaultdict(lambda: defaultdict(lambda: [None for _ in range(self.N)]))
+        self.re_instances = defaultdict(lambda: defaultdict(lambda: [None for i in range(self.N)]))
         self.re_count = defaultdict(lambda: defaultdict(int))
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.tobe_retrieval = multiprocessing.Queue()
@@ -179,29 +179,36 @@ class DL:
             def ask_broadcast(o):
                 self._send(-1, ('', ('RETRIEVAL', o)))
 
-            def return_send(j, o):
-                self._send(j, ('', ('RETURN', o)))
+            def return_send(o):
+                self._send(-1, ('', ('RETURN', o)))
 
             def _store():
                 while True:
-                    gevent.sleep(0.0001)
                     try:
                         (sid, leader, value, st) = self.share_bc.get_nowait()
                         # if self.id == 1: print("get", sid, leader, "at", time.time())
                         self.bc_instances[sid][leader] = (1, value, st)
                     except:
+                        gevent.sleep(0.0001)
                         continue
-            """"
+
             def _ask():
                 if os.getpid() != self.rp:
                     return
-
                 while True:
-                    gevent.sleep(0.00001)
-                    (sid, leader, root) = self.tobe_retrieval.get()
-                    # if self.id == 1: print("get tobe recover:", sid, leader, root)
-                    ask_broadcast((sid, leader, root))
-            """
+                    try:
+                        (sid, leader, root) = self.tobe_retrieval.get_nowait()
+                        # if self.id == 1: print("get tobe recover:", sid, leader, root)
+                        try:
+                            (g, v, p) = self.bc_instances[sid][leader]
+                            if g > 0:
+                                return_send((sid, leader, v))
+                        except:
+                            pass
+                    except:
+                        gevent.sleep(0)
+                        continue
+
             ask_recv = Queue()
             return_recvs = [Queue() for _ in range(self.N)]
 
@@ -211,10 +218,11 @@ class DL:
 
                 while True:
                     gevent.sleep(0)
-                    sender, msg = self.retrieval_recv.get(timeout=10)
+                    sender, msg = self.retrieval_recv.get(timeout=1000)
                     (_, (sid, leader, v)) = msg
                     return_recvs[leader].put_nowait((sender, (sid, v)))
                     # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
+
             _re_thread = gevent.spawn(_recv_msg)
             """
             def _collect():
@@ -254,11 +262,14 @@ class DL:
                     (sid, (chunk, branch, root)) = msg
                     # if self.id == 1: print("get a new msg ", sid, j, "at ", time.time())
                     # print(self.id, "recv return ", sid, leader, chunk)
-                    g, value, t = self.bc_instances[sid][j]
-                    if g > 2:
+                    try:
+                        g, value, t = self.bc_instances[sid][j]
+                    except:
+                        g = -1
+                    if not self.re_instances[sid][j]:
                         # has recovered
                         continue
-                    if root != value[2]:
+                    if g > 0 and root != value[2]:
                         print("return wrong root to retrieval, get ", root, "while stored ", value[2])
                     try:
                         assert merkleVerify(self.N, chunk, root, branch, sender)
@@ -267,17 +278,18 @@ class DL:
                         continue
                     self.re_instances[sid][j][sender] = chunk
                     self.re_count[sid][j] += 1
-                    if self.id == 1:
-                        print("get the", self.re_count[sid][j], "th msg of", sid, j, "at", time.time())
                     # print(sid, leader, "instance append", chunk)
                     if self.re_count[sid][j] == self.N - (2 * self.f):
                         # if self.id == 1: print("get f+1 msg and start to decode", sid, j, "at", time.time())
 
                         m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
                         # if self.id == 1: print("finish decode", sid, j, "at", time.time())
-                        g, v, st = self.bc_instances[sid][j]
+                        try:
+                            g, v, st = self.bc_instances[sid][j]
+                            self.bc_instances[sid][j] = 3, v, st
+                        except:
+                            self.bc_instances[sid][j] = 3, 0, 0
                         et = time.time()
-                        self.bc_instances[sid][j] = 3, v, st
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
                         if self.logger != None and self.id == 1:
@@ -295,7 +307,7 @@ class DL:
                             print("remain", self.retrieval_recv.qsize())
 
             _store_thread = gevent.spawn(_store)
-            # _ask_thread = gevent.spawn(_ask)
+            _ask_thread = gevent.spawn(_ask)
             # _collect_thread = gevent.spawn(_collect)
             for i in range(self.N):
                 _recover_thread = gevent.spawn(_recover, i)
@@ -504,6 +516,6 @@ class DL:
                 (g, value, proof) = self.bc_instances[sid][leader]
                 self.bc_instances[sid][leader] = (2, value, proof)
                 self.tobe_retrieval.put((sid, leader, root))
-                self._send(-1, ('', ('RETURN', (sid, leader, value))))
+                # self._send(-1, ('', ('RETURN', (sid, leader, value))))
         # print("-----------------------", mvbaout)
         return mvbaout

@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from myexperiements.sockettest.dl_node import DLNode
+from myexperiements.sockettest.dl_sockets_node import DLNode
 from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
 from myexperiements.sockettest.x_d_node import XDNode
 from myexperiements.sockettest.x_k_node import XDKNode
@@ -24,42 +24,17 @@ from myexperiements.sockettest.xdumbo_node import XDumboNode
 from network.socket_server import NetworkServer
 from network.socket_client import NetworkClient
 from multiprocessing import Value as mpValue, Queue as mpQueue
-from multiprocessing.managers import BaseManager
 from ctypes import c_bool
 
 
-def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bft_to_client: Callable, ready: mpValue,
+def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue,
                          stop: mpValue, protocol="mule", mute=False, F=100, debug=False, omitfast=False):
     bft = None
-    if protocol == 'dumbo':
-        bft = DumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
-    elif protocol == 'sdumbo':
-        bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client,  ready, stop, K, mute=mute, debug=debug)
-    elif protocol == "mule":
-        bft = MuleBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, omitfast=omitfast)
-    elif protocol == "rbcmule":
-        bft = RbcMuleBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, omitfast=omitfast)
-    elif protocol == 'hotstuff':
-        bft = HotstuffBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'nwabc':
-        bft = NwAbcNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'abcs':
-        bft = NwAbcsNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'abcsk':
-        bft = NwAbcskNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'xdumbo':
-        bft = XDumboNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'xd':
-        bft = XDNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'xk':
-        bft = XDKNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'xs':
-        bft = XDSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'dl':
-        bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
+    if protocol == 'dl':
+        bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
 
     else:
-        print("Only support dumbo or sdumbo or mule or hotstuff")
+        print("Only support dl")
     return bft
 
 
@@ -115,51 +90,72 @@ if __name__ == '__main__':
     rnd = random.Random(sid)
 
     # Nodes list
-    addresses = [None] * N
+    addresses1 = [None] * N
+    addresses2 = [None] * N
     try:
-        with open('hosts.config', 'r') as hosts:
+        with open('hosts1_config', 'r') as hosts:
             for line in hosts:
                 params = line.split()
                 pid = int(params[0])
                 priv_ip = params[1]
                 pub_ip = params[2]
-                port = int(params[3])
-                # print(pid, ip, port)
+                port1 = int(params[3])
+                port2 = int(params[4])
+                print(pid, priv_ip, port1, port2)
                 if pid not in range(N):
                     continue
                 if pid == i:
-                    my_address = (priv_ip, port)
-                addresses[pid] = (pub_ip, port)
-        assert all([node is not None for node in addresses])
+                    my_address1 = (priv_ip, port1)
+                    my_address2 = (priv_ip, port2)
+                addresses1[pid] = (pub_ip, port1)
+                addresses2[pid] = (pub_ip, port2)
+        assert all([node is not None for node in addresses1])
+        assert all([node is not None for node in addresses2])
         print("hosts.config is correctly read")
 
         # bft_from_server, server_to_bft = mpPipe(duplex=True)
         # client_from_bft, bft_to_client = mpPipe(duplex=True)
 
-        client_bft_mpq = mpQueue()
+        client_bft_mpq1 = mpQueue()
         #client_from_bft = client_bft_mpq.get
-        client_from_bft = lambda: client_bft_mpq.get(timeout=0.00001)
+        client_from_bft1 = lambda: client_bft_mpq1.get(timeout=0.00001)
+        client_bft_mpq2 = mpQueue()
+        client_from_bft2 = lambda: client_bft_mpq2.get(timeout=0.00001)
 
-        bft_to_client = client_bft_mpq.put_nowait
+        bft_to_client1 = client_bft_mpq1.put_nowait
+        bft_to_client2 = client_bft_mpq2.put_nowait
 
-        server_bft_mpq = mpQueue()
+        server_bft_mpq1 = mpQueue()
         #bft_from_server = server_bft_mpq.get
-        bft_from_server = lambda: server_bft_mpq.get(timeout=0.00001)
-        server_to_bft = server_bft_mpq.put_nowait
+        bft_from_server1 = lambda: server_bft_mpq1.get(timeout=0.00001)
+        server_to_bft1 = server_bft_mpq1.put_nowait
 
-        client_ready = mpValue(c_bool, False)
-        server_ready = mpValue(c_bool, False)
+        server_bft_mpq2 = mpQueue()
+        #bft_from_server = server_bft_mpq.get
+        bft_from_server2 = lambda: server_bft_mpq2.get(timeout=0.00001)
+        server_to_bft2 = server_bft_mpq2.put_nowait
+
+        client_ready1 = mpValue(c_bool, False)
+        server_ready1 = mpValue(c_bool, False)
+        client_ready2 = mpValue(c_bool, False)
+        server_ready2 = mpValue(c_bool, False)
         net_ready = mpValue(c_bool, False)
         stop = mpValue(c_bool, False)
 
-        net_server = NetworkServer(my_address[1], my_address[0], i, addresses, server_to_bft, server_ready, stop)
-        net_client = NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
-        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O)
+        net_server1 = NetworkServer(my_address1[1], my_address1[0], i, addresses1, server_to_bft1, server_ready1, stop)
+        net_client1 = NetworkClient(my_address1[1], my_address1[0], i, addresses1, client_from_bft1, client_ready1, stop)
+        net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop)
+        net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop)
+        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
+                                   bft_from_server2, bft_to_client2, net_ready, stop, P, M, F, D, O)
 
-        net_server.start()
-        net_client.start()
+        net_server1.start()
+        net_server2.start()
+        net_client1.start()
+        net_client2.start()
 
-        while not client_ready.value and not server_ready.value:
+        while not client_ready1.value and not server_ready1.value \
+                and not client_ready2.value and not server_ready2.value:
             time.sleep(1)
             print("waiting for network ready...")
 
@@ -173,11 +169,15 @@ if __name__ == '__main__':
         with stop.get_lock():
             stop.value = True
 
-        net_client.terminate()
-        net_client.join()
+        net_client1.terminate()
+        net_client1.join()
+        net_client2.terminate()
+        net_client2.join()
         time.sleep(1)
-        net_server.terminate()
-        net_server.join()
+        net_server1.terminate()
+        net_server1.join()
+        net_server2.terminate()
+        net_server2.join()
 
     except FileNotFoundError or AssertionError as e:
         traceback.print_exc()

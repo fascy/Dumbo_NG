@@ -16,7 +16,7 @@ def hash(x):
 
 
 
-def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, logger=None, predicate=lambda x: True):
+def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, r, logger=None, predicate=lambda x: True):
     """Consistent broadcast
     :param str sid: session identifier
     :param int pid: ``0 <= pid < N``
@@ -112,7 +112,8 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 # assert PK1.verify_share(sig1, j, digest1FromLeader)
                 assert ecdsa_vrfy(PK2s[j], digest1FromLeader, sig1)
             except AssertionError:
-                print("1-Signature share failed in SPBC!", (sid, pid, j, msg))
+                print("1-Signature share failed in SPBC!", (r, sid, pid, j, msg))
+                print(digest1FromLeader)
                 if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
                 continue
             # print("I accept CBC_ECHO from node %d" % j)
@@ -138,7 +139,7 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                     assert ecdsa_vrfy(PK2s[k], hash(str((sid, m, "ECHO"))), sig)
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
-                print("1-Signature failed!", (sid, pid, j, msg))
+                print("1-Signature failed!", (r, sid, pid, j, msg))
                 continue
             # print("CBC finished for leader", leader)
             digest2 = hash(str((sid, m, "FINAL")))
