@@ -174,6 +174,7 @@ class DL:
                 return
             if os.getpid() == self.rp:
                 return
+            st = 0
             print("start recv loop...", os.getpid())
             # self._send(1, (1, "test msg"))
             while True:
@@ -212,8 +213,8 @@ class DL:
                                 self.bc_instances[sid][leader] = (2, value, st)
                             if g == 3:
                                 if v == 0:
-                                    self.bc_instances[sid][leader] = (3, value, st)
                                     return_send((sid, leader, value))
+                                    self.bc_instances[sid][leader] = (3, 0, st)
                         except:
                             self.bc_instances[sid][leader] = (1, value, st)
                     except:
@@ -228,9 +229,10 @@ class DL:
                         (sid, leader, root) = self.tobe_retrieval.get_nowait()
                         # if self.id == 1: print("get tobe recover:", sid, leader, root)
                         try:
-                            (g, v, p) = self.bc_instances[sid][leader]
+                            (g, v, st) = self.bc_instances[sid][leader]
                             if g == 1 and v != 0:
                                 return_send((sid, leader, v))
+                                self.bc_instances[sid][leader] = (g, 0, st)
                         except:
                             self.bc_instances[sid][leader] = 2, 0, 0
                             pass
@@ -298,8 +300,8 @@ class DL:
                     if not self.re_instances[sid][j]:
                         # has recovered
                         continue
-                    if g > 0 and root != value[2]:
-                        print("return wrong root to retrieval, get ", root, "while stored ", value[2])
+                    #if g > 0 and root != value[2]:
+                    #    print("return wrong root to retrieval, get ", root, "while stored ", value[2])
                     try:
                         assert merkleVerify(self.N, chunk, root, branch, sender)
                     except Exception as e:
@@ -483,7 +485,7 @@ class DL:
                 value, sigs = pcbc_thread.get()
                 (chunk, branch, root) = value
                 st = time.time()
-                self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, value, sigs
+                self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, root, sigs
                 self.share_bc.put((sid + 'PCBC' + str(r), j, value, st))
                 # if self.id == 1: print("put", sid + 'PCBC' + str(r), j, "at", time.time())
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
@@ -504,7 +506,7 @@ class DL:
             # print("N - f bc instances have finished in round ", r)
             # print(self.bc_instances[sid + 'PCBC' + str(r)].keys())
             for i in self.bc_instances[sid + 'PCBC' + str(r)].keys():
-                (_, (chunk, branch, root), sigs) = self.bc_instances[sid + 'PCBC' + str(r)][i]
+                (_, root, sigs) = self.bc_instances[sid + 'PCBC' + str(r)][i]
                 values[i] = sid + 'PCBC' + str(r), i, root, sigs
             vacs_input.put(values)
 
@@ -543,8 +545,8 @@ class DL:
         for i in range(N):
             if mvbaout[i] is not None:
                 sid, leader, root, sigs = mvbaout[i]
-                (g, value, proof) = self.bc_instances[sid][leader]
-                self.bc_instances[sid][leader] = (2, value, proof)
+                #(g, value, proof) = self.bc_instances[sid][leader]
+                # self.bc_instances[sid][leader] = (2, value, proof)
                 self.tobe_retrieval.put((sid, leader, root))
                 # self._send(-1, ('', ('RETURN', (sid, leader, value))))
         # print("-----------------------", mvbaout)
