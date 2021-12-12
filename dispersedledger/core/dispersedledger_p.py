@@ -203,8 +203,19 @@ class DL:
                 while True:
                     try:
                         (sid, leader, value, st) = self.share_bc.get_nowait()
+
                         # if self.id == 1: print("get", sid, leader, "at", time.time())
-                        self.bc_instances[sid][leader] = (1, value, st)
+                        try:
+                            #has recover not store or send
+                            (g, v, s) = self.bc_instances[sid][leader]
+                            if g == 2 and v == 0:
+                                self.bc_instances[sid][leader] = (2, value, st)
+                            if g == 3:
+                                if v == 0:
+                                    self.bc_instances[sid][leader] = (3, value, st)
+                                    return_send((sid, leader, value))
+                        except:
+                            self.bc_instances[sid][leader] = (1, value, st)
                     except:
                         gevent.sleep(0.0001)
                         continue
@@ -218,9 +229,10 @@ class DL:
                         # if self.id == 1: print("get tobe recover:", sid, leader, root)
                         try:
                             (g, v, p) = self.bc_instances[sid][leader]
-                            if g > 0:
+                            if g == 1 and v != 0:
                                 return_send((sid, leader, v))
                         except:
+                            self.bc_instances[sid][leader] = 2, 0, 0
                             pass
                     except:
                         gevent.sleep(0)
@@ -309,7 +321,7 @@ class DL:
                         et = time.time()
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
-                        if self.logger != None and self.id == 1:
+                        if self.logger != None:
                             tx_cnt = str(m).count("Dummy")
                             self.txcnt += tx_cnt
                             self.txdelay = et - self.s_time
@@ -322,14 +334,13 @@ class DL:
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
                                    self.txcnt / self.txdelay, et))
                             print("remain", self.retrieval_recv.qsize())
-
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
             # _collect_thread = gevent.spawn(_collect)
             for i in range(self.N):
                 _recover_thread = gevent.spawn(_recover, i)
             while True:
-                gevent.sleep(0.1)
+                gevent.sleep(0)
                 pass
 
         def _run_bc_mvba():
@@ -351,7 +362,6 @@ class DL:
             self._recv_thread.start()
 
             while True:
-
                 # print(r, "start!")
                 start = time.time()
 
@@ -379,7 +389,8 @@ class DL:
                 if self.logger != None:
                     self.logger.info(
                         'Node %d Delivers ACS in Round %d' % (self.id, self.round))
-                    # print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
+
+                # if self.id == 3: print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
                 end = time.time()
 
                 if self.logger != None:
