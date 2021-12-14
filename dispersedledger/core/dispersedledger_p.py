@@ -123,7 +123,7 @@ class DL:
         self.tx_cnt = 0
         self.txcnt = 0
         self.txdelay = 0
-
+        self.l_c = 0
         self.mute = mute
         self.threads = []
 
@@ -327,17 +327,18 @@ class DL:
                         if self.logger != None:
                             tx_cnt = str(m).count("Dummy")
                             self.txcnt += tx_cnt
+                            self.l_c += (et - st)
                             self.txdelay = et - self.s_time
                             block_count = self.txcnt/self.B
                             # print("block count", block_count)
                             self.logger.info(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.txdelay/block_count))
+                                   self.txcnt / self.txdelay, self.l_c/block_count))
                             print(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.txdelay/block_count))
+                                   self.txcnt / self.txdelay, self.l_c/block_count))
                             print("remain", self.retrieval_recv.qsize())
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
