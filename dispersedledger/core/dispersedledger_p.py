@@ -117,7 +117,8 @@ class DL:
 
         self.debug = debug
 
-        self.s_time = 0
+        #self.s_time = 0
+        self.s_time = multiprocessing.Value('d', 0.0)
         self.e_time = 0
         self.tx_cnt = 0
         self.txcnt = 0
@@ -327,14 +328,16 @@ class DL:
                             tx_cnt = str(m).count("Dummy")
                             self.txcnt += tx_cnt
                             self.txdelay = et - self.s_time
+                            block_count = self.txcnt/self.B
+                            # print("block count", block_count)
                             self.logger.info(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, et))
+                                   self.txcnt / self.txdelay, self.txdelay/block_count))
                             print(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, et))
+                                   self.txcnt / self.txdelay, self.txdelay/block_count))
                             print("remain", self.retrieval_recv.qsize())
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
@@ -362,7 +365,7 @@ class DL:
 
             self._recv_thread = Greenlet(handelmsg)
             self._recv_thread.start()
-
+            self.s_time = time.time()
             while True:
                 # print(r, "start!")
                 start = time.time()
