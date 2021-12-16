@@ -79,7 +79,7 @@ def broadcast_receiver_loop(recv_func, recv_queues):
 
 
 class DL:
-    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, send, recv, K=3, mute=False,
+    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, send1, recv1, send2, recv2, K=3, mute=False,
                  debug=False):
 
         self.sid = sid
@@ -93,8 +93,10 @@ class DL:
         self.sSK1 = sSK1
         self.sPK2s = sPK2s
         self.sSK2 = sSK2
-        self._send = send
-        self._recv = recv
+        self._send1 = send1
+        self._recv1 = recv1
+        self._send2 = send1
+        self._recv2 = recv2
         self.logger = set_consensus_log(pid)
         self.K = K
         self.round = 0  # Current block number
@@ -115,15 +117,16 @@ class DL:
 
         self.debug = debug
 
-        self.s_time = 0
+        #self.s_time = 0
+        self.s_time = multiprocessing.Value('d', 0.0)
         self.e_time = 0
         self.tx_cnt = 0
         self.txcnt = 0
         self.txdelay = 0
-
+        self.l_c = 0
         self.mute = mute
         self.threads = []
-
+        self.v = [0] * N
         self.r = 1
 
     def submit_tx(self, tx):
@@ -143,7 +146,7 @@ class DL:
                 while True:
                     time.sleep(10)
 
-        def _recv_loop():
+        def _recv_loop_bm():
             """Receive messages."""
             if os.getpid() == self.bmp:
                 return
@@ -155,20 +158,36 @@ class DL:
                 # gevent.sleep(0)
                 try:
 
-                    (sender, (r, msg)) = self._recv()
+                    (sender, (r, msg)) = self._recv1()
+                    # print("recv:", sender, r, msg)
+                    # self.logger.info('recv1' + str((sender, o)))
+                    # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
+                        # print(self.id, 'recv' + str((sender, msg[0])))
+                    #    self.retrieval_recv.put((sender, msg))
+
+                    self.bc_mv_recv.put((r, (sender, msg)))
+                        # print("mvba put:", self._per_round_recv[r])def
+                except:
+                    continue
+        def _recv_loop_r():
+            """Receive messages."""
+            if os.getpid() == self.bmp:
+                return
+            if os.getpid() == self.rp:
+                return
+            st = 0
+            print("start recv loop...", os.getpid())
+            # self._send(1, (1, "test msg"))
+            while True:
+                # gevent.sleep(0)
+                try:
+
+                    (sender, (r, msg)) = self._recv2()
                     # print("recv:", sender, r, msg)
                     # self.logger.info('recv1' + str((sender, o)))
                     if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
                         # print(self.id, 'recv' + str((sender, msg[0])))
                         self.retrieval_recv.put((sender, msg))
-                    else:
-                        # (tag, j, m) = msg
-                        # Maintain an *unbounded* recv queue for each epoch
-                        # Buffer this message
-                        # print(self.id, 'recv' + str((sender, msg[0])))
-                        # self._per_round_recv.put_nowait((r, (sender, msg)))
-                        self.bc_mv_recv.put((r, (sender, msg)))
-                        # print("mvba put:", self._per_round_recv[r])def
                 except:
                     continue
 
@@ -177,17 +196,28 @@ class DL:
             self.rp = os.getpid()
 
             def ask_broadcast(o):
-                self._send(-1, ('', ('RETRIEVAL', o)))
+                self._send2(-1, ('', ('RETRIEVAL', o)))
 
             def return_send(o):
-                self._send(-1, ('', ('RETURN', o)))
+                self._send2(-1, ('', ('RETURN', o)))
 
             def _store():
                 while True:
                     try:
                         (sid, leader, value, st) = self.share_bc.get_nowait()
+
                         # if self.id == 1: print("get", sid, leader, "at", time.time())
-                        self.bc_instances[sid][leader] = (1, value, st)
+                        try:
+                            #has recover not store or send
+                            (g, v, s) = self.bc_instances[sid][leader]
+                            if g == 2 and v == 0:
+                                self.bc_instances[sid][leader] = (2, value, st)
+                            if g == 3:
+                                if v == 0:
+                                    return_send((sid, leader, value))
+                                    self.bc_instances[sid][leader] = (3, 0, st)
+                        except:
+                            self.bc_instances[sid][leader] = (1, value, st)
                     except:
                         gevent.sleep(0.0001)
                         continue
@@ -200,10 +230,12 @@ class DL:
                         (sid, leader, root) = self.tobe_retrieval.get_nowait()
                         # if self.id == 1: print("get tobe recover:", sid, leader, root)
                         try:
-                            (g, v, p) = self.bc_instances[sid][leader]
-                            if g > 0:
+                            (g, v, st) = self.bc_instances[sid][leader]
+                            if g == 1 and v != 0:
                                 return_send((sid, leader, v))
+                                self.bc_instances[sid][leader] = (g, 0, st)
                         except:
+                            self.bc_instances[sid][leader] = 2, 0, 0
                             pass
                     except:
                         gevent.sleep(0)
@@ -269,8 +301,8 @@ class DL:
                     if not self.re_instances[sid][j]:
                         # has recovered
                         continue
-                    if g > 0 and root != value[2]:
-                        print("return wrong root to retrieval, get ", root, "while stored ", value[2])
+                    #if g > 0 and root != value[2]:
+                    #    print("return wrong root to retrieval, get ", root, "while stored ", value[2])
                     try:
                         assert merkleVerify(self.N, chunk, root, branch, sender)
                     except Exception as e:
@@ -292,27 +324,29 @@ class DL:
                         et = time.time()
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
-                        if self.logger != None and self.id == 1:
+                        if self.logger != None:
                             tx_cnt = str(m).count("Dummy")
                             self.txcnt += tx_cnt
+                            self.l_c += (et - st)
                             self.txdelay = et - self.s_time
+                            block_count = self.txcnt/self.B
+                            # print("block count", block_count)
                             self.logger.info(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, et))
+                                   self.txcnt / self.txdelay, self.l_c/block_count))
                             print(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, et))
+                                   self.txcnt / self.txdelay, self.l_c/block_count))
                             print("remain", self.retrieval_recv.qsize())
-
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
             # _collect_thread = gevent.spawn(_collect)
             for i in range(self.N):
                 _recover_thread = gevent.spawn(_recover, i)
             while True:
-                gevent.sleep(0.1)
+                gevent.sleep(0)
                 pass
 
         def _run_bc_mvba():
@@ -332,9 +366,8 @@ class DL:
 
             self._recv_thread = Greenlet(handelmsg)
             self._recv_thread.start()
-
+            self.s_time = time.time()
             while True:
-
                 # print(r, "start!")
                 start = time.time()
 
@@ -349,7 +382,7 @@ class DL:
 
                 def _make_send(r):
                     def _send(j, o):
-                        self._send(j, (r, o))
+                        self._send1(j, (r, o))
 
                     return _send
 
@@ -362,7 +395,8 @@ class DL:
                 if self.logger != None:
                     self.logger.info(
                         'Node %d Delivers ACS in Round %d' % (self.id, self.round))
-                    # print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
+
+                # if self.id == 3: print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
                 end = time.time()
 
                 if self.logger != None:
@@ -382,8 +416,10 @@ class DL:
 
         self._bc_mvba.start()
         self._retrieval.start()
-        self._recv_thread = gevent.spawn(_recv_loop)
-        self._recv_thread.join()
+        self._recv_thread1 = gevent.spawn(_recv_loop_bm)
+        self._recv_thread2 = gevent.spawn(_recv_loop_r)
+        self._recv_thread1.join()
+        self._recv_thread2.join()
         self._retrieval.join()
         # self._bc_mvba.join()
         # print("-----------------------------start to join")
@@ -453,8 +489,10 @@ class DL:
                 value, sigs = pcbc_thread.get()
                 (chunk, branch, root) = value
                 st = time.time()
-                self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, value, sigs
+                self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, root, sigs
                 self.share_bc.put((sid + 'PCBC' + str(r), j, value, st))
+                if self.v[j] < r:
+                    self.v[j] = r
                 # if self.id == 1: print("put", sid + 'PCBC' + str(r), j, "at", time.time())
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
                 # pcbc_outputs[j].put_nowait((value, proof))
@@ -474,11 +512,12 @@ class DL:
             # print("N - f bc instances have finished in round ", r)
             # print(self.bc_instances[sid + 'PCBC' + str(r)].keys())
             for i in self.bc_instances[sid + 'PCBC' + str(r)].keys():
-                (_, (chunk, branch, root), sigs) = self.bc_instances[sid + 'PCBC' + str(r)][i]
+                (_, root, sigs) = self.bc_instances[sid + 'PCBC' + str(r)][i]
                 values[i] = sid + 'PCBC' + str(r), i, root, sigs
-            vacs_input.put(values)
+            vacs_input.put((values, self.v))
 
-            def vaba_predicate(m):
+            def vaba_predicate(msg):
+                m, v = msg
                 counter = 0
                 if type(m) is list:
                     if len(m) == N:
@@ -508,14 +547,30 @@ class DL:
         # One instance of (validated) ACS
         # print("start to set up VACS")
         _setup_vacs()
-        mvbaout = (list(vacs_output.get()))
-
+        values, v = vacs_output.get()
+        mvbaout = (list(values))
+        sortv = [[0]*self.N]*self.N
         for i in range(N):
             if mvbaout[i] is not None:
+                # print(mvbaout[i])
                 sid, leader, root, sigs = mvbaout[i]
-                (g, value, proof) = self.bc_instances[sid][leader]
-                self.bc_instances[sid][leader] = (2, value, proof)
+                #(g, value, proof) = self.bc_instances[sid][leader]
+                self.bc_instances[sid][leader] = (2, 0, 0)
                 self.tobe_retrieval.put((sid, leader, root))
                 # self._send(-1, ('', ('RETURN', (sid, leader, value))))
+                for k in range (self.N):
+                    sortv[k][i] = v[k]
         # print("-----------------------", mvbaout)
+        for k in range(self.N):
+            r = sorted(sortv[k])[-(f+1)]
+            # print("--------", r, k)
+            try:
+                (g, root, _) = self.bc_instances[sid + 'PCBC' + str(r)][k]
+                print("-", r, k)
+                if g < 2:
+                    print("--------", r, k)
+                    self.bc_instances[sid + 'PCBC' + str(r)][k] = (2, 0, 0)
+                    self.tobe_retrieval.put((sid + 'PCBC' + str(r), k, root))
+            except:
+                pass
         return mvbaout

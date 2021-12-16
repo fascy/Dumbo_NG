@@ -420,7 +420,7 @@ class XDumbo_k_s:
                                 for item in siglist[i*self.K+j]:
                                     # print(Sigma_p)
                                     (sender, sig_p) = item
-                                    assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
+                                    # assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
                             except AssertionError:
                                 if self.logger is not None: self.logger.info("ecdsa signature failed!")
                                 print("ecdsa signature failed!")

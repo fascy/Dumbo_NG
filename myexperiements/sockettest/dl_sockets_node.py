@@ -1,7 +1,7 @@
 import gevent
 from gevent import monkey, Greenlet;
 
-from dispersedledger.core.dispersedledger_p import DL
+from dispersedledger.core.dispersedledger import DL
 
 monkey.patch_all(thread=False)
 
