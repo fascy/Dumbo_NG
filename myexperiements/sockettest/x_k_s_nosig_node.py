@@ -46,7 +46,7 @@ def load_key(id, N):
     return sPK, sPK1, sPK2s, ePK, sSK, sSK1, sSK2, eSK
 
 
-class XDSNode (XDumbo_k_s):
+class XDSNNode (XDumbo_k_s):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
                  bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):

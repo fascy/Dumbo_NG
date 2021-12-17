@@ -133,12 +133,12 @@ class Nwabcsk():
         for i in range(0, self.N):
             for j in range(self.K):
                 send = self._send
-                recv = self.fast_recv['sidA' + 'nw' + str(i)+str(j)].get
+                recv = self.fast_recv['sidA' + 'nw' + str(i * self.K + j)].get
 
                 self._run(send, recv, i, j)
 
         gevent.joinall(self.threads, timeout=45)
-
+        time.sleep(45)
         self.e_time = time.time()
         self.txcnt = 0
         for i in range(self.N * self.K):
@@ -156,12 +156,12 @@ class Nwabcsk():
     def _run(self, send, recv, i, j):
         """Run one protocol epoch.
 
-        :param int i : pid
+        :param int i : leader
         :param int j : jth instance of node i
         :param send:
         :param recv:
         """
-
+        print("append", i)
         sid = self.sid
         pid = self.id
         N = self.N
@@ -172,10 +172,11 @@ class Nwabcsk():
         # hash_genesis = hash(epoch_id)
 
         leader = i
-        t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i)+str(j), pid, N, f, self.FAST_BATCH_SIZE,
+        t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i*self.K+j), pid, N, f, self.FAST_BATCH_SIZE,
                         self.sPK2s, self.sSK2, leader,
-                        self.transaction_buffer[j].get_nowait, self.output_list[i*k+j].put_nowait, recv, send, self.logger)
+                        self.transaction_buffer[j].get_nowait, self.output_list[i*k+j].put_nowait, recv, send, self.logger, pro=1)
         self.threads.append(t)
+
         # nwabc_threads.join()
 
 

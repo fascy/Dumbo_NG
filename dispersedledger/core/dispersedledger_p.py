@@ -332,14 +332,14 @@ class DL:
                             block_count = self.txcnt/self.B
                             # print("block count", block_count)
                             self.logger.info(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
+                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.l_c/block_count))
-                            print(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
+                                   self.txcnt / self.txdelay, self.l_c/block_count, et))
+                            if self.id ==3 :print(
+                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.l_c/block_count))
-                            print("remain", self.retrieval_recv.qsize())
+                                   self.txcnt / self.txdelay, self.l_c/block_count, et))
+                            # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
             # _collect_thread = gevent.spawn(_collect)
@@ -392,16 +392,16 @@ class DL:
                 new_tx = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
                 # self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
 
-                if self.logger != None:
-                    self.logger.info(
-                        'Node %d Delivers ACS in Round %d' % (self.id, self.round))
-
+                # if self.logger != None:
+                #     self.logger.info(
+                #         'Node %d Delivers ACS in Round %d' % (self.id, self.round))
                 # if self.id == 3: print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
+
                 end = time.time()
 
                 if self.logger != None:
-                    self.logger.info('ACS Delay at Node %d: ' % self.id + str(end - start))
-                    # print('ACS Delay at Node %d: ' % self.id + str(end - start))
+                    self.logger.info('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+                if self.id == 3: print('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
 
                 self.round += 1
                 if self.round >= self.K:

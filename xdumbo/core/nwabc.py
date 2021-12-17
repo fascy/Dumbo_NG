@@ -157,7 +157,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                         Sigma1 = tuple(votes[r].items())
                         try:
                             proposals[r+1] = json.dumps([input() for _ in range(BATCH_SIZE)])
-                            # print(sid, pid, "in", r+1, "  input:", proposals)
+                            # print(sid, pid, "in", r+1, "  input:", proposals[0])
                         except  Exception as e:
                             if logger is not None: logger.info("all msg in buffer has been sent!")
                             proposals[r + 1] = 0
@@ -207,7 +207,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     output((sid, s-1, hash(str(last_tx)), last_sigs))
                     # if (s-1) % 10 == 0:
                     # print("output", (sid, s-1))
-                    if pro==0:
+                    if pro == 0:
                         if logger is not None: logger.info("node: %d sid: %s total: %d" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
                     gevent.sleep(0)
             try:
@@ -241,5 +241,6 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     tps = Bsize * (s - 1) / (e_time - s_time)
     if logger is not None: logger.info(
         "node: %d sid: %s tps: %d running time: %f" % (pid, str(sid) + " " + str(s - 1), tps, (e_time - s_time)))
+
 
     # outpt_thread.join()

@@ -5,6 +5,7 @@ from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
 from myexperiements.sockettest.x_d_node import XDNode
 from myexperiements.sockettest.x_k_node import XDKNode
 from myexperiements.sockettest.x_k_s_node import XDSNode
+from myexperiements.sockettest.x_k_s_nosig_node import XDSNNode
 
 monkey.patch_all(thread=False)
 
@@ -55,7 +56,7 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bf
     elif protocol == 'xs':
         bft = XDSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
     elif protocol == 'xs_nosig':
-        bft = XDSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
+        bft = XDSNNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
     elif protocol == 'dl':
         bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
 
