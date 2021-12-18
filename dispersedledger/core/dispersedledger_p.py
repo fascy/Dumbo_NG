@@ -2,7 +2,7 @@ from gevent import monkey;
 
 from dispersedledger.core.PCBC import provablecbc
 from honeybadgerbft.core.reliablebroadcast import merkleVerify, decode
-from speedmvba.core.smvba_e import speedmvba
+from speedmvba.core.smvba_n import speedmvba
 
 monkey.patch_all(thread=False)
 
