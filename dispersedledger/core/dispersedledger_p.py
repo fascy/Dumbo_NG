@@ -138,7 +138,7 @@ class DL:
 
     def run_bft(self):
         """Run the DL protocol."""
-
+        print("==============", self.id)
         if self.mute:
             muted_nodes = [each * 3 + 1 for each in range(int((self.N - 1) / 3))]
             if self.id in muted_nodes:
@@ -159,7 +159,7 @@ class DL:
                 try:
 
                     (sender, (r, msg)) = self._recv1()
-                    # print("recv:", sender, r, msg)
+                    # print("recv:", sender, r, msg[0])
                     # self.logger.info('recv1' + str((sender, o)))
                     # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
                         # print(self.id, 'recv' + str((sender, msg[0])))
@@ -293,7 +293,7 @@ class DL:
                     # print("recover recv: ", sender, msg[0])
                     (sid, (chunk, branch, root)) = msg
                     # if self.id == 1: print("get a new msg ", sid, j, "at ", time.time())
-                    # print(self.id, "recv return ", sid, leader, chunk)
+                    # print(self.id, "recv return ", sid, root)
                     try:
                         g, value, t = self.bc_instances[sid][j]
                     except:
@@ -306,7 +306,7 @@ class DL:
                     try:
                         assert merkleVerify(self.N, chunk, root, branch, sender)
                     except Exception as e:
-                        print("Failed to validate VAL message:", e)
+                        print("Failed to validate VAL message:", sender)
                         continue
                     self.re_instances[sid][j][sender] = chunk
                     self.re_count[sid][j] += 1
@@ -332,8 +332,8 @@ class DL:
                             block_count = self.txcnt/self.B
                             # print("block count", block_count)
                             self.logger.info(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
-                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
+                                'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
+                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
                                    self.txcnt / self.txdelay, self.l_c/block_count, et))
                             if self.id ==3 :print(
                                 'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'

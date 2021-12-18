@@ -73,7 +73,7 @@ class NetworkClient (Process):
             #gevent.sleep(0)
             #self.sock_locks[j].acquire()
             o = self.sock_queues[j].get()
-            # print("!!!!!!!!!!!!!!!!!!!!11", o)
+            # print("!!!!!!!!!!!!!!!!!!!!11", j)
             try:
                 self.socks[j].sendall(pickle.dumps(o) + self.SEP)
             except:

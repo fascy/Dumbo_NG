@@ -99,7 +99,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
         # gevent.sleep(0)
 
         (j, msg) = receive()
-        # print("recv3", (j, msg))
+        # print("recv3", (j, msg[0]))
 
         if msg[0] == 'CBC_SEND' and fromLeader is None:
             # CBC_SEND message

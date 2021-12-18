@@ -73,7 +73,10 @@ class NetworkServer (Process):
     def _address_to_id(self, address: tuple):
         for i in range(self.N):
             if address[0] != '127.0.0.1' and address[0] == self.addresses_list[i][0]:
+                print("333333333", i)
                 return i
+        # print(address[1], address[0])
+        # print("3333", int((address[1] - 10000) / 200))
         return int((address[1] - 10000) / 200)
 
     def _set_server_logger(self, id: int):

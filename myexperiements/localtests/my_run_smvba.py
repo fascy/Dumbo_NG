@@ -43,7 +43,7 @@ def simple_router(N, maxdelay=0.1, seed=None):
             [makeRecv(j) for j in range(N)])
 
 
-def _test_vaba(N=4, f=1, leader=None, seed=None):
+def _test_vaba(N=16, f=5, leader=None, seed=None):
     # Test everything when runs are OK
     sid = 'SMVBA'
     # Note thld siganture for CBC has a threshold different from common coin's
@@ -56,7 +56,7 @@ def _test_vaba(N=4, f=1, leader=None, seed=None):
 
     threads = []
     inputs = [Queue(1) for _ in range(N)]
-    outputs = [Queue(1) for _ in range(N)]
+    outputs = [Queue() for _ in range(N)]
     for i in range(N):
         inputs[i].put_nowait("Hello! This is a test message from node %d" % i)
         print("Input to node %d has been provided" % i)
@@ -96,4 +96,4 @@ def test_vaba(N, f, seed):
 
 
 if __name__ == '__main__':
-    test_vaba(4, 1, None)
+    test_vaba(16, 5, None)

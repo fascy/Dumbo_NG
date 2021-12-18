@@ -185,13 +185,16 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 broadcast(('MVBA_HALT', r, r, ("halt", halt_msg)))
                 # try:
                 # print(pid, sid, "halt here 1")
+                #try:
+                # print(pid, halt_msg[2][0])
                 decide(halt_msg[2][0])
+                if logger is not None: logger.info("round", r, "smvba", decide, "in halt", time.time())
                 # except:
                 #     print("1 can not")
                 #     pass
                 return 2
 
-    halt_recv_thred = Greenlet(halt)
+    halt_recv_thred = gevent.Greenlet(halt)
     halt_recv_thred.start()
     while True:
         """ 
@@ -318,6 +321,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # try:
             # print(pid, sid, "halt here 2")
             decide(msg[0])
+            if logger is not None: logger.info("round", r, "smvba", decide, "in vaba halt", time.time())
             #except:
             #    print("2 can not")
             #    pass
@@ -409,6 +413,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         halt_msg = (Leader, 2, vote_msg[2], tuple(list(vote_yes_shares.items())[:N - f]))
                         broadcast(('MVBA_HALT', r, pid, ("halt", halt_msg)))
                         # print(pid, sid, "halt here 3")
+                        if logger is not None: logger.info("round", r, "smvba", decide, "in vote yes", time.time())
                         decide(vote_msg[2][0])
                         return 1
                 # vote no
