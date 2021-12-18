@@ -7,7 +7,7 @@ from datetime import datetime
 import gevent
 from collections import namedtuple
 from enum import Enum
-from speedmvba.core.smvba_e import speedmvba
+from speedmvba.core.smvba_n import speedmvba
 from gevent.queue import Queue
 from honeybadgerbft.exceptions import UnknownTagError
 
