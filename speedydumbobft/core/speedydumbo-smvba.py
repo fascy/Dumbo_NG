@@ -273,7 +273,7 @@ class SpeedyDumbo():
                 pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
                                      N, f, self.sPK2s, self.sSK2, j, pb_input,
                                      pb_value_outputs[j].put_nowait,
-                                     recv=pb_recvs[j].get, send=pb_send, logger=self.logger)
+                                     recv=pb_recvs[j].get, send=pb_send, logger=None)
             else:
                 pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
                                      N, f, self.sPK2s, self.sSK2, j, pb_input,
