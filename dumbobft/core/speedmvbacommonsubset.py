@@ -116,7 +116,7 @@ def speedmvbacommonsubset(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, de
 
 
     vaba = gevent.spawn(speedmvba, sid + 'VACS-VABA', pid, N, f, PK, SK, PK2s, SK2,
-                        vaba_input.get, vaba_output.put_nowait, vaba_recv.get, make_vaba_send(), make_vaba_predicate())
+                        vaba_input.get, vaba_output.put_nowait, vaba_recv.get, make_vaba_send(), make_vaba_predicate(), logger)
 
     """ 
     """
