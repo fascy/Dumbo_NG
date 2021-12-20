@@ -106,7 +106,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     # spbc_recvs = [[Queue() for _ in range(N)] for _ in range(20)]
     spbc_recvs = defaultdict(lambda: [Queue() for _ in range(N)])
     coin_recv = Queue()
-    commit_recvs = [Queue() for _ in range(N)]
+    # commit_recvs = [Queue() for _ in range(N)]
     halt_recv = Queue()
 
     spbc_threads = [None] * N
@@ -117,10 +117,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     is_spbc_delivered = [0] * N
     is_s1_delivered = [0] * N
 
-    prevote_no_shares = dict()
-    vote_yes_shares = dict()
-    vote_no_shares = dict()
-    Leaders = [Queue(1) for _ in range(100)]
+    Leaders = [Queue(1) for _ in range(50)]
 
     recv_queues = MessageReceiverQueues(
         MVBA_SPBC=spbc_recvs,
@@ -237,8 +234,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             """
             broadcast(('MVBA_ELECT', r, 'leader_election', o))
 
-        permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
-                                       PK, SK, coin_bcast, coin_recv.get, single_bit=False)
+        # permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
+        #                               PK, SK, coin_bcast, coin_recv.get, single_bit=False)
 
         # print(pid, "coin share start")
         # False means to get a coin of 256 bits instead of a single bit
@@ -327,7 +324,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # try:
             # print(pid, sid, "halt here 2")
             decide(msg[0])
-            if logger is not None: logger.info("round %d smvba decide in  vaba halt %f" % (r, time.time()))
+            if logger is not None: logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
             #except:
             #    print("2 can not")
             #    pass
@@ -347,7 +344,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         vote_yes_shares = dict()
         vote_no_shares = dict()
         while True:
-
             hasVoted = False
             hasOutputed = False
 
