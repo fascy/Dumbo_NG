@@ -35,9 +35,9 @@ def speedydumbocommonsubset(pid, N, f, pb_values_out, pb_proof_out, vacs_in, vac
         (prbc_sid, digest, Sigma) = pb_proof_out()
         prbc_proof = (prbc_sid, digest, Sigma)
         vacs_in(prbc_proof)
-        if logger != None:
-            logger.info("DumboACS transfers prbc out to vacs in at %s" % datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
-        #print("node %d get PB proof in ACS" % pid)
+        # if logger != None:
+        #     logger.info("DumboACS transfers prbc out to vacs in at %s" % datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+        # print("node %d get PB proof in ACS" % pid)
 
     def wait_for_pb_value(leader):
         msg = pb_values_out[leader]()
