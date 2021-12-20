@@ -255,6 +255,8 @@ class SpeedyDumbo():
         #if self.logger != None:
         #    self.logger.info('Commit tx at Node %d:' % self.id + str(tx_to_send))
 
+        pb_threads = [None] * N
+
         def _setup_pb(j):
             """Setup the sub protocols RBC, BA and common coin.
             :param int j: Node index for which the setup is being done.
@@ -269,73 +271,66 @@ class SpeedyDumbo():
 
             # Only leader gets input
             pb_input = my_pb_input.get if j == pid else None
-            if self.debug:
-                pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
-                                     N, f, self.sPK2s, self.sSK2, j, pb_input,
-                                     pb_value_outputs[j].put_nowait,
-                                     recv=pb_recvs[j].get, send=pb_send, logger=self.logger)
-            else:
-                pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
+
+            pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
                                      N, f, self.sPK2s, self.sSK2, j, pb_input,
                                      pb_value_outputs[j].put_nowait,
                                      recv=pb_recvs[j].get, send=pb_send)
 
             def wait_for_pb_proof():
                 proof = pb_thread.get()
-                pb_proofs[sid+'PB'+str(r)+str(j)] = proof
-                pb_proof_output.put_nowait(proof)
-
+                try:
+                    pb_proofs[sid+'PB'+str(r)+str(j)] = proof
+                    pb_proof_output.put_nowait(proof)
+                except TypeError as e:
+                    print(e)
+                    #return False
             # wait for pb proof, only when I am the leader
             if j == pid:
                 gevent.spawn(wait_for_pb_proof)
 
-        def _setup_vacs():
-
-            def vacs_send(k, o):
-                """Threshold encryption broadcast."""
-                """Threshold encryption broadcast."""
-                send(k, ('ACS_VACS', '', o))
-
-            def vacs_predicate(j, vj):
-                prbc_sid = sid + 'PB' + str(r) + str(j)
-                try:
-                    proof = vj
-                    if prbc_sid in pb_proofs.keys():
-                        try:
-                            _prbc_sid, _digest, _sigmas = proof
-                            assert prbc_sid == _prbc_sid
-                            _, digest, _ = pb_proofs[prbc_sid]
-                            assert digest == _digest
-                            return True
-                        except AssertionError:
-                            print("1 Failed to verify proof for RBC")
-                            return False
-                    assert pb_validate(prbc_sid, N, f, self.sPK2s, proof)
-                    pb_proofs[prbc_sid] = proof
-                    return True
-                except AssertionError:
-                    print("2 Failed to verify proof for RBC")
-                    return False
-            if self.debug:
-                vacs_thread = Greenlet(speedmvbacommonsubset, sid+'VACS'+str(r), pid, N, f,
-                                   self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                                   vacs_input.get, vacs_output.put_nowait,
-                                   vacs_recv.get, vacs_send, vacs_predicate, logger=self.logger)
-            else:
-                vacs_thread = Greenlet(speedmvbacommonsubset, sid+'VACS'+str(r), pid, N, f,
-                                   self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                                   vacs_input.get, vacs_output.put_nowait,
-                                   vacs_recv.get, vacs_send, vacs_predicate)
-            vacs_thread.start()
+            return pb_thread
 
         # N instances of PB
         for j in range(N):
             #print("start to set up RBC %d" % j)
-            _setup_pb(j)
+            pb_threads[j] = _setup_pb(j)
+
+
 
         # One instance of (validated) ACS
         #print("start to set up VACS")
-        _setup_vacs()
+        def vacs_send(k, o):
+            """Threshold encryption broadcast."""
+            """Threshold encryption broadcast."""
+            send(k, ('ACS_VACS', '', o))
+
+        def vacs_predicate(j, vj):
+            prbc_sid = sid + 'PB' + str(r) + str(j)
+            try:
+                proof = vj
+                if prbc_sid in pb_proofs.keys():
+                    try:
+                        _prbc_sid, _digest, _sigmas = proof
+                        assert prbc_sid == _prbc_sid
+                        _, digest, _ = pb_proofs[prbc_sid]
+                        assert digest == _digest
+                        return True
+                    except AssertionError:
+                        print("1 Failed to verify proof for RBC")
+                        return False
+                assert pb_validate(prbc_sid, N, f, self.sPK2s, proof)
+                pb_proofs[prbc_sid] = proof
+                return True
+            except AssertionError:
+                print("2 Failed to verify proof for RBC")
+                return False
+
+        vacs_thread = Greenlet(speedmvbacommonsubset, sid + 'VACS' + str(r), pid, N, f,
+                               self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                               vacs_input.get, vacs_output.put_nowait,
+                               vacs_recv.get, vacs_send, vacs_predicate)
+        vacs_thread.start()
 
         # One instance of TPKE
         def tpke_bcast(o):
@@ -362,7 +357,11 @@ class SpeedyDumbo():
             for tx in decoded_batch:
                 block.add(tx)
 
+        dumboacs_thread.kill()
         bc_recv_loop_thread.kill()
+        vacs_thread.kill()
+        for j in range(N):
+            pb_threads[j].kill()
 
         return list(block)
 

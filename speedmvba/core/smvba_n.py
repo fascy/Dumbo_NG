@@ -27,7 +27,7 @@ from dumbobft.core.baisedbinaryagreement import baisedbinaryagreement
 from dumbobft.core.consistentbroadcast import consistentbroadcast
 from dumbobft.core.validators import cbc_validate
 from honeybadgerbft.exceptions import UnknownTagError
-from pympler.classtracker import ClassTracker
+# from pympler.classtracker import ClassTracker
 
 
 class MessageTag(Enum):
@@ -353,9 +353,11 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # prevote = (Leader, 0, "bottom", SK1.sign(digest_no))
             # print(pid, sid, "prevote no in round ", r)
         broadcast(('MVBA_ABA', r, r, ('prevote', prevote)))
+
         prevote_no_shares = dict()
         vote_yes_shares = dict()
         vote_no_shares = dict()
+
         while True:
             hasVoted = False
             hasOutputed = False
@@ -471,6 +473,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         my_spbc_input.put_nowait((my_msg, pis, r, 'no'))
                         # my_spbc_input.put_nowait(my_msg)
                         r += 1
+                        prevote_no_shares.clear()
+                        vote_yes_shares.clear()
+                        vote_no_shares.clear()
                         # r = r % 10
                         break
                 # both vote no and vote yes
@@ -480,5 +485,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     # print("------------------------------------", vote_yes_msg)
                     # my_spbc_input.put_nowait(vote_yes_msg)
                     r += 1
+                    prevote_no_shares.clear()
+                    vote_yes_shares.clear()
+                    vote_no_shares.clear()
                     # r = r % 10
                     break
+
