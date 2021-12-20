@@ -153,8 +153,8 @@ def speedmvbacommonsubset(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, de
     vaba_input.put_nowait(tuple(values))
     decide(list(vaba_output.get()))
 
-    if logger != None:
-        logger.info("VACS completes")
+    #if logger != None:
+    #    logger.info("VACS completes")
     #print("node %d output in VACS" % pid)
 
     vaba.kill()

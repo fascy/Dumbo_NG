@@ -258,8 +258,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             v = input()
             my_msg = v
 
-            if logger != None:
-                logger.info("MVBA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
+            #if logger != None:
+            #    logger.info("MVBA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
             # print("node %d gets VABA input %s" % (pid, v[0]))
 
             my_spbc_input.put_nowait((v, "null", 0, "first"))
