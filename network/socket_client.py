@@ -75,7 +75,7 @@ class NetworkClient (Process):
             o = self.sock_queues[j].get()
             # print("!!!!!!!!!!!!!!!!!!!!11", j)
             try:
-                time.sleep(int(self.id) * 0.01)
+                # time.sleep(int(self.id) * 0.01)
                 self.socks[j].sendall(pickle.dumps(o) + self.SEP)
             except:
                 self.logger.error("fail to send msg")

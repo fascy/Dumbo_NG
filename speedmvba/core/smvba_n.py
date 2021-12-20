@@ -27,6 +27,7 @@ from dumbobft.core.baisedbinaryagreement import baisedbinaryagreement
 from dumbobft.core.consistentbroadcast import consistentbroadcast
 from dumbobft.core.validators import cbc_validate
 from honeybadgerbft.exceptions import UnknownTagError
+from pympler.classtracker import ClassTracker
 
 
 class MessageTag(Enum):
@@ -194,6 +195,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 for i in range(N):
                     if spbc_threads is not None:
                         spbc_threads[i].kill()
+                recv_loop_thred.kill()
                 if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
                 # except:
                 #     print("1 can not")
@@ -315,7 +317,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         """
         Run a Coin instance to elect the leaders
         """
-        time.sleep(0.05)
+        # time.sleep(0.05)
         seed = int.from_bytes(hash(sid+str(r)), byteorder='big') % (2 ** 10 - 1)
 
         # seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
@@ -333,6 +335,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             for i in range(N):
                 if spbc_threads is not None:
                     spbc_threads[i].kill()
+            recv_loop_thred.kill()
+            halt_recv_thred.kill()
             if logger is not None: logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
             #except:
             #    print("2 can not")
@@ -431,6 +435,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         for i in range(N):
                             if spbc_threads is not None:
                                 spbc_threads[i].kill()
+                        recv_loop_thred.kill()
+                        halt_recv_thred.kill()
                         return 1
                 # vote no
                 if vote_msg[1] == 0:

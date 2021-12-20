@@ -11,6 +11,7 @@ from crypto.threshsig.boldyreva import serialize, deserialize1
 from crypto.threshsig.boldyreva import TBLSPrivateKey, TBLSPublicKey
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
 
+
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
