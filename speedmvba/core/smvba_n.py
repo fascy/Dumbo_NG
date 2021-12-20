@@ -287,21 +287,24 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
         def wait_for_spbc_to_continue(leader):
             # Receive output from CBC broadcast for input values
-            msg, sigmas2 = spbc_threads[leader].get()
-            # print("spbc finished, and the msg is", msg[0])
-            if predicate(msg[0]):
-                try:
-                    if spbc_outputs[leader].empty() is not True:
-                        spbc_outputs[leader].get()
-                    spbc_outputs[leader].put_nowait((msg, sigmas2))
-                    is_spbc_delivered[leader] = 1
-                    if sum(is_spbc_delivered) >= N - f:
-                        wait_spbc_signal.set()
-                except:
+            try:
+                msg, sigmas2 = spbc_threads[leader].get()
+                # print("spbc finished, and the msg is", msg[0])
+                if predicate(msg[0]):
+                    try:
+                        if spbc_outputs[leader].empty() is not True:
+                            spbc_outputs[leader].get()
+                        spbc_outputs[leader].put_nowait((msg, sigmas2))
+                        is_spbc_delivered[leader] = 1
+                        if sum(is_spbc_delivered) >= N - f:
+                            wait_spbc_signal.set()
+                    except:
+                        pass
+                else:
                     pass
-            else:
+                    # print("-----------------------predicate no")
+            except:
                 pass
-                # print("-----------------------predicate no")
 
         spbc_out_threads = [gevent.spawn(wait_for_spbc_to_continue, node) for node in range(N)]
 
