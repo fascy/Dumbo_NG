@@ -2,7 +2,7 @@ from gevent import monkey;
 
 from dispersedledger.core.PCBC import provablecbc
 from honeybadgerbft.core.reliablebroadcast import merkleVerify, decode
-from speedmvba.core.smvba_n import speedmvba
+from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 
@@ -169,6 +169,7 @@ class DL:
                         # print("mvba put:", self._per_round_recv[r])def
                 except:
                     continue
+
         def _recv_loop_r():
             """Receive messages."""
             if os.getpid() == self.bmp:
@@ -214,7 +215,7 @@ class DL:
                                 self.bc_instances[sid][leader] = (2, value, st)
                             if g == 3:
                                 if v == 0:
-                                    return_send((sid, leader, value))
+                                    return_send((sid, leader, value,st))
                                     self.bc_instances[sid][leader] = (3, 0, st)
                         except:
                             self.bc_instances[sid][leader] = (1, value, st)
@@ -232,7 +233,7 @@ class DL:
                         try:
                             (g, v, st) = self.bc_instances[sid][leader]
                             if g == 1 and v != 0:
-                                return_send((sid, leader, v))
+                                return_send((sid, leader, v, st))
                                 self.bc_instances[sid][leader] = (g, 0, st)
                         except:
                             self.bc_instances[sid][leader] = 2, 0, 0
@@ -251,8 +252,8 @@ class DL:
                 while True:
                     gevent.sleep(0)
                     sender, msg = self.retrieval_recv.get(timeout=1000)
-                    (_, (sid, leader, v)) = msg
-                    return_recvs[leader].put_nowait((sender, (sid, v)))
+                    (_, (sid, leader, v, rst)) = msg
+                    return_recvs[leader].put_nowait((sender, (sid, v, rst)))
                     # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
 
             _re_thread = gevent.spawn(_recv_msg)
@@ -291,7 +292,7 @@ class DL:
 
                     # print(sender, msg[0])
                     # print("recover recv: ", sender, msg[0])
-                    (sid, (chunk, branch, root)) = msg
+                    (sid, (chunk, branch, root), rst) = msg
                     # if self.id == 1: print("get a new msg ", sid, j, "at ", time.time())
                     # print(self.id, "recv return ", sid, root)
                     try:
@@ -320,7 +321,8 @@ class DL:
                             g, v, st = self.bc_instances[sid][j]
                             self.bc_instances[sid][j] = 3, v, st
                         except:
-                            self.bc_instances[sid][j] = 3, 0, 0
+                            st = rst
+                            self.bc_instances[sid][j] = 3, 0, st
                         et = time.time()
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
@@ -358,12 +360,15 @@ class DL:
                 if os.getpid() != self.bmp:
                     return
                 while True:
-                    (r0, (sender, msg)) = self.bc_mv_recv.get(timeout=100)
-                    if r0 not in self._per_round_recv:
-                        self._per_round_recv[r0] = gevent.queue.Queue()
+                    try:
+                        gevent.sleep(0.001)
+                        (r0, (sender, msg)) = self.bc_mv_recv.get_nowait()
+                        if r0 not in self._per_round_recv:
+                            self._per_round_recv[r0] = gevent.queue.Queue()
 
-                    self._per_round_recv[r0].put_nowait((sender, msg))
-
+                        self._per_round_recv[r0].put_nowait((sender, msg))
+                    except:
+                        pass
             self._recv_thread = Greenlet(handelmsg)
             self._recv_thread.start()
             self.s_time = time.time()
@@ -495,7 +500,7 @@ class DL:
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
                 # pcbc_outputs[j].put_nowait((value, proof))
 
-            gevent.spawn(wait_for_prbc_output)
+            return gevent.spawn(wait_for_prbc_output)
 
         values = [None] * N
 
@@ -535,15 +540,17 @@ class DL:
                                        vacs_recv.get, vacs_send, vaba_predicate)
 
             mvba_thread.start()
+            return mvba_thread
 
         # N instances of PRBC
+        pcbc_threads = [None] * N
         for j in range(N):
             # print(self.id, "start to set up PCBC %d" % j)
-            _setup_pcbc(j)
+            pcbc_threads[j] = _setup_pcbc(j)
 
         # One instance of (validated) ACS
         # print("start to set up VACS")
-        _setup_vacs()
+        mvba_thread = _setup_vacs()
         mvbaout = (list(vacs_output.get()))
 
         for i in range(N):
@@ -554,4 +561,20 @@ class DL:
                 self.tobe_retrieval.put((sid, leader, root))
                 # self._send(-1, ('', ('RETURN', (sid, leader, value))))
         # print("-----------------------", mvbaout)
+
+        bc_recv_loop_thread.kill()
+        # mvba_thread.kill()
+        for j in range(N):
+            pcbc_threads[j].kill()
+
+        pcbc_recvs = [None for _ in range(N)]
+        vacs_recv = None
+        my_pcbc_input = None
+        vacs_input = None
+        vacs_output = None
+        for i in range(N):
+            try:
+                self.bc_instances[sid][i] = None
+            except:
+                pass
         return mvbaout

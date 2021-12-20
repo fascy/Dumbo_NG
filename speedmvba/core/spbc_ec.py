@@ -11,6 +11,7 @@ from crypto.threshsig.boldyreva import serialize, deserialize1
 from crypto.threshsig.boldyreva import TBLSPrivateKey, TBLSPublicKey
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
 
+
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
@@ -134,9 +135,10 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 print("A SPBC_SEND message from node %d other than leader %d" % (j, leader), msg)
                 continue
             (_, m, sigmas) = msg
+            hash_e = hash(str((sid, m, "ECHO")))
             try:
                 for (k, sig) in sigmas:
-                    assert ecdsa_vrfy(PK2s[k], hash(str((sid, m, "ECHO"))), sig)
+                    assert ecdsa_vrfy(PK2s[k], hash_e, sig)
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
                 print("1-Signature failed!", (r, sid, pid, j, msg))
@@ -157,6 +159,7 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 continue
             (_, sig2) = msg
             digest2 = hash(str((sid, m, "FINAL")))
+
             try:
                 assert ecdsa_vrfy(PK2s[j], digest2, sig2)
                 # assert PK1.verify_share(sig2, j, digest2)
@@ -164,6 +167,7 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
                 if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
                 continue
+
             # print("I accept CBC_ECHO from node %d" % j)
             cbc_echo_sshares2[j] = sig2
             if len(cbc_echo_sshares2) == EchoThreshold and not finalSent:
@@ -184,8 +188,9 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 continue
             (_, m, sigmas2) = msg
             try:
+                hash_f = hash(str((sid, m, "FINAL")))
                 for (k, sig) in sigmas2:
-                    assert ecdsa_vrfy(PK2s[k], hash(str((sid, m, "FINAL"))), sig)
+                    assert ecdsa_vrfy(PK2s[k], hash_f, sig)
                     # assert PK1.verify_signature(sigmas2, PK1.hash_message(str((sid, m, "FINAL"))))
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))

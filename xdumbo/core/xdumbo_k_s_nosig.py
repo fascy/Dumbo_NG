@@ -266,6 +266,7 @@ class XDumbo_k_s:
                     print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
                      (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
                       self.txcnt / self.txdelay))
+
                 self.round += 1
 
 

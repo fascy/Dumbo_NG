@@ -88,7 +88,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
         # print()
         proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
         # if logger is not None: logger.info("input:", proposals[1])
-        print(pid,  "start as leader in ", sid, proposals[1])
+        # print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], 0))
     stop = 0
 

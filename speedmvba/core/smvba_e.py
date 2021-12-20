@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from speedmvba.core.spbc_ec import strongprovablebroadcast
+from speedmvba.core.spbc_n import strongprovablebroadcast
 
 monkey.patch_all(thread=False)
 import hashlib
@@ -27,6 +27,9 @@ from dumbobft.core.baisedbinaryagreement import baisedbinaryagreement
 from dumbobft.core.consistentbroadcast import consistentbroadcast
 from dumbobft.core.validators import cbc_validate
 from honeybadgerbft.exceptions import UnknownTagError
+
+
+# from pympler.classtracker import ClassTracker
 
 
 class MessageTag(Enum):
@@ -106,7 +109,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     # spbc_recvs = [[Queue() for _ in range(N)] for _ in range(20)]
     spbc_recvs = defaultdict(lambda: [Queue() for _ in range(N)])
     coin_recv = Queue()
-    commit_recvs = [Queue() for _ in range(N)]
+    # commit_recvs = [Queue() for _ in range(N)]
     halt_recv = Queue()
 
     spbc_threads = [None] * N
@@ -117,10 +120,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     is_spbc_delivered = [0] * N
     is_s1_delivered = [0] * N
 
-    prevote_no_shares = dict()
-    vote_yes_shares = dict()
-    vote_no_shares = dict()
-    Leaders = [Queue(1) for _ in range(100)]
+    Leaders = [Queue(1) for _ in range(50)]
 
     recv_queues = MessageReceiverQueues(
         MVBA_SPBC=spbc_recvs,
@@ -146,13 +146,15 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             return 3
         L = Leaders[round].get()
         if tag == 'yn':
+            hash_e = hash(str((sid + 'SPBC' + str(L), msg, "ECHO")))
             try:
                 for (k, sig_k) in proof:
-                    assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(L), msg, "ECHO"))), sig_k)
+                    assert ecdsa_vrfy(PK2s[k], hash_e, sig_k)
             except AssertionError:
                 if logger is not None: logger.info("sig L verify failed!")
                 print("sig L verify failed!")
                 return -1
+
             return 1
         if tag == 'no':
             digest_no_no = hash(str((sid, L, r - 1, 'vote')))
@@ -170,29 +172,39 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     def halt():
         hasOutputed = False
         while True:
-            sender, halt_msg = halt_recv.get()
-            halt_tag, halt_msg = halt_msg
-            if halt_tag == 'halt' and hasOutputed == False:
-                try:
-                    # print("-----------------", halt_msg)
-                    for (k, sig_k) in halt_msg[3]:
-                        assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(halt_msg[0]), halt_msg[2], "FINAL"))),
-                                          sig_k)
-                except AssertionError:
-                    if logger is not None: logger.info("vote Signature failed!")
-                    print("vote Signature failed!")
-                    continue
-                broadcast(('MVBA_HALT', r, r, ("halt", halt_msg)))
-                # try:
-                # print(pid, sid, "halt here 1")
-                #try:
-                # print(pid, halt_msg[2][0])
-                decide(halt_msg[2][0])
-                if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
-                # except:
-                #     print("1 can not")
-                #     pass
-                return 2
+            try:
+                gevent.sleep(0.001)
+                sender, halt_msg = halt_recv.get_nowait()
+                halt_tag, halt_msg = halt_msg
+                if halt_tag == 'halt' and hasOutputed == False:
+                    hash_f = hash(str((sid + 'SPBC' + str(halt_msg[0]), halt_msg[2], "FINAL")))
+                    try:
+                        # print("-----------------", halt_msg)
+                        for (k, sig_k) in halt_msg[3]:
+                            assert ecdsa_vrfy(PK2s[k], hash_f,
+                                              sig_k)
+                    except AssertionError:
+                        if logger is not None: logger.info("vote Signature failed!")
+                        print("vote Signature failed!")
+                        continue
+
+                    broadcast(('MVBA_HALT', r, r, ("halt", halt_msg)))
+                    # try:
+                    # print(pid, sid, "halt here 1")
+                    # try:
+                    # print(pid, halt_msg[2][0])
+                    decide(halt_msg[2][0])
+                    for i in range(N):
+                        if spbc_threads is not None:
+                            spbc_threads[i].kill()
+                    recv_loop_thred.kill()
+                    if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
+                    # except:
+                    #     print("1 can not")
+                    #     pass
+                    return 2
+            except:
+                pass
 
     halt_recv_thred = gevent.Greenlet(halt)
     halt_recv_thred.start()
@@ -231,8 +243,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             """
             broadcast(('MVBA_ELECT', r, 'leader_election', o))
 
-        permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
-                                       PK, SK, coin_bcast, coin_recv.get, single_bit=False)
+        # permutation_coin = shared_coin(sid + 'PERMUTE', pid, N, f,
+        #                               PK, SK, coin_bcast, coin_recv.get, single_bit=False)
 
         # print(pid, "coin share start")
         # False means to get a coin of 256 bits instead of a single bit
@@ -255,8 +267,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             v = input()
             my_msg = v
 
-            if logger != None:
-                logger.info("MVBA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
+            # if logger != None:
+            #    logger.info("MVBA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
             # print("node %d gets VABA input %s" % (pid, v[0]))
 
             my_spbc_input.put_nowait((v, "null", 0, "first"))
@@ -281,21 +293,24 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
         def wait_for_spbc_to_continue(leader):
             # Receive output from CBC broadcast for input values
-            msg, sigmas2 = spbc_threads[leader].get()
-            # print("spbc finished, and the msg is", msg[0])
-            if predicate(msg[0]):
-                try:
-                    if spbc_outputs[leader].empty() is not True:
-                        spbc_outputs[leader].get()
-                    spbc_outputs[leader].put_nowait((msg, sigmas2))
-                    is_spbc_delivered[leader] = 1
-                    if sum(is_spbc_delivered) >= N - f:
-                        wait_spbc_signal.set()
-                except:
+            try:
+                msg, sigmas2 = spbc_threads[leader].get()
+                # print("spbc finished, and the msg is", msg[0])
+                if predicate(msg[0]):
+                    try:
+                        if spbc_outputs[leader].empty() is not True:
+                            spbc_outputs[leader].get()
+                        spbc_outputs[leader].put_nowait((msg, sigmas2))
+                        is_spbc_delivered[leader] = 1
+                        if sum(is_spbc_delivered) >= N - f:
+                            wait_spbc_signal.set()
+                    except:
+                        pass
+                else:
                     pass
-            else:
+                    # print("-----------------------predicate no")
+            except:
                 pass
-                # print("-----------------------predicate no")
 
         spbc_out_threads = [gevent.spawn(wait_for_spbc_to_continue, node) for node in range(N)]
 
@@ -306,8 +321,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         """
         Run a Coin instance to elect the leaders
         """
-
-        seed = int.from_bytes(hash(sid), byteorder='big') % (2 ** 10 - 1)
+        # time.sleep(0.05)
+        seed = int.from_bytes(hash(sid + str(r)), byteorder='big') % (2 ** 10 - 1)
 
         # seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
 
@@ -321,8 +336,13 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # try:
             # print(pid, sid, "halt here 2")
             decide(msg[0])
-            if logger is not None: logger.info("round %d smvba decide in  vaba halt %f" % (r, time.time()))
-            #except:
+            for i in range(N):
+                if spbc_threads is not None:
+                    spbc_threads[i].kill()
+            recv_loop_thred.kill()
+            halt_recv_thred.kill()
+            if logger is not None: logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
+            # except:
             #    print("2 can not")
             #    pass
             return 2
@@ -337,124 +357,147 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # prevote = (Leader, 0, "bottom", SK1.sign(digest_no))
             # print(pid, sid, "prevote no in round ", r)
         broadcast(('MVBA_ABA', r, r, ('prevote', prevote)))
+
         prevote_no_shares = dict()
         vote_yes_shares = dict()
         vote_no_shares = dict()
-        while True:
 
+        while True:
+            # gevent.sleep(0.001)
             hasVoted = False
             hasOutputed = False
+            try:
+                gevent.sleep(0.001)
+                sender, aba_msg = aba_recvs[r].get_nowait()
+                aba_tag, vote_msg = aba_msg
+                if aba_tag == 'prevote' and hasVoted == False:
 
-            sender, aba_msg = aba_recvs[r].get()
-            aba_tag, vote_msg = aba_msg
-            if aba_tag == 'prevote' and hasVoted == False:
+                    digest_no = hash(str((sid, Leader, r, 'pre')))
+                    vote_yes_msg = 0
+                    # prevote no
+                    if vote_msg[1] != 1:
+                        # print(pid, "get prevote no in round", r)
+                        try:
+                            assert vote_msg[0] == Leader
+                            # assert (ecdsa_vrfy(PK2s[sender], digest_no, vote_msg[3]))
+                            # assert (PK1.verify_share(vote_msg[3], sender, digest_no) == 1)
+                        except AssertionError:
+                            if logger is not None: logger.info("pre-vote no failed!")
+                            print("pre-vote no failed!")
+                            continue
+                        prevote_no_shares[sender] = vote_msg[3]
+                        if len(prevote_no_shares) == N - f:
+                            sigmas_no = tuple(list(prevote_no_shares.items())[:N - f])
+                            digest_no_no = hash(str((sid, Leader, r, 'vote')))
+                            vote = (Leader, 0, "bottom", sigmas_no, ecdsa_sign(SK2, digest_no_no))
+                            broadcast(('MVBA_ABA', r, r, ('vote', vote)))
+                            # print(pid, "vote no in round", r)
+                            hasVoted = True
 
-                digest_no = hash(str((sid, Leader, r, 'pre')))
-                vote_yes_msg = 0
-                # prevote no
-                if vote_msg[1] != 1:
-                    # print(pid, "get prevote no in round", r)
-                    try:
-                        assert vote_msg[0] == Leader
-                        assert (ecdsa_vrfy(PK2s[sender], digest_no, vote_msg[3]))
-                        # assert (PK1.verify_share(vote_msg[3], sender, digest_no) == 1)
-                    except AssertionError:
-                        if logger is not None: logger.info("pre-vote no failed!")
-                        print("pre-vote no failed!")
-                        continue
-                    prevote_no_shares[sender] = vote_msg[3]
-                    if len(prevote_no_shares) == N - f:
-                        sigmas_no = tuple(list(prevote_no_shares.items())[:N - f])
-                        digest_no_no = hash(str((sid, Leader, r, 'vote')))
-                        vote = (Leader, 0, "bottom", sigmas_no, ecdsa_sign(SK2, digest_no_no))
+                    elif vote_msg[1] == 1:
+                        try:
+                            assert vote_msg[0] == Leader
+                            # for (k, sig_k) in vote_msg[3]:
+                            #     assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))),
+                            #                       sig_k)
+                        except AssertionError:
+                            if logger is not None: logger.info("pre-vote Signature failed!")
+                            print("pre-vote Signature failed!")
+                            continue
+                        pii = hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL")))
+                        vote = (Leader, 1, vote_msg[2], vote_msg[3], ecdsa_sign(SK2, pii))
                         broadcast(('MVBA_ABA', r, r, ('vote', vote)))
-                        # print(pid, "vote no in round", r)
+                        # print(pid, "vote yes in round", r)
                         hasVoted = True
 
-                elif vote_msg[1] == 1:
-                    try:
-                        assert vote_msg[0] == Leader
-                        for (k, sig_k) in vote_msg[3]:
-                            assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))),
-                                              sig_k)
-                    except AssertionError:
-                        if logger is not None: logger.info("pre-vote Signature failed!")
-                        print("pre-vote Signature failed!")
-                        continue
-                    pii = hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL")))
-                    vote = (Leader, 1, vote_msg[2], vote_msg[3], ecdsa_sign(SK2, pii))
-                    broadcast(('MVBA_ABA', r, r, ('vote', vote)))
-                    # print(pid, "vote yes in round", r)
-                    hasVoted = True
+                # vote yes
+                if aba_tag == 'vote' and hasOutputed == False:
+                    if vote_msg[1] == 1:
+                        if vote_msg[0] != Leader:
+                            print("wrong Leader")
+                            if logger is not None: logger.info("wrong Leader")
 
-            # vote yes
-            if aba_tag == 'vote' and hasOutputed == False:
-                if vote_msg[1] == 1:
-                    if vote_msg[0] != Leader:
-                        print("wrong Leader")
-                        if logger is not None: logger.info("wrong Leader")
-                    try:
-                        for (k, sig_k) in vote_msg[3]:
-                            assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))),
-                                              sig_k)
-                        # assert PK1.verify_signature(vote_msg[3], PK1.hash_message(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))))
-                        assert ecdsa_vrfy(PK2s[sender], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL"))),
-                                          vote_msg[4])
-                    except AssertionError:
-                        if logger is not None: logger.info("vote Signature failed!")
-                        print("vote Signature failed!")
-                        continue
-                    vote_yes_shares[sender] = vote_msg[4]
-                    vote_yes_msg = vote_msg[2]
-                    # 2f+1 vote yes
-                    if len(vote_yes_shares) == N - f:
-                        hasOutputed = True
+                        hash_e = hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO")))
+                        try:
+                            for (k, sig_k) in vote_msg[3]:
+                                assert ecdsa_vrfy(PK2s[k], hash_e,
+                                                  sig_k)
+                            # assert PK1.verify_signature(vote_msg[3], PK1.hash_message(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))))
+                            assert ecdsa_vrfy(PK2s[sender], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL"))),
+                                              vote_msg[4])
+                        except AssertionError:
+                            if logger is not None: logger.info("vote Signature failed!")
+                            print("vote Signature failed!")
+                            continue
 
-                        halt_msg = (Leader, 2, vote_msg[2], tuple(list(vote_yes_shares.items())[:N - f]))
-                        broadcast(('MVBA_HALT', r, pid, ("halt", halt_msg)))
-                        # print(pid, sid, "halt here 3")
-                        if logger is not None: logger.info("round %d smvba decide in vote yes %f" % (r, time.time()))
-                        decide(vote_msg[2][0])
-                        return 1
-                # vote no
-                if vote_msg[1] == 0:
-                    if vote_msg[0] != Leader:
-                        print("wrong Leader")
-                        if logger is not None: logger.info("wrong Leader")
-                    try:
-                        # vrify sigmas_no
-                        for (k, sig_k) in vote_msg[3]:
-                            assert ecdsa_vrfy(PK2s[k], hash(str((sid, Leader, r, 'pre'))), sig_k)
+                        vote_yes_shares[sender] = vote_msg[4]
+                        vote_yes_msg = vote_msg[2]
+                        # 2f+1 vote yes
+                        if len(vote_yes_shares) == N - f:
+                            hasOutputed = True
 
-                    except AssertionError:
-                        if logger is not None: logger.info("vote no failed!")
-                        print(pid, "vote no failed! sigmas in round", r)
-                        continue
-                    try:
-                        # vrify no_no
-                        digest_no_no = hash(str((sid, Leader, r, 'vote')))
-                        assert ecdsa_vrfy(PK2s[sender], digest_no_no, vote_msg[4])
-                    except AssertionError:
-                        if logger is not None: logger.info("vote no failed!")
+                            halt_msg = (Leader, 2, vote_msg[2], tuple(list(vote_yes_shares.items())[:N - f]))
+                            broadcast(('MVBA_HALT', r, pid, ("halt", halt_msg)))
+                            # print(pid, sid, "halt here 3")
+                            if logger is not None: logger.info(
+                                "round %d smvba decide in vote yes %f" % (r, time.time()))
+                            decide(vote_msg[2][0])
+                            for i in range(N):
+                                if spbc_threads is not None:
+                                    spbc_threads[i].kill()
+                            recv_loop_thred.kill()
+                            halt_recv_thred.kill()
+                            return 1
+                    # vote no
+                    if vote_msg[1] == 0:
+                        if vote_msg[0] != Leader:
+                            print("wrong Leader")
+                            if logger is not None: logger.info("wrong Leader")
 
-                        print("vote no failed!, digest_no_no, in round", r)
-                        continue
+                        hash_pre = hash(str((sid, Leader, r, 'pre')))
+                        try:
+                            # vrify sigmas_no
+                            for (k, sig_k) in vote_msg[3]:
+                                assert ecdsa_vrfy(PK2s[k], hash_pre, sig_k)
 
-                    vote_no_shares[sender] = vote_msg[4]
-                    if len(vote_no_shares) == N - f:
-                        pis = tuple(list(vote_no_shares.items())[:N - f])
-                        # print(pid, sid, "n-f no vote, move to next round with in round", r)
-                        my_spbc_input.put_nowait((my_msg, pis, r, 'no'))
-                        # my_spbc_input.put_nowait(my_msg)
+                        except AssertionError:
+                            if logger is not None: logger.info("vote no failed!")
+                            print(pid, "vote no failed! sigmas in round", r)
+                            continue
+
+                        try:
+                            # vrify no_no
+                            digest_no_no = hash(str((sid, Leader, r, 'vote')))
+                            assert ecdsa_vrfy(PK2s[sender], digest_no_no, vote_msg[4])
+                        except AssertionError:
+                            if logger is not None: logger.info("vote no failed!")
+
+                            print("vote no failed!, digest_no_no, in round", r)
+                            continue
+
+                        vote_no_shares[sender] = vote_msg[4]
+                        if len(vote_no_shares) == N - f:
+                            pis = tuple(list(vote_no_shares.items())[:N - f])
+                            # print(pid, sid, "n-f no vote, move to next round with in round", r)
+                            my_spbc_input.put_nowait((my_msg, pis, r, 'no'))
+                            # my_spbc_input.put_nowait(my_msg)
+                            r += 1
+                            prevote_no_shares.clear()
+                            vote_yes_shares.clear()
+                            vote_no_shares.clear()
+                            # r = r % 10
+                            break
+                    # both vote no and vote yes
+                    if (len(vote_no_shares) > 0) and (len(vote_yes_shares) > 0):
+                        # print("both vote no and vote yes, move to next round with")
+                        my_spbc_input.put_nowait((vote_yes_msg, vote_msg[3], r, 'yn'))
+                        # print("------------------------------------", vote_yes_msg)
+                        # my_spbc_input.put_nowait(vote_yes_msg)
                         r += 1
+                        prevote_no_shares.clear()
+                        vote_yes_shares.clear()
+                        vote_no_shares.clear()
                         # r = r % 10
                         break
-                # both vote no and vote yes
-                if (len(vote_no_shares) > 0) and (len(vote_yes_shares) > 0):
-                    # print("both vote no and vote yes, move to next round with")
-                    my_spbc_input.put_nowait((vote_yes_msg, vote_msg[3], r, 'yn'))
-                    # print("------------------------------------", vote_yes_msg)
-                    # my_spbc_input.put_nowait(vote_yes_msg)
-                    r += 1
-                    # r = r % 10
-                    break
+            except:
+                pass

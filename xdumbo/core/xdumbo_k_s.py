@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from speedmvba.core.smvba_n import speedmvba
+from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 
@@ -125,6 +125,7 @@ class XDumbo_k_s:
         self.ap = 0
         self.countpoint = 0
         self.abc_count = 0
+        self.vaba_thread = None
     def submit_tx(self, tx, j):
         """Appends the given transaction to the transaction buffer.
 
@@ -190,6 +191,8 @@ class XDumbo_k_s:
                     return
                 while True:
                     (r0, (sender, msg)) = self.mvba_recv.get(timeout=100)
+                    if r0 < self.round:
+                        continue
                     if r0 not in self._per_round_recv:
                         self._per_round_recv[r0] = gevent.queue.Queue()
 
@@ -266,6 +269,13 @@ class XDumbo_k_s:
                     print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
                      (self.id, end - self.s_time, self.txcnt, self.txdelay / (self.round - self.countpoint),
                       self.txcnt / self.txdelay))
+
+                for i in range(self.N*self.K):
+                    for t in range(self.local_view_s[i], max(0, self.local_view[i]-2)):
+                        self.txs[i][t] = None
+                        self.sigs[i][t] = None
+
+                self._per_round_recv[self.round] = None
                 self.round += 1
 
 
@@ -429,17 +439,17 @@ class XDumbo_k_s:
                 return True
 
             if self.debug:
-                vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
+                self.vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
                                        self.sPK, self.sSK,  self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
                                        vaba_recv.get, vaba_send, vaba_predicate, self.logger)
             else:
-                vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
+                self.vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
                                        self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
                                        vaba_recv.get, vaba_send, vaba_predicate, )
 
-            vaba_thread.start()
+            self.vaba_thread.start()
 
         _setup_vaba()
 
@@ -458,7 +468,7 @@ class XDumbo_k_s:
                         for d in range(self.B):
                             tx += "Dummy TX..."
                         self.txs[i*self.K+j][t] = tx
-                        self.sigs[i*self.K+j][t] = "some sigs..."
+                        # self.sigs[i*self.K+j][t] = "some sigs..."
                         # print(self.txs[i][t])
                 for t in range(self.local_view_s[i*self.K+j] + 1, view[i*self.K+j] + 1):
                     # print("append tx", i, t, self.txs[i][t])
@@ -466,4 +476,6 @@ class XDumbo_k_s:
                     self.tx_cnt += 1 * self.B
         self.local_view_s = view
         # print(block)
+        bc_recv_loop_thread.kill()
+        self.vaba_thread = None
         return []
