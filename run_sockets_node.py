@@ -135,9 +135,9 @@ if __name__ == '__main__':
         net_ready = mpValue(c_bool, False)
         stop = mpValue(c_bool, False)
 
-        net_server1 = NetworkServer(my_address1[1], my_address1[0], i, addresses1, server_to_bft1, server_ready1, stop)
+        net_server1 = NetworkServer(my_address1[1], my_address1[0], i, addresses1, server_to_bft1, server_ready1, stop, 1)
         net_client1 = NetworkClient(my_address1[1], my_address1[0], i, addresses1, client_from_bft1, client_ready1, stop)
-        net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop)
+        net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop, 2)
         net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop)
         bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
                                    bft_from_server2, bft_to_client2, net_ready, stop, P, M, F, D, O)

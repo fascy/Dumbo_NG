@@ -15,7 +15,7 @@ class NetworkServer (Process):
 
     SEP = '\r\nSEP\r\nSEP\r\nSEP\r\n'.encode('utf-8')
 
-    def __init__(self, port: int, my_ip: str, id: int, addresses_list: list, server_to_bft: Callable, server_ready: mpValue, stop: mpValue):
+    def __init__(self, port: int, my_ip: str, id: int, addresses_list: list, server_to_bft: Callable, server_ready: mpValue, stop: mpValue, win=1):
 
         self.server_to_bft = server_to_bft
         self.ready = server_ready
@@ -27,6 +27,7 @@ class NetworkServer (Process):
         self.N = len(self.addresses_list)
         self.is_in_sock_connected = [False] * self.N
         self.socks = [None for _ in self.addresses_list]
+        self.win = win
         super().__init__()
 
     def _listen_and_recv_forever(self):
@@ -39,7 +40,10 @@ class NetworkServer (Process):
             buf = b''
             try:
                 while not self.stop.value:
-                    buf += sock.recv(212992)
+                    if self.win == 1:
+                        buf += sock.recv(212992)
+                    else:
+                        buf += sock.recv(106496)
                     tmp = buf.split(self.SEP, 1)
                     while len(tmp) == 2:
                         buf = tmp[1]
