@@ -315,8 +315,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         """
         Run a Coin instance to elect the leaders
         """
-        time.sleep(0.1)
-        seed = int.from_bytes(hash(sid), byteorder='big') % (2 ** 10 - 1)
+        time.sleep(0.05)
+        seed = int.from_bytes(hash(sid+str(r)), byteorder='big') % (2 ** 10 - 1)
 
         # seed = permutation_coin('permutation')  # Block to get a random seed to permute the list of nodes
 
