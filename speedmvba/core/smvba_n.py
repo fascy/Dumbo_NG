@@ -191,6 +191,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 #try:
                 # print(pid, halt_msg[2][0])
                 decide(halt_msg[2][0])
+                for i in range(N):
+                    if spbc_threads is not None:
+                        spbc_threads[i].kill()
                 if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
                 # except:
                 #     print("1 can not")
@@ -324,6 +327,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # try:
             # print(pid, sid, "halt here 2")
             decide(msg[0])
+            for i in range(N):
+                if spbc_threads is not None:
+                    spbc_threads[i].kill()
             if logger is not None: logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
             #except:
             #    print("2 can not")
@@ -419,6 +425,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         # print(pid, sid, "halt here 3")
                         if logger is not None: logger.info("round %d smvba decide in vote yes %f" % (r, time.time()))
                         decide(vote_msg[2][0])
+                        for i in range(N):
+                            if spbc_threads is not None:
+                                spbc_threads[i].kill()
                         return 1
                 # vote no
                 if vote_msg[1] == 0:

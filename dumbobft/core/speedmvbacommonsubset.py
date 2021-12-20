@@ -128,10 +128,10 @@ def speedmvbacommonsubset(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, de
 
     def wait_for_input():
         v = input()
-        if logger != None:
-            logger.info("VACS gets input")
-        #print("node %d gets VACS input" % pid)
-        #assert predicate(pid, v)
+        # if logger != None:
+        #     logger.info("VACS gets input")
+        # print("node %d gets VACS input" % pid)
+        # assert predicate(pid, v)
         send(-1, ('VACS_VAL', v))
 
     gevent.spawn(wait_for_input)
