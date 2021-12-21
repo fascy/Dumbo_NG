@@ -95,7 +95,7 @@ class DL:
         self.sSK2 = sSK2
         self._send1 = send1
         self._recv1 = recv1
-        self._send2 = send1
+        self._send2 = send2
         self._recv2 = recv2
         self.logger = set_consensus_log(pid)
         self.K = K
@@ -186,7 +186,7 @@ class DL:
                     (sender, (r, msg)) = self._recv2()
                     # print("recv:", sender, r, msg)
                     # self.logger.info('recv1' + str((sender, o)))
-                    if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
+                    if msg[0] == 'RETURN':
                         # print(self.id, 'recv' + str((sender, msg[0])))
                         self.retrieval_recv.put((sender, msg))
                 except:
@@ -196,31 +196,28 @@ class DL:
         def _run_retrieval():
             self.rp = os.getpid()
 
-            def ask_broadcast(o):
-                self._send2(-1, ('', ('RETRIEVAL', o)))
-
             def return_send(o):
                 self._send2(-1, ('', ('RETURN', o)))
-
+            """
+            v: 0 has sent
+            v: -1 wait to sent
+            """
             def _store():
                 while True:
                     try:
+                        gevent.sleep(0.0001)
                         (sid, leader, value, st) = self.share_bc.get_nowait()
 
                         # if self.id == 1: print("get", sid, leader, "at", time.time())
                         try:
-                            #has recover not store or send
                             (g, v, s) = self.bc_instances[sid][leader]
-                            if g == 2 and v == 0:
-                                self.bc_instances[sid][leader] = (2, value, st)
-                            if g == 3:
-                                if v == 0:
-                                    return_send((sid, leader, value,st))
-                                    self.bc_instances[sid][leader] = (3, 0, st)
+                            # has recover not store or send
+                            if v == -1:
+                                    return_send((sid, leader, value, st))
+                                    self.bc_instances[sid][leader] = (g, 0, st)
                         except:
                             self.bc_instances[sid][leader] = (1, value, st)
                     except:
-                        gevent.sleep(0.0001)
                         continue
 
             def _ask():
@@ -228,21 +225,21 @@ class DL:
                     return
                 while True:
                     try:
+                        gevent.sleep(0.0001)
                         (sid, leader, root) = self.tobe_retrieval.get_nowait()
+
                         # if self.id == 1: print("get tobe recover:", sid, leader, root)
                         try:
                             (g, v, st) = self.bc_instances[sid][leader]
-                            if g == 1 and v != 0:
+                            if v != 0:
                                 return_send((sid, leader, v, st))
                                 self.bc_instances[sid][leader] = (g, 0, st)
                         except:
-                            self.bc_instances[sid][leader] = 2, 0, 0
+                            self.bc_instances[sid][leader] = 2, -1, 0
                             pass
                     except:
-                        gevent.sleep(0)
                         continue
 
-            ask_recv = Queue()
             return_recvs = [Queue() for _ in range(self.N)]
 
             def _recv_msg():
@@ -251,7 +248,10 @@ class DL:
 
                 while True:
                     gevent.sleep(0)
-                    sender, msg = self.retrieval_recv.get(timeout=1000)
+                    try:
+                        sender, msg = self.retrieval_recv.get_nowait()
+                    except:
+                        continue
                     (_, (sid, leader, v, rst)) = msg
                     return_recvs[leader].put_nowait((sender, (sid, v, rst)))
                     # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
@@ -287,9 +287,11 @@ class DL:
                     return
 
                 while True:
-                    # gevent.sleep(0)
-                    sender, msg = return_recvs[j].get()
-
+                    gevent.sleep(0.0001)
+                    try:
+                        sender, msg = return_recvs[j].get_nowait()
+                    except:
+                        continue
                     # print(sender, msg[0])
                     # print("recover recv: ", sender, msg[0])
                     (sid, (chunk, branch, root), rst) = msg
@@ -317,12 +319,12 @@ class DL:
 
                         m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
                         # if self.id == 1: print("finish decode", sid, j, "at", time.time())
+
                         try:
                             g, v, st = self.bc_instances[sid][j]
-                            self.bc_instances[sid][j] = 3, v, st
                         except:
                             st = rst
-                            self.bc_instances[sid][j] = 3, 0, st
+
                         et = time.time()
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
@@ -354,7 +356,7 @@ class DL:
         def _run_bc_mvba():
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
-            print("run_bc_mvba process id:", self.bmp)
+            # print("run_bc_mvba process id:", self.bmp)
 
             def handelmsg():
                 if os.getpid() != self.bmp:
@@ -394,7 +396,7 @@ class DL:
                 send_r = _make_send(self.round)
                 recv_r = self._per_round_recv[self.round].get
 
-                new_tx = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
+                mvbaout = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
                 # self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
 
                 # if self.logger != None:
@@ -407,6 +409,11 @@ class DL:
                 if self.logger != None:
                     self.logger.info('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
                 if self.id == 3: print('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+
+                for i in range(self.N):
+                    if mvbaout[i] is not None:
+                        sid, leader, root, _ = mvbaout[i]
+                        self.tobe_retrieval.put((sid, leader, root))
 
                 self.round += 1
                 if self.round >= self.K:
@@ -476,7 +483,7 @@ class DL:
             # Only leader gets input
             if pid == j:
                 # print(j, json.dumps(tx_to_send))
-                my_pcbc_input.put(json.dumps(tx_to_send))
+                my_pcbc_input.put_nowait(json.dumps(tx_to_send))
                 pcbc_input = my_pcbc_input.get
             else:
                 pcbc_input = None
@@ -496,7 +503,7 @@ class DL:
                 st = time.time()
                 self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, root, sigs
                 self.share_bc.put((sid + 'PCBC' + str(r), j, value, st))
-                # if self.id == 1: print("put", sid + 'PCBC' + str(r), j, "at", time.time())
+                # if self.id == 3: print("put", sid + 'PCBC' + str(r), j, "at", time.time())
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
                 # pcbc_outputs[j].put_nowait((value, proof))
 
@@ -553,14 +560,7 @@ class DL:
         mvba_thread = _setup_vacs()
         mvbaout = (list(vacs_output.get()))
 
-        for i in range(N):
-            if mvbaout[i] is not None:
-                sid, leader, root, sigs = mvbaout[i]
-                #(g, value, proof) = self.bc_instances[sid][leader]
-                # self.bc_instances[sid][leader] = (2, value, proof)
-                self.tobe_retrieval.put((sid, leader, root))
-                # self._send(-1, ('', ('RETURN', (sid, leader, value))))
-        # print("-----------------------", mvbaout)
+
 
         bc_recv_loop_thread.kill()
         # mvba_thread.kill()
@@ -577,4 +577,5 @@ class DL:
                 self.bc_instances[sid][i] = None
             except:
                 pass
+
         return mvbaout

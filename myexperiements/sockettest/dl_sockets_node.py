@@ -52,8 +52,9 @@ class DLNode (DL):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         #self.recv_queue = recv_q
         #self.send_queue = send_q
-        self.bft_from_server1 = bft_from_server1
         self.bft_to_client1 = bft_to_client1
+        self.bft_from_server1 = bft_from_server1
+
         self.bft_to_client2 = bft_to_client2
         self.bft_from_server2 = bft_from_server2
         self.ready = ready

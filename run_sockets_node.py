@@ -110,8 +110,8 @@ if __name__ == '__main__':
         # client_from_bft, bft_to_client = mpPipe(duplex=True)
 
         client_bft_mpq1 = mpQueue()
-        #client_from_bft = client_bft_mpq.get
         client_from_bft1 = lambda: client_bft_mpq1.get(timeout=0.00001)
+
         client_bft_mpq2 = mpQueue()
         client_from_bft2 = lambda: client_bft_mpq2.get(timeout=0.00001)
 
@@ -164,11 +164,15 @@ if __name__ == '__main__':
 
         net_client1.terminate()
         net_client1.join()
+
         net_client2.terminate()
         net_client2.join()
+
         time.sleep(1)
+
         net_server1.terminate()
         net_server1.join()
+
         net_server2.terminate()
         net_server2.join()
 
