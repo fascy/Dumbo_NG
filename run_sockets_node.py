@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 pub_ip = params[2]
                 port1 = int(params[3])
                 port2 = int(params[4])
-                print(pid, priv_ip, port1, port2)
+                # print(pid, priv_ip, port1, port2)
                 if pid not in range(N):
                     continue
                 if pid == i:

@@ -95,7 +95,7 @@ class DL:
         self.sSK2 = sSK2
         self._send1 = send1
         self._recv1 = recv1
-        self._send2 = send1
+        self._send2 = send2
         self._recv2 = recv2
         self.logger = set_consensus_log(pid)
         self.K = K
@@ -126,7 +126,8 @@ class DL:
         self.l_c = 0
         self.mute = mute
         self.threads = []
-        self.v = [0] * N
+        self.signal = multiprocessing.Value('d', 0)
+
         self.r = 1
 
     def submit_tx(self, tx):
@@ -138,7 +139,7 @@ class DL:
 
     def run_bft(self):
         """Run the DL protocol."""
-
+        # print("==============", self.id)
         if self.mute:
             muted_nodes = [each * 3 + 1 for each in range(int((self.N - 1) / 3))]
             if self.id in muted_nodes:
@@ -157,9 +158,9 @@ class DL:
             while True:
                 # gevent.sleep(0)
                 try:
-
+                    gevent.sleep(0)
                     (sender, (r, msg)) = self._recv1()
-                    # print("recv:", sender, r, msg)
+                    # if self.id == 3: print("recv1:", sender, r, msg[0])
                     # self.logger.info('recv1' + str((sender, o)))
                     # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
                         # print(self.id, 'recv' + str((sender, msg[0])))
@@ -169,6 +170,7 @@ class DL:
                         # print("mvba put:", self._per_round_recv[r])def
                 except:
                     continue
+
         def _recv_loop_r():
             """Receive messages."""
             if os.getpid() == self.bmp:
@@ -179,13 +181,13 @@ class DL:
             print("start recv loop...", os.getpid())
             # self._send(1, (1, "test msg"))
             while True:
-                # gevent.sleep(0)
                 try:
-
+                    gevent.sleep(0)
                     (sender, (r, msg)) = self._recv2()
-                    # print("recv:", sender, r, msg)
+                    # if self.id == 3: print("recv2:", sender, msg[0])
                     # self.logger.info('recv1' + str((sender, o)))
-                    if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
+                    if msg[0] == 'RETURN':
+
                         # print(self.id, 'recv' + str((sender, msg[0])))
                         self.retrieval_recv.put((sender, msg))
                 except:
@@ -195,31 +197,27 @@ class DL:
         def _run_retrieval():
             self.rp = os.getpid()
 
-            def ask_broadcast(o):
-                self._send2(-1, ('', ('RETRIEVAL', o)))
-
             def return_send(o):
                 self._send2(-1, ('', ('RETURN', o)))
-
+            """
+            v: 0 has sent
+            v: -1 wait to sent
+            """
             def _store():
                 while True:
                     try:
+                        gevent.sleep(0.0001)
                         (sid, leader, value, st) = self.share_bc.get_nowait()
 
                         # if self.id == 1: print("get", sid, leader, "at", time.time())
                         try:
-                            #has recover not store or send
                             (g, v, s) = self.bc_instances[sid][leader]
-                            if g == 2 and v == 0:
-                                self.bc_instances[sid][leader] = (2, value, st)
-                            if g == 3:
-                                if v == 0:
-                                    return_send((sid, leader, value))
-                                    self.bc_instances[sid][leader] = (3, 0, st)
+                            # has recover not store or send
+                            if v == -1:
+                                    self.bc_instances[sid][leader] = (g, 0, st)
                         except:
                             self.bc_instances[sid][leader] = (1, value, st)
                     except:
-                        gevent.sleep(0.0001)
                         continue
 
             def _ask():
@@ -227,21 +225,29 @@ class DL:
                     return
                 while True:
                     try:
+                        gevent.sleep(0.0001)
                         (sid, leader, root) = self.tobe_retrieval.get_nowait()
+                        """
+                        r_r = sid.split(':', 2)
+                        if int(r_r[1]) < (self.round - 2):
+                            if self.id == 3: print(r_r, "is far from round", self.round)
+                            self.signal = 1
+                        else:
+                            self.signal = 0
+                        """
+
                         # if self.id == 1: print("get tobe recover:", sid, leader, root)
                         try:
                             (g, v, st) = self.bc_instances[sid][leader]
-                            if g == 1 and v != 0:
-                                return_send((sid, leader, v))
+                            if v != 0:
+                                return_send((sid, leader, v, st))
                                 self.bc_instances[sid][leader] = (g, 0, st)
                         except:
-                            self.bc_instances[sid][leader] = 2, 0, 0
+                            self.bc_instances[sid][leader] = 2, -1, 0
                             pass
                     except:
-                        gevent.sleep(0)
                         continue
 
-            ask_recv = Queue()
             return_recvs = [Queue() for _ in range(self.N)]
 
             def _recv_msg():
@@ -249,10 +255,9 @@ class DL:
                     return
 
                 while True:
-                    gevent.sleep(0)
                     sender, msg = self.retrieval_recv.get(timeout=1000)
-                    (_, (sid, leader, v)) = msg
-                    return_recvs[leader].put_nowait((sender, (sid, v)))
+                    (_, (sid, leader, v, rst)) = msg
+                    return_recvs[leader].put_nowait((sender, (sid, v, rst)))
                     # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
 
             _re_thread = gevent.spawn(_recv_msg)
@@ -286,14 +291,12 @@ class DL:
                     return
 
                 while True:
-                    # gevent.sleep(0)
                     sender, msg = return_recvs[j].get()
-
                     # print(sender, msg[0])
                     # print("recover recv: ", sender, msg[0])
-                    (sid, (chunk, branch, root)) = msg
+                    (sid, (chunk, branch, root), rst) = msg
                     # if self.id == 1: print("get a new msg ", sid, j, "at ", time.time())
-                    # print(self.id, "recv return ", sid, leader, chunk)
+                    # print(self.id, "recv return ", sid, root)
                     try:
                         g, value, t = self.bc_instances[sid][j]
                     except:
@@ -306,7 +309,7 @@ class DL:
                     try:
                         assert merkleVerify(self.N, chunk, root, branch, sender)
                     except Exception as e:
-                        print("Failed to validate VAL message:", e)
+                        print("Failed to validate VAL message:", sender)
                         continue
                     self.re_instances[sid][j][sender] = chunk
                     self.re_count[sid][j] += 1
@@ -316,11 +319,12 @@ class DL:
 
                         m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
                         # if self.id == 1: print("finish decode", sid, j, "at", time.time())
+
                         try:
                             g, v, st = self.bc_instances[sid][j]
-                            self.bc_instances[sid][j] = 3, v, st
                         except:
-                            self.bc_instances[sid][j] = 3, 0, 0
+                            st = rst
+
                         et = time.time()
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
@@ -332,14 +336,14 @@ class DL:
                             block_count = self.txcnt/self.B
                             # print("block count", block_count)
                             self.logger.info(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
+                                'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
+                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
+                                   self.txcnt / self.txdelay, self.l_c/block_count, et))
+                            if self.id ==3 :print(
+                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.l_c/block_count))
-                            print(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f'
-                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.l_c/block_count))
-                            print("remain", self.retrieval_recv.qsize())
+                                   self.txcnt / self.txdelay, self.l_c/block_count, et))
+                            # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
             _store_thread = gevent.spawn(_store)
             _ask_thread = gevent.spawn(_ask)
             # _collect_thread = gevent.spawn(_collect)
@@ -352,12 +356,13 @@ class DL:
         def _run_bc_mvba():
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
-            print("run_bc_mvba process id:", self.bmp)
+            # print("run_bc_mvba process id:", self.bmp)
 
             def handelmsg():
                 if os.getpid() != self.bmp:
                     return
                 while True:
+
                     (r0, (sender, msg)) = self.bc_mv_recv.get(timeout=100)
                     if r0 not in self._per_round_recv:
                         self._per_round_recv[r0] = gevent.queue.Queue()
@@ -389,19 +394,24 @@ class DL:
                 send_r = _make_send(self.round)
                 recv_r = self._per_round_recv[self.round].get
 
-                new_tx = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
+                mvbaout = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
                 # self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
 
-                if self.logger != None:
-                    self.logger.info(
-                        'Node %d Delivers ACS in Round %d' % (self.id, self.round))
-
+                # if self.logger != None:
+                #     self.logger.info(
+                #         'Node %d Delivers ACS in Round %d' % (self.id, self.round))
                 # if self.id == 3: print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
+
                 end = time.time()
 
                 if self.logger != None:
-                    self.logger.info('ACS Delay at Node %d: ' % self.id + str(end - start))
-                    # print('ACS Delay at Node %d: ' % self.id + str(end - start))
+                    self.logger.info('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+                if self.id == 3: print('ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+
+                for i in range(self.N):
+                    if mvbaout[i] is not None:
+                        sid, leader, root, _ = mvbaout[i]
+                        self.tobe_retrieval.put((sid, leader, root))
 
                 self.round += 1
                 if self.round >= self.K:
@@ -471,17 +481,17 @@ class DL:
             # Only leader gets input
             if pid == j:
                 # print(j, json.dumps(tx_to_send))
-                my_pcbc_input.put(json.dumps(tx_to_send))
+                my_pcbc_input.put_nowait(json.dumps(tx_to_send))
                 pcbc_input = my_pcbc_input.get
             else:
                 pcbc_input = None
 
             if self.debug:
-                pcbc_thread = gevent.spawn(provablecbc, sid + 'PCBC' + str(r) + str(j), pid, N, f,
+                pcbc_thread = gevent.spawn(provablecbc, sid + ':PCBC' + str(r) + str(j), pid, N, f,
                                            self.sPK2s, self.sSK2, j,
                                            pcbc_input, pcbc_recvs[j].get, pcbc_send, self.logger)
             else:
-                pcbc_thread = gevent.spawn(provablecbc, sid + 'PCBC' + str(r) + str(j), pid, N, f,
+                pcbc_thread = gevent.spawn(provablecbc, sid + ':PCBC' + str(r) + str(j), pid, N, f,
                                            self.sPK2s, self.sSK2, j,
                                            pcbc_input, pcbc_recvs[j].get, pcbc_send, self.logger)
 
@@ -489,15 +499,12 @@ class DL:
                 value, sigs = pcbc_thread.get()
                 (chunk, branch, root) = value
                 st = time.time()
-                self.bc_instances[sid + 'PCBC' + str(r)][j] = 1, root, sigs
-                self.share_bc.put((sid + 'PCBC' + str(r), j, value, st))
-                if self.v[j] < r:
-                    self.v[j] = r
-                # if self.id == 1: print("put", sid + 'PCBC' + str(r), j, "at", time.time())
+                self.bc_instances[sid + ':PCBC' + str(r)][j] = 1, root, sigs
+                self.share_bc.put((sid + ':PCBC' + str(r), j, value, st))
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
                 # pcbc_outputs[j].put_nowait((value, proof))
 
-            gevent.spawn(wait_for_prbc_output)
+            return gevent.spawn(wait_for_prbc_output)
 
         values = [None] * N
 
@@ -507,17 +514,16 @@ class DL:
                 """Threshold encryption broadcast."""
                 send(k, ('ACS_VACS', '', o))
 
-            while len(self.bc_instances[sid + 'PCBC' + str(r)]) < N - f:
+            while len(self.bc_instances[sid + ':PCBC' + str(r)]) < N - f:
                 gevent.sleep(0)
             # print("N - f bc instances have finished in round ", r)
             # print(self.bc_instances[sid + 'PCBC' + str(r)].keys())
-            for i in self.bc_instances[sid + 'PCBC' + str(r)].keys():
-                (_, root, sigs) = self.bc_instances[sid + 'PCBC' + str(r)][i]
-                values[i] = sid + 'PCBC' + str(r), i, root, sigs
-            vacs_input.put((values, self.v))
+            for i in self.bc_instances[sid + ':PCBC' + str(r)].keys():
+                (_, root, sigs) = self.bc_instances[sid + ':PCBC' + str(r)][i]
+                values[i] = sid + ':PCBC' + str(r), i, root, sigs
+            vacs_input.put(values)
 
-            def vaba_predicate(msg):
-                m, v = msg
+            def vaba_predicate(m):
                 counter = 0
                 if type(m) is list:
                     if len(m) == N:
@@ -538,39 +544,35 @@ class DL:
                                        vacs_recv.get, vacs_send, vaba_predicate)
 
             mvba_thread.start()
+            return mvba_thread
 
         # N instances of PRBC
+        # if self.id == 3: print("++++++++++++++++++++++++++++++++++++++++start to run pcbc of round", self.round, "at ", time.time())
+        pcbc_threads = [None] * N
         for j in range(N):
             # print(self.id, "start to set up PCBC %d" % j)
-            _setup_pcbc(j)
+            pcbc_threads[j] = _setup_pcbc(j)
 
         # One instance of (validated) ACS
         # print("start to set up VACS")
-        _setup_vacs()
-        values, v = vacs_output.get()
-        mvbaout = (list(values))
-        sortv = [[0]*self.N]*self.N
+        mvba_thread = _setup_vacs()
+        mvbaout = (list(vacs_output.get()))
+        """
+        bc_recv_loop_thread.kill()
+
+
+        # mvba_thread.kill()
+        for j in range(N):
+            pcbc_threads[j].kill()
+        pcbc_recvs = [None for _ in range(N)]
+        vacs_recv = None
+        my_pcbc_input = None
+        vacs_input = None
+        vacs_output = None
         for i in range(N):
-            if mvbaout[i] is not None:
-                # print(mvbaout[i])
-                sid, leader, root, sigs = mvbaout[i]
-                #(g, value, proof) = self.bc_instances[sid][leader]
-                self.bc_instances[sid][leader] = (2, 0, 0)
-                self.tobe_retrieval.put((sid, leader, root))
-                # self._send(-1, ('', ('RETURN', (sid, leader, value))))
-                for k in range (self.N):
-                    sortv[k][i] = v[k]
-        # print("-----------------------", mvbaout)
-        for k in range(self.N):
-            r = sorted(sortv[k])[-(f+1)]
-            # print("--------", r, k)
             try:
-                (g, root, _) = self.bc_instances[sid + 'PCBC' + str(r)][k]
-                print("-", r, k)
-                if g < 2:
-                    print("--------", r, k)
-                    self.bc_instances[sid + 'PCBC' + str(r)][k] = (2, 0, 0)
-                    self.tobe_retrieval.put((sid + 'PCBC' + str(r), k, root))
+                self.bc_instances[sid][i] = None
             except:
                 pass
+        """
         return mvbaout

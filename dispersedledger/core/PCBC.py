@@ -16,7 +16,7 @@ def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
 
-def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=None):
+def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, logger=None):
     """Consistent broadcast
     :param str sid: session identifier
     :param int pid: ``0 <= pid < N``
@@ -117,6 +117,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, receive, send, logger=
             MyProof = branch
             MyChunk = stripe
             digest = hash((sid, roothash))
+            chunk((MyChunk, MyProof, fromLeader))
             send(leader, ('CBC_ECHO', ecdsa_sign(SK2, digest)))
 
         elif msg[0] == 'CBC_ECHO':
