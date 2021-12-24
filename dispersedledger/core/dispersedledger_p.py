@@ -94,10 +94,6 @@ class DL:
         self.sSK1 = sSK1
         self.sPK2s = sPK2s
         self.sSK2 = sSK2
-        self._send1 = send1
-        self._recv1 = recv1
-        self._send2 = send2
-        self._recv2 = recv2
         self.logger = set_consensus_log(pid)
         self.K = K
         self.round = 0  # Current block number
@@ -147,6 +143,29 @@ class DL:
                 # T = 0.00001
                 while True:
                     time.sleep(10)
+
+        def _recv_loop_bm():
+            """Receive messages."""
+            if os.getpid() == self.bmp:
+                return
+            if os.getpid() == self.rp:
+                return
+            print("start recv loop...", os.getpid())
+            # self._send(1, (1, "test msg"))
+            while True:
+                # gevent.sleep(0)
+                try:
+                    gevent.sleep(0)
+                    (sender, (r, msg)) = self._recv1()
+                    # if self.id == 3: print("recv1:", sender, r, msg[0])
+
+
+                    self.bc_mv_recv.put((r, (sender, msg)))
+                    # print("mvba put:", self._per_round_recv[r])def
+                except:
+                    continue
+
+
 
         # self._recv_thread.start()
         def _run_retrieval():
@@ -242,28 +261,21 @@ class DL:
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
 
-            def _recv_loop_bm():
-                """Receive messages."""
+            # print("run_bc_mvba process id:", self.bmp)
+
+            def handelmsg():
                 if os.getpid() != self.bmp:
                     return
-                print("start recv loop...", os.getpid())
-                # self._send(1, (1, "test msg"))
                 while True:
-                    # gevent.sleep(0)
-                    try:
-                        gevent.sleep(0)
-                        (sender, (r0, msg)) = self._recv1()
-                        # if self.id == 3: print("recv1:", sender, r, msg[0])
-                        if r0 not in self._per_round_recv:
-                            self._per_round_recv[r0] = gevent.queue.Queue()
 
-                        self._per_round_recv[r0].put_nowait((sender, msg))
-                        # print("mvba put:", self._per_round_recv[r])def
-                    except:
-                        continue
-            # print("run_bc_mvba process id:", self.bmp)
-            self._recv_thread1 = gevent.spawn(_recv_loop_bm)
+                    (r0, (sender, msg)) = self.bc_mv_recv.get(timeout=100)
+                    if r0 not in self._per_round_recv:
+                        self._per_round_recv[r0] = gevent.queue.Queue()
 
+                    self._per_round_recv[r0].put_nowait((sender, msg))
+
+            self._recv_thread = Greenlet(handelmsg)
+            self._recv_thread.start()
             self.s_time = time.time()
             while True:
                 # print(r, "start!")
@@ -316,18 +328,15 @@ class DL:
 
         self._bc_mvba.start()
         self._retrieval.start()
+        self._recv_thread1 = gevent.spawn(_recv_loop_bm)
 
-
-        # self._recv_thread1.join()
+        self._recv_thread1.join()
 
         self._retrieval.join()
         # self._bc_mvba.join()
         # print("-----------------------------start to join")
         # self._recv_output.join()
         self.e_time = time.time()
-        while True:
-            gevent.sleep(0)
-            pass
 
     def _run_BC_MVBA_round(self, r, tx_to_send, send, recv):
         """Run one PCBC and MVBA round.
