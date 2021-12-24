@@ -101,10 +101,9 @@ class NetworkClient (Process):
                         # self.logger.error(str((e1, traceback.print_exc())))
                         self.socks[j].close()
                         break
-
-                if cnt == 0 and self.s == 1:
+                if cnt == 0:
                     cnt = self.BYTES
-                    gevent.sleep(0.001)
+                    time.sleep(0.001)
         else:
             while not self.stop.value:
                 # gevent.sleep(0)
