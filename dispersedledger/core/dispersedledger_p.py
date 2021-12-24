@@ -94,6 +94,10 @@ class DL:
         self.sSK1 = sSK1
         self.sPK2s = sPK2s
         self.sSK2 = sSK2
+        self._send1 = send1
+        self._recv1 = recv1
+        self._send2 = send2
+        self._recv2 = recv2
         self.logger = set_consensus_log(pid)
         self.K = K
         self.round = 0  # Current block number
@@ -158,14 +162,36 @@ class DL:
                     gevent.sleep(0)
                     (sender, (r, msg)) = self._recv1()
                     # if self.id == 3: print("recv1:", sender, r, msg[0])
-
+                    # self.logger.info('recv1' + str((sender, o)))
+                    # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
+                    # print(self.id, 'recv' + str((sender, msg[0])))
+                    #    self.retrieval_recv.put((sender, msg))
 
                     self.bc_mv_recv.put((r, (sender, msg)))
                     # print("mvba put:", self._per_round_recv[r])def
                 except:
                     continue
 
-
+        def _recv_loop_r():
+            """Receive messages."""
+            if os.getpid() == self.bmp:
+                return
+            if os.getpid() == self.rp:
+                return
+            st = 0
+            print("start recv loop...", os.getpid())
+            # self._send(1, (1, "test msg"))
+            while True:
+                try:
+                    gevent.sleep(0)
+                    (sender, (r, msg)) = self._recv2()
+                    # if self.id == 3: print("recv2:", sender, msg[0])
+                    # self.logger.info('recv1' + str((sender, o)))
+                    if msg[0] == 'RETURN':
+                        # if self.id == 3 :print(self.id, 'recv' + str((sender, msg)))
+                        self.retrieval_recv.put((sender, msg))
+                except:
+                    continue
 
         # self._recv_thread.start()
         def _run_retrieval():
@@ -177,28 +203,20 @@ class DL:
 
             return_recvs = [Queue() for _ in range(self.N)]
 
-            def _recv_loop_r():
-                """Receive messages."""
+            def _recv_msg():
                 if os.getpid() != self.rp:
                     return
-                st = 0
-                print("start recv loop...", os.getpid())
-                while True:
-                    try:
-                        gevent.sleep(0)
-                        (sender, (r, msg)) = self._recv2()
-                        # if self.id == 3: print("recv2:", sender, msg[0])
-                        if msg[0] == 'RETURN':
-                            # if self.id == 3 :print(self.id, 'recv' + str((sender, msg)))
-                            _, (sid, send_list) = msg
-                            for i in range(len(send_list)):
-                                # print(send_list[i])
-                                (sid, leader, v, rst) = send_list[i]
-                                return_recvs[leader].put_nowait((sender, (sid, v, rst)))
-                    except:
-                        continue
 
-            _re_thread = gevent.spawn(_recv_loop_r)
+                while True:
+                    sender, msg = self.retrieval_recv.get(timeout=1000)
+                    _, (sid, send_list) = msg
+                    for i in range(len(send_list)):
+                        # print(send_list[i])
+                        (sid, leader, v, rst) = send_list[i]
+                        return_recvs[leader].put_nowait((sender, (sid, v, rst)))
+                    # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
+
+            _re_thread = gevent.spawn(_recv_msg)
 
             def _recover(j):
                 # deal with recover of leader j
@@ -329,9 +347,9 @@ class DL:
         self._bc_mvba.start()
         self._retrieval.start()
         self._recv_thread1 = gevent.spawn(_recv_loop_bm)
-
+        self._recv_thread2 = gevent.spawn(_recv_loop_r)
         self._recv_thread1.join()
-
+        self._recv_thread2.join()
         self._retrieval.join()
         # self._bc_mvba.join()
         # print("-----------------------------start to join")

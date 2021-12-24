@@ -17,7 +17,7 @@ class NetworkClient (Process):
 
     SEP = '\r\nSEP\r\nSEP\r\nSEP\r\n'.encode('utf-8')
 
-    def __init__(self, port: int, my_ip: str, id: int, addresses_list: list, client_from_bft: Callable, client_ready: mpValue, stop: mpValue):
+    def __init__(self, port: int, my_ip: str, id: int, addresses_list: list, client_from_bft: Callable, client_ready: mpValue, stop: mpValue, s=0):
 
         self.client_from_bft = client_from_bft
         self.ready = client_ready
@@ -34,7 +34,8 @@ class NetworkClient (Process):
         self.socks = [None for _ in self.addresses_list]
         self.sock_queues = [Queue() for _ in self.addresses_list]
         self.sock_locks = [lock.Semaphore() for _ in self.addresses_list]
-
+        self.s = s
+        self.BYTES = 5000
         super().__init__()
 
 
@@ -69,20 +70,56 @@ class NetworkClient (Process):
             return False
 
     def _send(self, j: int):
-        while not self.stop.value:
-            #gevent.sleep(0)
-            #self.sock_locks[j].acquire()
-            o = self.sock_queues[j].get()
-            # print("!!!!!!!!!!!!!!!!!!!!11", j)
-            try:
-                # time.sleep(int(self.id) * 0.01)
-                self.socks[j].sendall(pickle.dumps(o) + self.SEP)
-            except:
-                self.logger.error("fail to send msg")
-                #self.logger.error(str((e1, traceback.print_exc())))
-                self.socks[j].close()
-                break
-            #self.sock_locks[j].release()
+        if self.s == 1:
+            cnt = self.BYTES  # 1000 bytes
+            msg = None
+
+            while not self.stop.value:
+
+                if msg is None:
+                    o = self.sock_queues[j].get()
+                    msg = pickle.dumps(o) + self.SEP
+
+                if len(msg) <= cnt:
+                    cnt = cnt - len(msg)
+                    try:
+                        self.socks[j].sendall(msg)
+                        msg = None
+                    except:
+                        self.logger.error("fail to send msg")
+                        # self.logger.error(str((e1, traceback.print_exc())))
+                        self.socks[j].close()
+                        break
+                else:
+                    msg1 = msg[0:cnt]
+                    msg = msg[cnt:]
+                    try:
+                        self.socks[j].sendall(msg1)
+                        cnt = 0
+                    except:
+                        self.logger.error("fail to send msg")
+                        # self.logger.error(str((e1, traceback.print_exc())))
+                        self.socks[j].close()
+                        break
+
+                if cnt == 0 and self.s == 1:
+                    cnt = self.BYTES
+                    gevent.sleep(0.001)
+        else:
+            while not self.stop.value:
+                # gevent.sleep(0)
+                # self.sock_locks[j].acquire()
+                o = self.sock_queues[j].get()
+                try:
+                    # time.sleep(int(self.id) * 0.01)
+                    msg = pickle.dumps(o)
+                    self.socks[j].sendall(msg + self.SEP)
+                except:
+                    self.logger.error("fail to send msg")
+                    # self.logger.error(str((e1, traceback.print_exc())))
+                    self.socks[j].close()
+                    break
+                # self.sock_locks[j].release()
 
     ##
     def _handle_send_loop(self):
