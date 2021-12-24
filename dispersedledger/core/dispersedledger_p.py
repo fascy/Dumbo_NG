@@ -148,51 +148,6 @@ class DL:
                 while True:
                     time.sleep(10)
 
-        def _recv_loop_bm():
-            """Receive messages."""
-            if os.getpid() == self.bmp:
-                return
-            if os.getpid() == self.rp:
-                return
-            print("start recv loop...", os.getpid())
-            # self._send(1, (1, "test msg"))
-            while True:
-                # gevent.sleep(0)
-                try:
-                    gevent.sleep(0)
-                    (sender, (r, msg)) = self._recv1()
-                    # if self.id == 3: print("recv1:", sender, r, msg[0])
-                    # self.logger.info('recv1' + str((sender, o)))
-                    # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
-                    # print(self.id, 'recv' + str((sender, msg[0])))
-                    #    self.retrieval_recv.put((sender, msg))
-
-                    self.bc_mv_recv.put((r, (sender, msg)))
-                    # print("mvba put:", self._per_round_recv[r])def
-                except:
-                    continue
-
-        def _recv_loop_r():
-            """Receive messages."""
-            if os.getpid() == self.bmp:
-                return
-            if os.getpid() == self.rp:
-                return
-            st = 0
-            print("start recv loop...", os.getpid())
-            # self._send(1, (1, "test msg"))
-            while True:
-                try:
-                    gevent.sleep(0)
-                    (sender, (r, msg)) = self._recv2()
-                    # if self.id == 3: print("recv2:", sender, msg[0])
-                    # self.logger.info('recv1' + str((sender, o)))
-                    if msg[0] == 'RETURN':
-                        # if self.id == 3 :print(self.id, 'recv' + str((sender, msg)))
-                        self.retrieval_recv.put((sender, msg))
-                except:
-                    continue
-
         # self._recv_thread.start()
         def _run_retrieval():
             self.rp = os.getpid()
@@ -203,20 +158,28 @@ class DL:
 
             return_recvs = [Queue() for _ in range(self.N)]
 
-            def _recv_msg():
+            def _recv_loop_r():
+                """Receive messages."""
                 if os.getpid() != self.rp:
                     return
-
+                st = 0
+                print("start recv loop...", os.getpid())
                 while True:
-                    sender, msg = self.retrieval_recv.get(timeout=1000)
-                    _, (sid, send_list) = msg
-                    for i in range(len(send_list)):
-                        # print(send_list[i])
-                        (sid, leader, v, rst) = send_list[i]
-                        return_recvs[leader].put_nowait((sender, (sid, v, rst)))
-                    # if self.id == 1: print("get a new msg ", sid, leader, "at ", time.time())
+                    try:
+                        gevent.sleep(0)
+                        (sender, (r, msg)) = self._recv2()
+                        # if self.id == 3: print("recv2:", sender, msg[0])
+                        if msg[0] == 'RETURN':
+                            # if self.id == 3 :print(self.id, 'recv' + str((sender, msg)))
+                            _, (sid, send_list) = msg
+                            for i in range(len(send_list)):
+                                # print(send_list[i])
+                                (sid, leader, v, rst) = send_list[i]
+                                return_recvs[leader].put_nowait((sender, (sid, v, rst)))
+                    except:
+                        continue
 
-            _re_thread = gevent.spawn(_recv_msg)
+            _re_thread = gevent.spawn(_recv_loop_r)
 
             def _recover(j):
                 # deal with recover of leader j
@@ -262,10 +225,10 @@ class DL:
                                 'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
                                    self.txcnt / self.txdelay, self.l_c / block_count, et))
-                            # if self.id == 3: print(
-                            #     'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
-                            #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                            #        self.txcnt / self.txdelay, self.l_c / block_count, et))
+                            if self.id == 3: print(
+                               'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
+                               % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
+                                  self.txcnt / self.txdelay, self.l_c / block_count, et))
                             # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
 
             # _collect_thread = gevent.spawn(_collect)
@@ -279,21 +242,28 @@ class DL:
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
 
-            # print("run_bc_mvba process id:", self.bmp)
-
-            def handelmsg():
+            def _recv_loop_bm():
+                """Receive messages."""
                 if os.getpid() != self.bmp:
                     return
+                print("start recv loop...", os.getpid())
+                # self._send(1, (1, "test msg"))
                 while True:
+                    # gevent.sleep(0)
+                    try:
+                        gevent.sleep(0)
+                        (sender, (r0, msg)) = self._recv1()
+                        # if self.id == 3: print("recv1:", sender, r, msg[0])
+                        if r0 not in self._per_round_recv:
+                            self._per_round_recv[r0] = gevent.queue.Queue()
 
-                    (r0, (sender, msg)) = self.bc_mv_recv.get(timeout=100)
-                    if r0 not in self._per_round_recv:
-                        self._per_round_recv[r0] = gevent.queue.Queue()
+                        self._per_round_recv[r0].put_nowait((sender, msg))
+                        # print("mvba put:", self._per_round_recv[r])def
+                    except:
+                        continue
+            # print("run_bc_mvba process id:", self.bmp)
+            self._recv_thread1 = gevent.spawn(_recv_loop_bm)
 
-                    self._per_round_recv[r0].put_nowait((sender, msg))
-
-            self._recv_thread = Greenlet(handelmsg)
-            self._recv_thread.start()
             self.s_time = time.time()
             while True:
                 # print(r, "start!")
@@ -330,8 +300,8 @@ class DL:
                 if self.logger != None:
                     self.logger.info(
                         'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
-                # if self.id == 3: print(
-                #     'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+                if self.id == 3: print(
+                    'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
 
                 self.round += 1
                 if self.round >= self.K:
@@ -346,15 +316,18 @@ class DL:
 
         self._bc_mvba.start()
         self._retrieval.start()
-        self._recv_thread1 = gevent.spawn(_recv_loop_bm)
-        self._recv_thread2 = gevent.spawn(_recv_loop_r)
-        self._recv_thread1.join()
-        self._recv_thread2.join()
+
+
+        # self._recv_thread1.join()
+
         self._retrieval.join()
         # self._bc_mvba.join()
         # print("-----------------------------start to join")
         # self._recv_output.join()
         self.e_time = time.time()
+        while True:
+            gevent.sleep(0)
+            pass
 
     def _run_BC_MVBA_round(self, r, tx_to_send, send, recv):
         """Run one PCBC and MVBA round.
