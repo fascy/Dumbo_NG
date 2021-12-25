@@ -147,20 +147,21 @@ class DL:
                 # T = 0.00001
                 while True:
                     time.sleep(10)
-
+        if self.id ==0: print("main:", os.getpid())
         def _recv_loop_bm():
             """Receive messages."""
             if os.getpid() == self.bmp:
                 return
             if os.getpid() == self.rp:
                 return
-            print("start recv loop...", os.getpid())
+            # print("start recv loop...", os.getpid())
             # self._send(1, (1, "test msg"))
             while True:
                 # gevent.sleep(0)
                 try:
                     gevent.sleep(0)
                     (sender, (r, msg)) = self._recv1()
+
                     # if self.id == 3: print("recv1:", sender, r, msg[0])
                     # self.logger.info('recv1' + str((sender, o)))
                     # if msg[0] == 'RETRIEVAL' or msg[0] == 'RETURN':
@@ -179,7 +180,7 @@ class DL:
             if os.getpid() == self.rp:
                 return
             st = 0
-            print("start recv loop...", os.getpid())
+            # print("start recv loop...", os.getpid())
             # self._send(1, (1, "test msg"))
             while True:
                 try:
@@ -200,7 +201,7 @@ class DL:
             v: 0 has sent
             v: -1 wait to sent
             """
-
+            if self.id == 0: print("recover:", self.rp)
             return_recvs = [Queue() for _ in range(self.N)]
 
             def _recv_msg():
@@ -243,7 +244,7 @@ class DL:
                     if self.re_count[sid][j] == self.N - (2 * self.f):
                         # if self.id == 1: print("get f+1 msg and start to decode", sid, j, "at", time.time())
 
-                        m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
+                        # m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
                         # if self.id == 1: print("finish decode", sid, j, "at", time.time())
 
                         st = rst
@@ -252,7 +253,7 @@ class DL:
                         # if self.id == 1: print("get end time of", sid, j, "at", time.time())
                         self.re_instances[sid][j].clear()
                         if self.logger != None:
-                            tx_cnt = str(m).count("Dummy")
+                            tx_cnt = self.B
                             self.txcnt += tx_cnt
                             self.l_c += (et - st)
                             self.txdelay = et - self.s_time
@@ -269,23 +270,22 @@ class DL:
                             # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
 
             # _collect_thread = gevent.spawn(_collect)
+            _recover_threads = [None] * self.N
             for i in range(self.N):
-                _recover_thread = gevent.spawn(_recover, i)
-            while True:
-                gevent.sleep(0)
-                pass
+                _recover_threads[i] = gevent.spawn(_recover, i)
+            gevent.joinall(_recover_threads)
 
         def _run_bc_mvba():
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
-
+            if self.id == 0: print("bcmvba:", self.bmp)
             # print("run_bc_mvba process id:", self.bmp)
 
             def handelmsg():
                 if os.getpid() != self.bmp:
                     return
                 while True:
-
+                    gevent.sleep(0)
                     (r0, (sender, msg)) = self.bc_mv_recv.get(timeout=100)
                     if r0 not in self._per_round_recv:
                         self._per_round_recv[r0] = gevent.queue.Queue()
