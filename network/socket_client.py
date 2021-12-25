@@ -101,9 +101,11 @@ class NetworkClient (Process):
                         # self.logger.error(str((e1, traceback.print_exc())))
                         self.socks[j].close()
                         break
+
                 if cnt == 0:
                     cnt = self.BYTES
-                    time.sleep(0.001)
+                    if self.s == 1:
+                        time.sleep(0.00001)
         else:
             while not self.stop.value:
                 # gevent.sleep(0)
@@ -155,7 +157,8 @@ class NetworkClient (Process):
         self.logger.info('node id %d is running on pid %d' % (self.id, pid))
         with self.ready.get_lock():
             self.ready.value = False
-        self._connect_and_send_forever()
+        conn_thread = gevent.spawn(self._connect_and_send_forever)
+        conn_thread.join()
 
     def stop_service(self):
         with self.stop.get_lock():

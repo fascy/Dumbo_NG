@@ -1,3 +1,4 @@
+import gevent
 from gevent import monkey;
 
 from myexperiements.sockettest.dl_sockets_node import DLNode
@@ -5,6 +6,8 @@ from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
 from myexperiements.sockettest.x_d_node import XDNode
 from myexperiements.sockettest.x_k_node import XDKNode
 from myexperiements.sockettest.x_k_s_node import XDSNode
+from network.sockets_client import NetworkClients
+from network.sockets_server import NetworkServers
 
 monkey.patch_all(thread=False)
 
@@ -94,7 +97,7 @@ if __name__ == '__main__':
                 pub_ip = params[2]
                 port1 = int(params[3])
                 port2 = int(params[4])
-                # print(pid, priv_ip, port1, port2)
+                print(pid, priv_ip, port1, port2)
                 if pid not in range(N):
                     continue
                 if pid == i:
@@ -135,17 +138,17 @@ if __name__ == '__main__':
         net_ready = mpValue(c_bool, False)
         stop = mpValue(c_bool, False)
 
-        net_server1 = NetworkServer(my_address1[1], my_address1[0], i, addresses1, server_to_bft1, server_ready1, stop, 1)
-        net_client1 = NetworkClient(my_address1[1], my_address1[0], i, addresses1, client_from_bft1, client_ready1, stop, 1)
-        net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop, 2)
-        net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop, 0)
+        net_server1 = NetworkServers(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
+                                    server_to_bft1, server_to_bft2, server_ready1, server_ready2, stop, stop, 1, 2)
+        net_client1 = NetworkClients(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
+                                     client_from_bft1, client_from_bft2, client_ready1, client_ready2, stop, stop, 0, 1)
+        # net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop, 2)
+        # net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop, 0)
         bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
                                    bft_from_server2, bft_to_client2, net_ready, stop, P, M, F, D, O)
 
         net_server1.start()
-        net_server2.start()
         net_client1.start()
-        net_client2.start()
 
         while not client_ready1.value and not server_ready1.value \
                 and not client_ready2.value and not server_ready2.value:
@@ -165,16 +168,11 @@ if __name__ == '__main__':
         net_client1.terminate()
         net_client1.join()
 
-        net_client2.terminate()
-        net_client2.join()
-
         time.sleep(1)
 
         net_server1.terminate()
         net_server1.join()
 
-        net_server2.terminate()
-        net_server2.join()
 
     except FileNotFoundError or AssertionError as e:
         traceback.print_exc()
