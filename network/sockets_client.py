@@ -50,7 +50,7 @@ class NetworkClients(Process):
         self.sock_locks2 = [lock.Semaphore() for _ in self.addresses_list2]
         self.s1 = s1
         self.s2 = s2
-        self.BYTES = 5000
+        self.BYTES = 10000
         super().__init__()
 
     def _connect_and_send_forever(self, is_out_sock_connected, ready, ip, port, addresses_list, socks, s, stop,
@@ -120,8 +120,8 @@ class NetworkClients(Process):
 
                 if cnt == 0:
                     cnt = self.BYTES
-                    # if s == 1:
-                    #     time.sleep(0.001)
+                    if s == 1:
+                        gevent.sleep(0.001)
         else:
             while not stop.value:
                 # gevent.sleep(0)

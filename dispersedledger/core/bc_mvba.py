@@ -105,15 +105,10 @@ class BM:
         self.share_bc = multiprocessing.Queue()
 
         # self.bc_instances = multiprocessing.Manager().dict(multiprocessing.Manager().dict())
-        self.re_instances = defaultdict(lambda: defaultdict(lambda: [None for i in range(self.N)]))
-        self.re_count = defaultdict(lambda: defaultdict(int))
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.tobe_retrieval = multiprocessing.Queue()
         self.bmp = 0
-        self.rp = 0
-        self.bc_mv_recv = multiprocessing.Queue()
-        self.retrieval_recv = multiprocessing.Queue()
-
+        self._per_round_recv = {}
         self.debug = debug
 
         # self.s_time = 0

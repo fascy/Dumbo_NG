@@ -1,6 +1,7 @@
 import gevent
 from gevent import monkey;
 
+from myexperiements.sockettest.dl_bmr_sockets_node import DL2Node
 from myexperiements.sockettest.dl_sockets_node import DLNode
 from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
 from myexperiements.sockettest.x_d_node import XDNode
@@ -28,6 +29,8 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1: Callable, b
     bft = None
     if protocol == 'dl':
         bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
+    if protocol == 'dl2':
+        bft = DL2Node(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
 
     else:
         print("Only support dl")
