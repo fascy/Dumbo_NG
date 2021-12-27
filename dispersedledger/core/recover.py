@@ -51,7 +51,7 @@ def hash(x):
 
 class RECOVER(Process):
 
-    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, recv, K=3, mute=False, debug=False):
+    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, recv, K=3, mute=False, debug=False, logger=None):
 
         super().__init__()
         self.sid = sid
@@ -66,7 +66,7 @@ class RECOVER(Process):
         self.sPK2s = sPK2s
         self.sSK2 = sSK2
         self._recv = recv
-        self.logger = set_consensus_log(pid)
+        self.logger = logger
         self.K = K
 
         self.bc_instances = defaultdict(lambda: defaultdict())
@@ -114,7 +114,7 @@ class RECOVER(Process):
                 try:
                     gevent.sleep(0)
                     (sender, (r, msg)) = self._recv()
-                    # if self.id == 3: print("recv2:", sender, msg[0])
+                    # if self.id == 3: print("************recover recv2:", sender, msg[0], msg[1][0])
                     if msg[0] == 'RETURN':
                         self.retrieval_recv.put((sender, msg))
                 except:

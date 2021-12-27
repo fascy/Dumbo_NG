@@ -102,8 +102,9 @@ class DL2Node (BM):
             #gevent.sleep(1)
 
         recover = RECOVER(self.sid, self.id, self.B, self.N, self.f,
-                          self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                          recv=recv2, K=self.K, mute=self.mute)
+                         self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                         recv=recv2, K=self.K, mute=self.mute,logger=self.logger)
+
         recover.start()
         self.run_bft()
 

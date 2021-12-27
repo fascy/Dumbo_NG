@@ -22,7 +22,6 @@ from collections import namedtuple, defaultdict
 from enum import Enum
 from gevent import Greenlet
 from gevent.queue import Queue
-from gevent.event import Event
 from honeybadgerbft.core.honeybadger_block import honeybadger_block
 from honeybadgerbft.exceptions import UnknownTagError
 from xdumbo.core.nwabc import nwatomicbroadcast
@@ -80,7 +79,8 @@ def broadcast_receiver_loop(recv_func, recv_queues):
 
 
 class BM:
-    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, send1, send2, recv, K=3, mute=False,
+    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, send1, send2, recv, K=3,
+                 mute=False,
                  debug=False):
 
         self.sid = sid
@@ -120,7 +120,7 @@ class BM:
         self.l_c = 0
         self.mute = mute
         self.threads = []
-        self.signal = multiprocessing.Value('d', 0)
+        self.bc_count = 0
 
         self.r = 1
 
@@ -140,8 +140,7 @@ class BM:
                 # T = 0.00001
                 while True:
                     time.sleep(10)
-        if self.id == 0: print("main:", os.getpid())
-
+        if self.id ==0: print("main:", os.getpid())
         def _recv_loop_bm():
             """Receive messages."""
             # print("start recv loop...", os.getpid())
@@ -155,10 +154,8 @@ class BM:
                         self._per_round_recv[r0] = gevent.queue.Queue()
 
                     self._per_round_recv[r0].put_nowait((sender, msg))
-
-                    # if self.id == 3: print("acsr recv1:", sender, r0, msg[0], msg[2][0], msg[2][3][0])
-                    # if self.logger != None:
-                    #    self.logger.info(str((sender, r0, msg[0], msg[2][0])))
+                    # if self.id == 3:
+                    print(self.id, "acsr recv1:", sender, r0, msg[0], msg[2][0])
                 except:
                     continue
 
@@ -200,7 +197,7 @@ class BM:
                 if self.logger != None:
                     self.logger.info(
                         'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
-                print(
+                if self.id == 3: print(
                     'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
 
                 self.round += 1
@@ -233,6 +230,7 @@ class BM:
         pid = self.id
         N = self.N
         f = self.f
+        self.bc_count = 0
         chunk_list = [Queue(1) for _ in range(N)]
         pcbc_recvs = [gevent.queue.Queue() for _ in range(N)]
         vacs_recv = gevent.queue.Queue()
@@ -248,17 +246,11 @@ class BM:
 
         bc_recv_loop_thread = gevent.spawn(broadcast_receiver_loop, recv, recv_queues)
 
-        wait_progress = Event()
-        wait_progress.clear()
-
-        values = [None] * N
-
         # send(2, (2, "msg2"))
         def _setup_pcbc(j):
             """Setup the sub protocols RBC, BA and common coin.
                         :param int j: Node index for which the setup is being done.
                         """
-            nonlocal values
 
             def pcbc_send(k, o):
                 """"
@@ -290,66 +282,45 @@ class BM:
             def get_pcbc_chunk():
                 value = chunk_list[j].get()
                 st = time.time()
-                # if self.id == 3: print("get pcbc chunk of", sid + ':PCBC' + str(r)+str(j), "at", time.time())
                 self.bc_instances[sid + ':PCBC' + str(r)][j] = 1, value, st, None
 
-            chunk_thead = gevent.spawn(get_pcbc_chunk)
+            chunk_thead = gevent.spawn(get_pcbc_chunk())
 
             def wait_for_prbc_output():
                 value, sigs = pcbc_thread.get()
                 (chunk, branch, root) = value
+                self.bc_count += 1
                 try:
                     g, v, st, s = self.bc_instances[sid + ':PCBC' + str(r)][j]
-                    # self.bc_instances[sid + ':PCBC' + str(r)][j] = g, v, st, sigs
-                    # values[i] = sid + ':PCBC' + str(r), i, v[2], sigs
+                    self.bc_instances[sid + ':PCBC' + str(r)][j] = g, v, st, sigs
+                    self.bc_count += 1
                 except:
                     self.bc_instances[sid + ':PCBC' + str(r)][j] = 1, value, time.time(), sigs
-                    # self.bc_instances[sid + ':PCBC' + str(r)][j] = g, v, st, sigs
 
-                values[j] = sid + ':PCBC' + str(r), j, value[2], sigs
-
-                # values[i] = sid + ':PCBC' + str(r), i, v[2], sigs
-                # vacs_input.put(values)
-
-                # if self.id == 3: print(sum(x is not None for x in values))
-
-                if sum(x is not None for x in values) == self.N - self.f:
-                    # for x in self.bc_instances[sid + ':PCBC' + str(r)].keys():
-                    #    (_, vx, stx, sigsx) = self.bc_instances[sid + ':PCBC' + str(r)[x]
-                    #    (_, _, rootx) = vx
-                    #    values[i] = sid + ':PCBC' + str(r), i, rootx, sigsx
-                    vacs_input.put_nowait(values)
-                    wait_progress.set()
                 # self.share_bc.put((sid + ':PCBC' + str(r), j, value, st))
-                # if self.id == 3: print("output in ", sid + 'PCBC' + str(r) + str(j), "at ", time.time())
+                if self.id == 3: print("output in ", sid + 'PCBC' + str(r)+str(j), "at ", time.time())
                 # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
                 # pcbc_outputs[j].put_nowait((value, proof))
 
             return gevent.spawn(wait_for_prbc_output)
 
-        # values = [None] * N
+        values = [None] * N
 
         def _setup_vacs():
-
             def vacs_send(k, o):
                 """Threshold encryption broadcast."""
                 """Threshold encryption broadcast."""
                 send(k, ('ACS_VACS', '', o))
 
-            # wait_progress.wait()
-
-            # def wait_pcbc():
-            #    while len(self.bc_instances[sid + ':PCBC' + str(r)]) < N - f:
-            # while self.bc_instances[sid + ':PCBC' + str(r)][pid]
-            #        gevent.sleep(0.00001)
-            #    #wait_progress.set()
+            while self.bc_count < N - f:
+                gevent.sleep(0)
             # print("N - f bc instances have finished in round ", r)
             # print(self.bc_instances[sid + 'PCBC' + str(r)].keys())
-            # for i in self.bc_instances[sid + ':PCBC' + str(r)].keys():
-            #    (_, v, st, sigs) = self.bc_instances[sid + ':PCBC' + str(r)][i]
-            #    (_, _, root) = v
-            #    values[i] = sid + ':PCBC' + str(r), i, root, sigs
-            # vacs_input.put(values)
+            for i in self.bc_instances[sid + ':PCBC' + str(r)].keys():
+                (_, v, st, sigs) = self.bc_instances[sid + ':PCBC' + str(r)][i]
+                (_, _, root) = v
+                values[i] = sid + ':PCBC' + str(r), i, root, sigs
+            vacs_input.put(values)
 
             def vaba_predicate(m):
                 counter = 0
@@ -359,23 +330,20 @@ class BM:
                             if m[i] is not None:
                                 counter += 1
                 return True if counter >= N - f else False
-                # print(pred)
 
-            # return pred
+            if self.debug:
+                mvba_thread = Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
+                                       self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                       vacs_input.get, vacs_output.put_nowait,
+                                       vacs_recv.get, vacs_send, vaba_predicate, self.logger)
+            else:
+                mvba_thread = Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
+                                       self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                       vacs_input.get, vacs_output.put_nowait,
+                                       vacs_recv.get, vacs_send, vaba_predicate)
 
-            # if self.debug:
-            return Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
-                            self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                            vacs_input.get, vacs_output.put_nowait,
-                            vacs_recv.get, vacs_send, vaba_predicate, self.logger)
-            # else:
-            # mvba_thread = Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
-            #                        self.sPK, self.sSK, self.sPK2s, self.sSK2,
-            #                        vacs_input.get, vacs_output.put_nowait,
-            #                        vacs_recv.get, vacs_send, vaba_predicate)
-
-            # mvba_thread.start()
-            # return mvba_thread
+            mvba_thread.start()
+            return mvba_thread
 
         # N instances of PRBC
         if self.id == 3: print("start to run pcbc of round", self.round, "at ", time.time())
@@ -388,22 +356,11 @@ class BM:
         # print("start to set up VACS")
         if self.id == 3: print("start to run mvba of round", self.round, "at ", time.time())
         mvba_thread = _setup_vacs()
-        mvba_thread.start()
-
-        # while True:
-        #    gevent.sleep(0.0001)
-        #    try:
-        #        mvbaout = (list(vacs_output.get_nowait()))
-        #        break
-        #    except:
-        #        continue
-
-        mvbaout = list(vacs_output.get())
-
-        bc_recv_loop_thread.kill()
-        mvba_thread.kill()
+        mvbaout = (list(vacs_output.get()))
         for j in range(N):
             pcbc_threads[j].kill()
+        mvba_thread.kill()
+        bc_recv_loop_thread.kill()
         pcbc_recvs = [None for _ in range(N)]
         vacs_recv = None
         my_pcbc_input = None

@@ -1,3 +1,4 @@
+import time
 from queue import Queue
 
 from gevent import monkey;
@@ -95,11 +96,10 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
 
     # Handle all consensus messages
     while True:
-        # print("???")
         # gevent.sleep(0)
 
         (j, msg) = receive()
-        # print("recv3", (j, msg[0]))
+        # if pid ==3 : print("recv3", (j, msg[0]))
 
         if msg[0] == 'CBC_SEND' and fromLeader is None:
             # CBC_SEND message
@@ -118,6 +118,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
             MyChunk = stripe
             digest = hash((sid, roothash))
             chunk((MyChunk, MyProof, fromLeader))
+            # if pid == 3: print("get chunk of", sid, "at ", time.time())
             send(leader, ('CBC_ECHO', ecdsa_sign(SK2, digest)))
 
         elif msg[0] == 'CBC_ECHO':
@@ -158,4 +159,5 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
                 continue
             # print("CBC finished for leader", leader)
             output = decode_output(r)
+            # if pid == 3: print("get output of", sid, "at ", time.time())
             return output, sigmas

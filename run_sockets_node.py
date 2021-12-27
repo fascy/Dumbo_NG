@@ -68,6 +68,8 @@ if __name__ == '__main__':
                         help='whether to debug mode', type=bool, default=False)
     parser.add_argument('--O', metavar='O', required=False,
                         help='whether to omit the fast path', type=bool, default=False)
+    parser.add_argument('--Y', metavar='Y', required=False,
+                        help='RECOVER SEND BYTES', type=int, default=10000)
     args = parser.parse_args()
 
     # Some parameters
@@ -84,6 +86,7 @@ if __name__ == '__main__':
     F = args.F
     D = args.D
     O = args.O
+    BYTE = args.Y
 
     # Random generator
     rnd = random.Random(sid)
@@ -144,7 +147,7 @@ if __name__ == '__main__':
         net_server1 = NetworkServers(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
                                     server_to_bft1, server_to_bft2, server_ready1, server_ready2, stop, stop, 1, 2)
         net_client1 = NetworkClients(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
-                                     client_from_bft1, client_from_bft2, client_ready1, client_ready2, stop, stop, 0, 1)
+                                     client_from_bft1, client_from_bft2, client_ready1, client_ready2, stop, stop, BYTE, 0, 1)
         # net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop, 2)
         # net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop, 0)
         bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
