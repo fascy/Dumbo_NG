@@ -120,7 +120,7 @@ class NetworkClients(Process):
 
                 if cnt == 0:
                     cnt = self.BYTES
-                    if s == 1:
+                    if False:
                         gevent.sleep(0.001)
         else:
             while not stop.value:

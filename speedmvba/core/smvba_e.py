@@ -321,8 +321,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 halt_send.put_nowait(('MVBA_HALT', r, pid, ("halt", halt_msg)))
                 # try:
                 # print(pid, sid, "halt here 2")
-                if pid == 3: print(
-                    "==============================%sround %d smvba decide in shortcut. %f" % (sid, r, time.time()))
+                # if pid == 3: print(
+                #     "==============================%sround %d smvba decide in shortcut. %f" % (sid, r, time.time()))
                 #decide(msg[0])
                 if logger is not None:
                     logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
@@ -449,9 +449,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                                     # print(pid, sid, "halt here 3")
                                     if logger is not None: logger.info(
                                         "round %d smvba decide in vote yes %f" % (r, time.time()))
-                                    if pid == 3: print(
-                                        "==============================%s,round %d smvba decide in vote yes %f" % (
-                                        sid, r, time.time()))
+                                    # if pid == 3: print(
+                                    #     "==============================%s,round %d smvba decide in vote yes %f" % (
+                                    #     sid, r, time.time()))
                                     halt_send.put_nowait(('MVBA_HALT', r, pid, ("halt", halt_msg)))
                                     # decide(vote_msg[2][0])
                                     # for i in range(N):
@@ -557,8 +557,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     # print(pid, sid, "halt here 1")
                     # try:
                     # print(pid, halt_msg[2][0])
-                    if pid == 3:
-                        print("==============================%s, round %d smvba decide in halt %f" % (sid, r, time.time()))
+                    # if pid == 3:
+                    #     print("==============================%s, round %d smvba decide in halt %f" % (sid, r, time.time()))
                     # if logger is not None:
                     #    logger.info("SMVBA decides in round " + r + " by receiving HALT MESSAGE")
 
@@ -590,8 +590,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             try:
                 o = halt_send.get()
                 (_, rx, pidx, (_, haltx)) = o
-                if pid == 3:
-                    print("==============================%s, round %d try to send halt messages %f" % (sid, r, time.time()))
+                # if pid == 3:
+                #     print("==============================%s, round %d try to send halt messages %f" % (sid, r, time.time()))
                 send(-1, ('MVBA_HALT', rx, pidx, ("halt", haltx)))
                 break
             except Exception as err:

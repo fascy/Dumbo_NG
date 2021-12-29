@@ -55,8 +55,8 @@ class NetworkServers(Process):
             buf = b''
             try:
                 while not stop.value:
-                    if win == 1:
-                        buf += sock.recv(53138)
+                    if True:
+                        buf += sock.recv(106496)
                     else:
                         buf += sock.recv(25600)
                         # buf += sock.recv(106496)

@@ -185,10 +185,10 @@ class RECOVER(Process):
                                 'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
                                    self.txcnt / self.txdelay, self.l_c / block_count, et))
-                            if self.id == 3: print(
-                                'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
-                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                                   self.txcnt / self.txdelay, self.l_c / block_count, et))
+                            # if self.id == 3: print(
+                            #     'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
+                            #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
+                            #        self.txcnt / self.txdelay, self.l_c / block_count, et))
                             # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
 
             # _collect_thread = gevent.spawn(_collect)

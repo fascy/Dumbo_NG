@@ -200,8 +200,8 @@ class BM:
                 if self.logger != None:
                     self.logger.info(
                         'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
-                print(
-                    'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
+                # print(
+                #     'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
 
                 self.round += 1
                 if self.round >= self.K:
@@ -378,7 +378,7 @@ class BM:
             # return mvba_thread
 
         # N instances of PRBC
-        if self.id == 3: print("start to run pcbc of round", self.round, "at ", time.time())
+        # if self.id == 3: print("start to run pcbc of round", self.round, "at ", time.time())
         pcbc_threads = [None] * N
         for j in range(N):
             # print(self.id, "start to set up PCBC %d" % j)
@@ -386,7 +386,7 @@ class BM:
 
         # One instance of (validated) ACS
         # print("start to set up VACS")
-        if self.id == 3: print("start to run mvba of round", self.round, "at ", time.time())
+        # if self.id == 3: print("start to run mvba of round", self.round, "at ", time.time())
         mvba_thread = _setup_vacs()
         mvba_thread.start()
 
