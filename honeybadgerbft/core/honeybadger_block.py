@@ -65,6 +65,7 @@ def honeybadger_block(pid, N, f, PK, SK, propose, acs_put_in, acs_get_out, tpke_
 
     # Threshold encrypt
     # TODO: check that propose_in is the correct length, not too large
+    tpke_t = time.time()
     key = os.urandom(32)    # random 256-bit key
     ciphertext = tpke.encrypt(key, propose)
     tkey = PK.encrypt(key)
@@ -74,6 +75,9 @@ def honeybadger_block(pid, N, f, PK, SK, propose, acs_put_in, acs_get_out, tpke_
 
     import pickle
     to_acs = pickle.dumps((serialize_UVW(*tkey), ciphertext))
+    if logger != None:
+        logger.info("finish tpke in %f seconds" % (
+            time.time()-tpke_t))
     acs_put_in(to_acs)
 
     #print("node %d provides input %s to rbc" % (pid, to_acs))

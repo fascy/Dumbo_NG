@@ -94,8 +94,8 @@ def provablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, value_output, re
             if pid != leader:
                 value_output(v)
                 end = time.time()
-                #if logger != None:
-                #    logger.info("ABA %d completes in %f seconds" % (leader, end-start))
+                if logger != None:
+                    logger.info("ABA %d completes in %f seconds" % (leader, end-start))
 
         elif msg[0] == 'PB_ECHO':
             # CBC_READY message
@@ -114,6 +114,6 @@ def provablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, value_output, re
             if len(cbc_echo_sshares) >= EchoThreshold:
                 sigmas = tuple(list(cbc_echo_sshares.items())[:N - f])
                 end = time.time()
-                if logger != None:
-                    logger.info("ABA %d completes in %f seconds" % (leader, end-start))
+                #if logger != None:
+                #     logger.info("ABA %d completes in %f seconds" % (leader, end-start))
                 return sid, hash(m), sigmas

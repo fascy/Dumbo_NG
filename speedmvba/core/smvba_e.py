@@ -94,7 +94,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     """
 
     hasOutputed = False
-
+    s_t = time.time()
     # print("Starts to run validated agreement...")
 
     assert PK.k == f + 1
@@ -573,7 +573,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     #        spbc_threads[i].kill()
                     #recv_loop_thred.kill()
                     #view_change_thred.kill()
-                    # if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
+                    if logger is not None: logger.info("round %d smvba decide in halt in %f second" % (r, time.time()-s_t))
                     # except:
                     #     print("1 can not")
                     #     pass

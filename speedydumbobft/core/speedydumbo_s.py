@@ -275,7 +275,7 @@ class SpeedyDumbo():
             pb_thread = gevent.spawn(provablebroadcast, sid+'PB'+str(r)+str(j), pid,
                                      N, f, self.sPK2s, self.sSK2, j, pb_input,
                                      pb_value_outputs[j].put_nowait,
-                                     recv=pb_recvs[j].get, send=pb_send)
+                                     recv=pb_recvs[j].get, send=pb_send, logger=self.logger)
 
             def wait_for_pb_proof():
                 proof = pb_thread.get()
@@ -329,7 +329,7 @@ class SpeedyDumbo():
         vacs_thread = Greenlet(speedmvbacommonsubset, sid + 'VACS' + str(r), pid, N, f,
                                self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
                                vacs_input.get, vacs_output.put_nowait,
-                               vacs_recv.get, vacs_send, vacs_predicate)
+                               vacs_recv.get, vacs_send, vacs_predicate, logger=self.logger)
         vacs_thread.start()
 
         # One instance of TPKE
@@ -349,7 +349,7 @@ class SpeedyDumbo():
         _output = honeybadger_block(pid, self.N, self.f, self.ePK, self.eSK,
                           propose=json.dumps(tx_to_send),
                           acs_put_in=my_pb_input.put_nowait, acs_get_out=dumboacs_thread.get,
-                          tpke_bcast=tpke_bcast, tpke_recv=tpke_recv.get)
+                          tpke_bcast=tpke_bcast, tpke_recv=tpke_recv.get,logger=self.logger)
 
         block = set()
         for batch in _output:

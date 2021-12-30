@@ -55,7 +55,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
     # assert f >= 0
     # assert 0 <= leader < N
     # assert 0 <= pid < N
-
+    st =time.time()
     K = N - 2 * f
     EchoThreshold = N - f  # Wait for this many CBC_ECHO to send CBC_FINAL
     m = None
@@ -159,5 +159,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
                 continue
             # print("CBC finished for leader", leader)
             output = decode_output(r)
+            if logger != None:
+                logger.info("VID output in %f" % (time.time()-st))
             # if pid == 3: print("get output of", sid, "at ", time.time())
             return output, sigmas

@@ -1,4 +1,6 @@
-from gevent import monkey; monkey.patch_all(thread=False)
+from gevent import monkey;
+
+monkey.patch_all(thread=False)
 
 import json
 import logging
@@ -19,13 +21,13 @@ from honeybadgerbft.exceptions import UnknownTagError
 
 
 def set_consensus_log(id: int):
-    logger = logging.getLogger("consensus-node-"+str(id))
+    logger = logging.getLogger("consensus-node-" + str(id))
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         '%(asctime)s %(filename)s [line:%(lineno)d] %(funcName)s %(levelname)s %(message)s ')
     if 'log' not in os.listdir(os.getcwd()):
         os.mkdir(os.getcwd() + '/log')
-    full_path = os.path.realpath(os.getcwd()) + '/log/' + "consensus-node-"+str(id) + ".log"
+    full_path = os.path.realpath(os.getcwd()) + '/log/' + "consensus-node-" + str(id) + ".log"
     file_handler = logging.FileHandler(full_path)
     file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
     logger.addHandler(file_handler)
@@ -44,7 +46,7 @@ BroadcastReceiverQueues = namedtuple(
 
 def broadcast_receiver_loop(recv_func, recv_queues):
     while True:
-        #gevent.sleep(0)
+        # gevent.sleep(0)
         sender, (tag, j, msg) = recv_func()
         if tag not in BroadcastTag.__members__:
             # TODO Post python 3 port: Add exception chaining.
@@ -90,7 +92,8 @@ class Dumbo():
     :param K: a test parameter to specify break out after K rounds
     """
 
-    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False, debug=False):
+    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False,
+                 debug=False):
         self.sid = sid
         self.id = pid
         self.B = B
@@ -124,8 +127,8 @@ class Dumbo():
         """Appends the given transaction to the transaction buffer.
         :param tx: Transaction to append to the buffer.
         """
-        #print('backlog_tx', self.id, tx)
-        #if self.logger != None:
+        # print('backlog_tx', self.id, tx)
+        # if self.logger != None:
         #    self.logger.info('Backlogged tx at Node %d:' % self.id + str(tx))
         # Insert transactions to the end of TX buffer
         self.transaction_buffer.put_nowait(tx)
@@ -140,15 +143,14 @@ class Dumbo():
                 while True:
                     time.sleep(10)
 
-
         def _recv_loop():
             """Receive messages."""
-            #print("start recv loop...")
+            # print("start recv loop...")
             while True:
-                #gevent.sleep(0)
+                # gevent.sleep(0)
                 try:
-                    (sender, (r, msg) ) = self._recv()
-                    #self.logger.info('recv1' + str((sender, o)))
+                    (sender, (r, msg)) = self._recv()
+                    # self.logger.info('recv1' + str((sender, o)))
                     # Maintain an *unbounded* recv queue for each epoch
                     if r not in self._per_round_recv:
                         self._per_round_recv[r] = Queue()
@@ -157,7 +159,7 @@ class Dumbo():
                 except:
                     continue
 
-        #self._recv_thread = gevent.spawn(_recv_loop)
+        # self._recv_thread = gevent.spawn(_recv_loop)
         self._recv_thread = Greenlet(_recv_loop)
         self._recv_thread.start()
 
@@ -168,7 +170,7 @@ class Dumbo():
         while True:
 
             # For each round...
-            #gevent.sleep(0)
+            # gevent.sleep(0)
 
             start = time.time()
 
@@ -184,6 +186,7 @@ class Dumbo():
             def _make_send(r):
                 def _send(j, o):
                     self._send(j, (r, o))
+
                 return _send
 
             send_r = _make_send(r)
@@ -201,25 +204,26 @@ class Dumbo():
                 self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
 
             # Put undelivered but committed TXs back to the backlog buffer
-            #for _tx in tx_to_send:
+            # for _tx in tx_to_send:
             #    if _tx not in new_tx:
             #        self.transaction_buffer.put_nowait(_tx)
 
             # print('buffer at %d:' % self.id, self.transaction_buffer)
-            #if self.logger != None:
+            # if self.logger != None:
             #    self.logger.info('Backlog Buffer at Node %d:' % self.id + str(self.transaction_buffer))
 
-            self.round += 1     # Increment the round
+            self.round += 1  # Increment the round
             if self.round >= self.K:
-                break   # Only run one round for now
+                break  # Only run one round for now
 
         if self.logger != None:
             self.e_time = time.time()
-            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d" % (self.id, self.e_time-self.s_time, self.txcnt))
+            self.logger.info("node %d breaks in %f seconds with total delivered Txs %d" % (
+            self.id, self.e_time - self.s_time, self.txcnt))
         else:
             print("node %d breaks" % self.id)
 
-        #self._recv_thread.join(timeout=2)
+        # self._recv_thread.join(timeout=2)
 
     #
     def _run_round(self, r, tx_to_send, send, recv):
@@ -235,6 +239,7 @@ class Dumbo():
         pid = self.id
         N = self.N
         f = self.f
+        self.output_count = 0
 
         prbc_recvs = [Queue() for _ in range(N)]
         vacs_recv = Queue()
@@ -248,8 +253,6 @@ class Dumbo():
         vacs_input = Queue(1)
         vacs_output = Queue(1)
 
-
-
         recv_queues = BroadcastReceiverQueues(
             ACS_PRBC=prbc_recvs,
             ACS_VACS=vacs_recv,
@@ -259,8 +262,8 @@ class Dumbo():
         bc_recv_loop_thread = Greenlet(broadcast_receiver_loop, recv, recv_queues)
         bc_recv_loop_thread.start()
 
-        #print(pid, r, 'tx_to_send:', tx_to_send)
-        #if self.logger != None:
+        # print(pid, r, 'tx_to_send:', tx_to_send)
+        # if self.logger != None:
         #    self.logger.info('Commit tx at Node %d:' % self.id + str(tx_to_send))
 
         def _setup_prbc(j):
@@ -279,7 +282,8 @@ class Dumbo():
             prbc_input = my_prbc_input.get if j == pid else None
 
             if self.debug:
-                prbc_thread = gevent.spawn(provablereliablebroadcast, sid+'PRBC'+str(r)+str(j), pid, N, f, self.sPK2s, self.sSK2, j,
+                prbc_thread = gevent.spawn(provablereliablebroadcast, sid + 'PRBC' + str(r) + str(j), pid, N, f,
+                                           self.sPK2s, self.sSK2, j,
                                            prbc_input, prbc_recvs[j].get, prbc_send, self.logger)
             else:
                 prbc_thread = gevent.spawn(provablereliablebroadcast, sid + 'PRBC' + str(r) + str(j), pid, N, f,
@@ -288,8 +292,9 @@ class Dumbo():
 
             def wait_for_prbc_output():
                 value, proof = prbc_thread.get()
-                prbc_proofs[sid+'PRBC'+str(r)+str(j)] = proof
+                prbc_proofs[sid + 'PRBC' + str(r) + str(j)] = proof
                 prbc_outputs[j].put_nowait((value, proof))
+
 
             gevent.spawn(wait_for_prbc_output)
 
@@ -321,25 +326,26 @@ class Dumbo():
                 except AssertionError:
                     print("2 Failed to verify proof for PB")
                     return False
+
             if self.debug:
-                vacs_thread = Greenlet(validatedcommonsubset, sid+'VACS'+str(r), pid, N, f,
-                                   self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                                   vacs_input.get, vacs_output.put_nowait,
-                                   vacs_recv.get, vacs_send, vacs_predicate, self.logger)
+                vacs_thread = Greenlet(validatedcommonsubset, sid + 'VACS' + str(r), pid, N, f,
+                                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                                       vacs_input.get, vacs_output.put_nowait,
+                                       vacs_recv.get, vacs_send, vacs_predicate, self.logger)
             else:
-                vacs_thread = Greenlet(validatedcommonsubset, sid+'VACS'+str(r), pid, N, f,
-                                   self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                                   vacs_input.get, vacs_output.put_nowait,
-                                   vacs_recv.get, vacs_send, vacs_predicate)
+                vacs_thread = Greenlet(validatedcommonsubset, sid + 'VACS' + str(r), pid, N, f,
+                                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
+                                       vacs_input.get, vacs_output.put_nowait,
+                                       vacs_recv.get, vacs_send, vacs_predicate)
             vacs_thread.start()
 
         # N instances of PRBC
         for j in range(N):
-            #print("start to set up RBC %d" % j)
+            # print("start to set up RBC %d" % j)
             _setup_prbc(j)
 
         # One instance of (validated) ACS
-        #print("start to set up VACS")
+        # print("start to set up VACS")
         _setup_vacs()
 
         # One instance of TPKE
@@ -349,15 +355,15 @@ class Dumbo():
 
         # One instance of ACS pid, N, f, prbc_out, vacs_in, vacs_out
         dumboacs_thread = Greenlet(dumbocommonsubset, pid, N, f, [prbc_output.get for prbc_output in prbc_outputs],
-                           vacs_input.put_nowait,
-                           vacs_output.get)
+                                   vacs_input.put_nowait,
+                                   vacs_output.get)
 
         dumboacs_thread.start()
 
         _output = honeybadger_block(pid, self.N, self.f, self.ePK, self.eSK,
-                          propose=json.dumps(tx_to_send),
-                          acs_put_in=my_prbc_input.put_nowait, acs_get_out=dumboacs_thread.get,
-                          tpke_bcast=tpke_bcast, tpke_recv=tpke_recv.get)
+                                    propose=json.dumps(tx_to_send),
+                                    acs_put_in=my_prbc_input.put_nowait, acs_get_out=dumboacs_thread.get,
+                                    tpke_bcast=tpke_bcast, tpke_recv=tpke_recv.get, logger=self.logger)
 
         block = set()
         for batch in _output:

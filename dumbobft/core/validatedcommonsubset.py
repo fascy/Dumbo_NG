@@ -115,7 +115,7 @@ def validatedcommonsubset(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, de
         return vaba_predicate
 
     vaba = gevent.spawn(validatedagreement, sid + 'VACS-VABA', pid, N, f, PK, SK, PK1, SK1, PK2s, SK2,
-                        vaba_input.get, vaba_output.put_nowait, vaba_recv.get, make_vaba_send(), make_vaba_predicate())
+                        vaba_input.get, vaba_output.put_nowait, vaba_recv.get, make_vaba_send(), make_vaba_predicate(), logger=logger)
 
     """ 
     """
@@ -148,12 +148,9 @@ def validatedcommonsubset(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, de
             traceback.print_exc()
 
     #print("node %d collects enough proofs to input VABA" % pid)
-
     vaba_input.put_nowait(tuple(values))
     decide(list(vaba_output.get()))
 
-    if logger != None:
-        logger.info("VACS completes")
     #print("node %d output in VACS" % pid)
 
     vaba.kill()

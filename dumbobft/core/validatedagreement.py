@@ -81,7 +81,7 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
     """
 
     # print("Starts to run validated agreement...")
-
+    st = time.time()
     assert PK.k == f+1
     assert PK.l == N
     assert PK1.k == N-f
@@ -387,6 +387,6 @@ def validatedagreement(sid, pid, N, f, PK, SK, PK1, SK1, PK2s, SK2, input, decid
         r += 1
     assert a is not None
     if logger != None:
-        logger.info("VABA %s completes at round %d" % (sid, r))
+        logger.info("VABA %s completes at round %d in %f second" % (sid, r, time.time()-st))
     # print("node %d output in VABA" % pid)
     decide(cbc_outputs[a].get()[0])

@@ -48,10 +48,10 @@ def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
 
-
 class RECOVER(Process):
 
-    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, recv, K=3, mute=False, debug=False, logger=None):
+    def __init__(self, sid, pid, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, recv, K=3, mute=False, debug=False,
+                 logger=None):
 
         super().__init__()
         self.sid = sid
@@ -74,6 +74,7 @@ class RECOVER(Process):
 
         self.re_instances = defaultdict(lambda: defaultdict(lambda: [None for i in range(self.N)]))
         self.re_count = defaultdict(lambda: defaultdict(int))
+        self.re_time = defaultdict(lambda: defaultdict(float))
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.tobe_retrieval = multiprocessing.Queue()
         self.bmp = 0
@@ -103,7 +104,7 @@ class RECOVER(Process):
                 # T = 0.00001
                 while True:
                     time.sleep(10)
-        if self.id ==0: print("main:", os.getpid())
+        if self.id == 0: print("main:", os.getpid())
 
         def _recv_loop_r():
             """Receive messages."""
@@ -164,11 +165,14 @@ class RECOVER(Process):
                     except Exception as e:
                         print("Failed to validate VAL message:", sender)
                         continue
+
                     self.re_instances[sid][j][sender] = chunk
                     self.re_count[sid][j] += 1
+                    if self.re_count[sid][j] == 1:
+                        self.re_time[sid][j] = time.time()
                     # print(sid, leader, "instance append", chunk)
                     if self.re_count[sid][j] == self.N - (2 * self.f):
-                        # m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
+                        m = decode(self.N - (2 * self.f), self.N, self.re_instances[sid][j])
                         st = rst
 
                         et = time.time()
@@ -185,6 +189,8 @@ class RECOVER(Process):
                                 'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
                                    self.txcnt / self.txdelay, self.l_c / block_count, et))
+                            self.logger.info(
+                                'Block of %s recover in %f second' % (str(sid) + str(j), et - self.re_time[sid][j]))
                             # if self.id == 3: print(
                             #     'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
                             #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
@@ -196,7 +202,6 @@ class RECOVER(Process):
             for i in range(self.N):
                 _recover_threads[i] = gevent.spawn(_recover, i)
             gevent.joinall(_recover_threads)
-
 
         self.s_time = time.time()
         if self.logger != None:
@@ -210,4 +215,3 @@ class RECOVER(Process):
         # print("-----------------------------start to join")
         # self._recv_output.join()
         self.e_time = time.time()
-
