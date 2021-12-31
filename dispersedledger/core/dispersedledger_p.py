@@ -105,6 +105,7 @@ class DL:
         self._per_round_recv = multiprocessing.Queue()
         self.bc_instances = defaultdict(lambda: defaultdict())
         self.share_bc = multiprocessing.Queue()
+        self.re_time = defaultdict(lambda: defaultdict(float))
 
         # self.bc_instances = multiprocessing.Manager().dict(multiprocessing.Manager().dict())
         self.re_instances = defaultdict(lambda: defaultdict(lambda: [None for i in range(self.N)]))
@@ -240,6 +241,8 @@ class DL:
                         continue
                     self.re_instances[sid][j][sender] = chunk
                     self.re_count[sid][j] += 1
+                    if self.re_count[sid][j] == 1:
+                        self.re_time[sid][j] = time.time()
                     # print(sid, leader, "instance append", chunk)
                     if self.re_count[sid][j] == self.N - (2 * self.f):
                         # if self.id == 1: print("get f+1 msg and start to decode", sid, j, "at", time.time())
@@ -263,6 +266,8 @@ class DL:
                                 'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
                                 % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
                                    self.txcnt / self.txdelay, self.l_c / block_count, et))
+                            self.logger.info(
+                                'Block of %s recover in %f second' % (str(sid) + str(j), et - self.re_time[sid][j]))
                             # if self.id == 3: print(
                             #    'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
                             #    % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
