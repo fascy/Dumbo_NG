@@ -442,12 +442,12 @@ class XDumbo_k_s:
                 self.vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
                                        self.sPK, self.sSK,  self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
-                                       vaba_recv.get, vaba_send, vaba_predicate, self.logger)
+                                       vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
             else:
                 self.vaba_thread = Greenlet(speedmvba, sid + 'VABA' + str(r), pid, N, f,
                                        self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                        vaba_input.get, vaba_output.put_nowait,
-                                       vaba_recv.get, vaba_send, vaba_predicate, )
+                                       vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
 
             self.vaba_thread.start()
 
