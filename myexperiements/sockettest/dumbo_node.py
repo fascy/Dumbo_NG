@@ -60,7 +60,6 @@ class DumboBFTNode (Dumbo):
         if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
             tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
             k = 0
-            print("add tx")
             for _ in range(self.K):
                 for r in range(self.B):
                     Dumbo.submit_tx(self, tx.replace(">", hex(r) + ">"))
