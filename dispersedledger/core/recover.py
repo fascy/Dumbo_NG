@@ -1,8 +1,6 @@
 from gevent import monkey;
 
-from dispersedledger.core.PCBC import provablecbc
 from honeybadgerbft.core.reliablebroadcast import merkleVerify, decode
-from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
 
@@ -17,14 +15,9 @@ import logging
 import os
 import traceback, time
 import gevent
-import numpy as np
 from collections import namedtuple, defaultdict
-from enum import Enum
-from gevent import Greenlet
 from gevent.queue import Queue
-from honeybadgerbft.core.honeybadger_block import honeybadger_block
-from honeybadgerbft.exceptions import UnknownTagError
-from dumbong.core.nwabc import nwatomicbroadcast
+
 
 
 # v : k nwabc instances
@@ -97,7 +90,6 @@ class RECOVER(Process):
 
     def run(self):
         """Run the DL protocol."""
-        # print("==============", self.id)
         if self.mute:
             muted_nodes = [each * 3 + 1 for each in range(int((self.N - 1) / 3))]
             if self.id in muted_nodes:
@@ -115,7 +107,6 @@ class RECOVER(Process):
                 try:
                     gevent.sleep(0)
                     (sender, (r, msg)) = self._recv()
-                    # if self.id == 3: print("************recover recv2:", sender, msg[0], msg[1][0])
                     if msg[0] == 'RETURN':
                         self.retrieval_recv.put((sender, msg))
                 except:
@@ -184,11 +175,7 @@ class RECOVER(Process):
                             self.l_c += (et - st)
                             self.txdelay = et - self.s_time
                             block_count = self.txcnt / self.B
-                            # print("block count", block_count)
-                            # self.logger.info(
-                            #     'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
-                            #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
-                            #        self.txcnt / self.txdelay, self.l_c / block_count, et))
+
                             self.logger.info(
                                 'Block of %s recover in %f second' % (str(sid) + str(j), et - self.re_time[sid][j]))
 
@@ -207,7 +194,4 @@ class RECOVER(Process):
         self._recover = gevent.spawn(_run_retrieval)
         self._recover.join()
         self._recv_thread.join()
-        # self._bc_mvba.join()
-        # print("-----------------------------start to join")
-        # self._recv_output.join()
         self.e_time = time.time()

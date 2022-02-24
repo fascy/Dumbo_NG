@@ -127,10 +127,6 @@ class Dumbo():
         """Appends the given transaction to the transaction buffer.
         :param tx: Transaction to append to the buffer.
         """
-        # print('backlog_tx', self.id, tx)
-        # if self.logger != None:
-        #    self.logger.info('Backlogged tx at Node %d:' % self.id + str(tx))
-        # Insert transactions to the end of TX buffer
         self.transaction_buffer.put(tx)
 
     def buffer_size(self):
@@ -205,15 +201,6 @@ class Dumbo():
 
             if self.logger != None:
                 self.logger.info('ACS Block Delay at Node %d: ' % self.id + str(end - start))
-
-            # Put undelivered but committed TXs back to the backlog buffer
-            # for _tx in tx_to_send:
-            #    if _tx not in new_tx:
-            #        self.transaction_buffer.put_nowait(_tx)
-
-            # print('buffer at %d:' % self.id, self.transaction_buffer)
-            # if self.logger != None:
-            #    self.logger.info('Backlog Buffer at Node %d:' % self.id + str(self.transaction_buffer))
 
             self.round += 1  # Increment the round
             if self.round >= self.K:

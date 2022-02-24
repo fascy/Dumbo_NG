@@ -63,7 +63,6 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     votes = defaultdict(lambda: dict())
 
     stop = 0
-    # print(pid, "start to run ", sid)
 
     s_time = 0
     e_time = 0
@@ -73,15 +72,11 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
         return hashlib.sha256(pickle.dumps(x)).digest()
 
     def broadcast(o):
-        # for i in range(N):
-        # send(i, o)
         send(-1, o)
 
     if pid == leader:
         # print()
         proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
-        # if logger is not None: logger.info("input:", proposals[1])
-        # print(pid,  "start as leader in ", sid, proposals[1])
         broadcast(('PROPOSAL', sid, s, proposals[1], time.time(), 0))
     stop = 0
 
@@ -107,35 +102,23 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 assert sid_r == sid
 
                 if r == 1:
-                    #digest1 = PK1.hash_message(str((sid, r, tx)))
-                    #send(leader, (sid, r, serialize(SK1.sign(digest1))))
                     Txs[r].put_nowait(tx)
                     sts[r].put_nowait(st)
-                    # print(pid,"put msg 0 in set")
-
-                    # Sigmas[r-1].put_nowait(sigma)
                 elif r > 1:
                     Txs[r].put_nowait(tx)
                     Sigmas[r-1].put_nowait(sigma)
                     sts[r].put_nowait(st)
 
             if msg[0] == 'VOTE' and pid == leader:
-                # print ("receive", sender, "'s vote of round ", r, msg[1])
                 (_, sid, r, sigsh) = msg
                 if r < s - 5:
                     continue
                 if len(voters[r]) >= N - f:
                     continue
 
-                # sigsh = deserialize1(raw_sigsh)
                 if sender not in voters[r]:
                     try:
-                        # digest1 = PK1.hash_message(str((sid, r, proposals[r])))
-                        # digest1 = hash(str((sid, r, proposals[r])))
-                        # print(sid, pid, "proposals:", proposals, r)
-
                         digest1 = hash(str(proposals[r]))+hash(str((sid, r)))
-                        # assert PK2.verify_share(sigsh, sender, digest1)
                         assert ecdsa_vrfy(PK2s[sender], digest1, sigsh)
                     except AssertionError:
                         if logger is not None: logger.info("Signature share failed in vote for %s!" % str(msg))
@@ -146,13 +129,11 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                         Sigma1 = tuple(votes[r].items())
                         try:
                             proposals[r+1] = json.dumps([input() for _ in range(BATCH_SIZE)])
-                            # print(sid, pid, "in", r+1, "  input:", proposals[0])
                         except  Exception as e:
-                            if logger is not None: logger.info("all msg in buffer has been sent!")
+                            # if logger is not None: logger.info("all msg in buffer has been sent!")
                             proposals[r + 1] = 0
                             broadcast(('PROPOSAL', sid, r + 1, proposals[r + 1], time.time(), Sigma1))
                         broadcast(('PROPOSAL', sid, r+1, proposals[r+1], time.time(), Sigma1))
-                        # print("broadcasted", ('PROPOSAL', sid, r + 1, proposals[r+1], serialize(Sigma1)))
 
             gevent.sleep(0)
 
@@ -195,10 +176,6 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                             del proposals[s-20]
                             del votes[s-20]
                             del voters[s-20]
-                    # if (s-1) % 10 == 0:
-                    # print("output", (sid, s-1))
-                    # if pro == 0:
-                    # if logger is not None: logger.info("node: %d sid: %s total: %d" % (pid, str(sid)+" "+str(s-1), Bsize*(s-1)))
                     gevent.sleep(0)
             try:
                 tx_s = Txs[s].get()
@@ -233,6 +210,3 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     tps = Bsize * (s - 1) / (e_time - s_time)
     # if logger is not None: logger.info(
     #     "node: %d sid: %s tps: %d running time: %f" % (pid, str(sid) + " " + str(s - 1), tps, (e_time - s_time)))
-
-
-    # outpt_thread.join()

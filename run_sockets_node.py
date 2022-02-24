@@ -2,7 +2,6 @@ import gevent
 from gevent import monkey;
 
 from myexperiements.sockettest.dl_bmr_sockets_node import DL2Node
-from myexperiements.sockettest.dl_sockets_node import DLNode
 from network.sockets_client import NetworkClients
 from network.sockets_server import NetworkServers
 
@@ -14,8 +13,7 @@ import traceback
 from typing import List, Callable
 from gevent import Greenlet
 
-from network.socket_server import NetworkServer
-from network.socket_client import NetworkClient
+
 from multiprocessing import Value as mpValue, Queue as mpQueue
 from ctypes import c_bool
 

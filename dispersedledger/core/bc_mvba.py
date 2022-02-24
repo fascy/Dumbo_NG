@@ -1,7 +1,6 @@
 from gevent import monkey;
 
 from dispersedledger.core.PCBC import provablecbc
-from honeybadgerbft.core.reliablebroadcast import merkleVerify, decode
 from speedmvba.core.smvba_e import speedmvba
 
 monkey.patch_all(thread=False)
@@ -9,7 +8,6 @@ monkey.patch_all(thread=False)
 import hashlib
 import multiprocessing
 import pickle
-from crypto.ecdsa.ecdsa import ecdsa_vrfy
 from multiprocessing import Process, Queue
 
 import json
@@ -23,9 +21,7 @@ from enum import Enum
 from gevent import Greenlet
 from gevent.queue import Queue
 from gevent.event import Event
-from honeybadgerbft.core.honeybadger_block import honeybadger_block
 from honeybadgerbft.exceptions import UnknownTagError
-from dumbong.core.nwabc import nwatomicbroadcast
 
 
 # v : k nwabc instances
@@ -104,14 +100,12 @@ class BM:
         self.bc_instances = defaultdict(lambda: defaultdict())
         self.share_bc = multiprocessing.Queue()
 
-        # self.bc_instances = multiprocessing.Manager().dict(multiprocessing.Manager().dict())
         self.output_list = [multiprocessing.Queue() for _ in range(N)]
         self.tobe_retrieval = multiprocessing.Queue()
         self.bmp = 0
         self._per_round_recv = {}
         self.debug = debug
 
-        # self.s_time = 0
         self.s_time = multiprocessing.Value('d', 0.0)
         self.e_time = 0
         self.tx_cnt = 0
@@ -144,8 +138,6 @@ class BM:
 
         def _recv_loop_bm():
             """Receive messages."""
-            # print("start recv loop...", os.getpid())
-            # self._send(1, (1, "test msg"))
             while True:
                 # gevent.sleep(0)
                 try:
@@ -156,9 +148,6 @@ class BM:
 
                     self._per_round_recv[r0].put_nowait((sender, msg))
 
-                    # if self.id == 3: print("acsr recv1:", sender, r0, msg[0], msg[2][0], msg[2][3][0])
-                    # if self.logger != None:
-                    #    self.logger.info(str((sender, r0, msg[0], msg[2][0])))
                 except:
                     continue
 
@@ -166,11 +155,9 @@ class BM:
             self._per_round_recv = {}  # Buffer of incoming messages
             self.bmp = os.getpid()
             if self.id == 0: print("bcmvba:", self.bmp)
-            # print("run_bc_mvba process id:", self.bmp)
 
             self.s_time = time.time()
             while True:
-                # print(r, "start!")
                 start = time.time()
 
                 if self.round not in self._per_round_recv:
@@ -180,7 +167,6 @@ class BM:
                 for _ in range(self.B):
                     tx_to_send.append(self.transaction_buffer.get_nowait())
 
-                # print(self.id, "append tx:", tx_to_send)
 
                 def _make_send(r):
                     def _send(j, o):
@@ -193,16 +179,12 @@ class BM:
 
                 mvbaout = self._run_BC_MVBA_round(self.round, tx_to_send, send_r, recv_r)
 
-                # if self.id == 3: print('Node %d Delivers ACS in Round %d' % (self.id, self.round))
 
                 end = time.time()
 
                 if self.logger != None:
                     self.logger.info(
                         'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
-                # print(
-                #     'ACS Delay Round %d at Node %d: %s ,%f' % (self.round, self.id, str(end - start), end))
-
                 self.round += 1
                 if self.round >= self.K:
                     break
@@ -215,9 +197,6 @@ class BM:
         self._bc_mvba = gevent.spawn(_run_bc_mvba)
         self._bc_mvba.join()
         self._recv_thread.join()
-        # self._bc_mvba.join()
-        # print("-----------------------------start to join")
-        # self._recv_output.join()
         self.e_time = time.time()
 
     def _run_BC_MVBA_round(self, r, tx_to_send, send, recv):
@@ -300,30 +279,16 @@ class BM:
                 (chunk, branch, root) = value
                 try:
                     g, v, st, s = self.bc_instances[sid + ':PCBC' + str(r)][j]
-                    # self.bc_instances[sid + ':PCBC' + str(r)][j] = g, v, st, sigs
-                    # values[i] = sid + ':PCBC' + str(r), i, v[2], sigs
+
                 except:
                     self.bc_instances[sid + ':PCBC' + str(r)][j] = 1, value, time.time(), sigs
-                    # self.bc_instances[sid + ':PCBC' + str(r)][j] = g, v, st, sigs
 
                 values[j] = sid + ':PCBC' + str(r), j, value[2], sigs
 
-                # values[i] = sid + ':PCBC' + str(r), i, v[2], sigs
-                # vacs_input.put(values)
-
-                # if self.id == 3: print(sum(x is not None for x in values))
 
                 if sum(x is not None for x in values) == self.N - self.f:
-                    # for x in self.bc_instances[sid + ':PCBC' + str(r)].keys():
-                    #    (_, vx, stx, sigsx) = self.bc_instances[sid + ':PCBC' + str(r)[x]
-                    #    (_, _, rootx) = vx
-                    #    values[i] = sid + ':PCBC' + str(r), i, rootx, sigsx
                     vacs_input.put_nowait(values)
                     wait_progress.set()
-                # self.share_bc.put((sid + ':PCBC' + str(r), j, value, st))
-                # if self.id == 3: print("output in ", sid + 'PCBC' + str(r) + str(j), "at ", time.time())
-                # print(self.id, "output in ", sid + 'PCBC' + str(r)+str(j))
-                # pcbc_outputs[j].put_nowait((value, proof))
 
             return gevent.spawn(wait_for_prbc_output)
 

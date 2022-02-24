@@ -1,35 +1,25 @@
 from gevent import monkey;
 
-from speedmvba.core.spbc_n import strongprovablebroadcast
+from speedmvba.core.spbc_ec import strongprovablebroadcast
 
 monkey.patch_all(thread=False)
 import hashlib
 import pickle
 
-import copy
-import time
 import traceback
-from datetime import datetime
+
 import gevent
-import numpy as np
 from collections import namedtuple
 from gevent import Greenlet
 from gevent.event import Event
 from enum import Enum
 from collections import defaultdict
 from gevent.queue import Queue
-from crypto.threshsig.boldyreva import TBLSPrivateKey, TBLSPublicKey
+
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
-from honeybadgerbft.core.commoncoin import shared_coin
-from dumbobft.core.baisedbinaryagreement import baisedbinaryagreement
-# from dumbobft.core.haltingtwovalueagreement import haltingtwovalueagreement
-# from mulebft.core.twovalueagreement import twovalueagreement
-from dumbobft.core.consistentbroadcast import consistentbroadcast
-from dumbobft.core.validators import cbc_validate
+
 from honeybadgerbft.exceptions import UnknownTagError
 
-
-# from pympler.classtracker import ClassTracker
 
 
 class MessageTag(Enum):
