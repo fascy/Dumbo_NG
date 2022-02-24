@@ -54,7 +54,7 @@ So this codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
    
    To run Dumbo-DL, replace line 12 of run_local_network_test.sh with:
    ```
-   python3 run_sockets_node.py --sid 'sidA' --id $i --N $1 --f $2 --B $3 --K $4 --S $5 --T 2 --P "dl" --D True --O True &
+   python3 run_sockets_node.py --sid 'sidA' --id $i --N $1 --f $2 --B $3 --K $4 --S 100 --T 2 --P "dl" --D True --O True &
    ```
    for 20 epochs with a batch size of 1000tx can be:
    ```
