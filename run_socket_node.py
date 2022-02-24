@@ -1,11 +1,6 @@
 from gevent import monkey;
+from myexperiements.sockettest.ng_k_s_node import NGSNode
 
-from myexperiements.sockettest.dl_node import DLNode
-from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
-from myexperiements.sockettest.x_d_node import XDNode
-from myexperiements.sockettest.x_k_node import XDKNode
-from myexperiements.sockettest.x_k_s_node import XDSNode
-from myexperiements.sockettest.x_k_s_nosig_node import XDSNNode
 
 monkey.patch_all(thread=False)
 
@@ -16,12 +11,6 @@ from typing import List, Callable
 from gevent import Greenlet
 from myexperiements.sockettest.dumbo_node import DumboBFTNode
 from myexperiements.sockettest.sdumbo_node import SDumboBFTNode
-from myexperiements.sockettest.mule_node import MuleBFTNode
-from myexperiements.sockettest.rbcmule_node import RbcMuleBFTNode
-from myexperiements.sockettest.hotstuff_node import HotstuffBFTNode
-from myexperiements.sockettest.nwabc_node import NwAbcNode
-from myexperiements.sockettest.nwabcs_node import NwAbcsNode
-from myexperiements.sockettest.xdumbo_node import XDumboNode
 from network.socket_server import NetworkServer
 from network.socket_client import NetworkClient
 from multiprocessing import Value as mpValue, Queue as mpQueue
@@ -29,39 +18,16 @@ from ctypes import c_bool
 
 
 def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bft_to_client: Callable, ready: mpValue,
-                         stop: mpValue, protocol="mule", mute=False, F=100, debug=False, omitfast=False):
+                         stop: mpValue, protocol="ng", mute=False, F=100, debug=False, omitfast=False):
     bft = None
     if protocol == 'dumbo':
         bft = DumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'sdumbo':
         bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client,  ready, stop, K, mute=mute, debug=debug)
-    elif protocol == "mule":
-        bft = MuleBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, omitfast=omitfast)
-    elif protocol == "rbcmule":
-        bft = RbcMuleBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, omitfast=omitfast)
-    elif protocol == 'hotstuff':
-        bft = HotstuffBFTNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'nwabc':
-        bft = NwAbcNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'abcs':
-        bft = NwAbcsNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'abcsk':
-        bft = NwAbcskNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'xdumbo':
-        bft = XDumboNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'xd':
-        bft = XDNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, 1, mute=mute)
-    elif protocol == 'xk':
-        bft = XDKNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'xs':
-        bft = XDSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'xs_nosig':
-        bft = XDSNNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-    elif protocol == 'dl':
-        bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
-
+    elif protocol == 'ng':
+        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
     else:
-        print("Only support dumbo or sdumbo or mule or hotstuff")
+        print("Only support dumbo or sdumbo or mule or ng")
     return bft
 
 
@@ -135,15 +101,12 @@ if __name__ == '__main__':
         assert all([node is not None for node in addresses])
         print("hosts.config is correctly read")
 
-        # bft_from_server, server_to_bft = mpPipe(duplex=True)
-        # client_from_bft, bft_to_client = mpPipe(duplex=True)
-
         client_bft_mpq = mpQueue()
         #client_from_bft = client_bft_mpq.get
         client_from_bft = lambda: client_bft_mpq.get(timeout=0.00001)
 
+        # bft_to_client = client_bft_mpq.put_nowait
         bft_to_client = client_bft_mpq.put_nowait
-
         server_bft_mpq = mpQueue()
         #bft_from_server = server_bft_mpq.get
         bft_from_server = lambda: server_bft_mpq.get(timeout=0.00001)

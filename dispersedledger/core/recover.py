@@ -24,7 +24,7 @@ from gevent import Greenlet
 from gevent.queue import Queue
 from honeybadgerbft.core.honeybadger_block import honeybadger_block
 from honeybadgerbft.exceptions import UnknownTagError
-from xdumbo.core.nwabc import nwatomicbroadcast
+from dumbong.core.nwabc import nwatomicbroadcast
 
 
 # v : k nwabc instances
@@ -185,17 +185,13 @@ class RECOVER(Process):
                             self.txdelay = et - self.s_time
                             block_count = self.txcnt / self.B
                             # print("block count", block_count)
-                            self.logger.info(
-                                'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
-                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
-                                   self.txcnt / self.txdelay, self.l_c / block_count, et))
+                            # self.logger.info(
+                            #     'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
+                            #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
+                            #        self.txcnt / self.txdelay, self.l_c / block_count, et))
                             self.logger.info(
                                 'Block of %s recover in %f second' % (str(sid) + str(j), et - self.re_time[sid][j]))
-                            # if self.id == 3: print(
-                            #     'Node %d Delivers ACS Block of %s with having %d TXs, %d in total,latency:%f, tps:%f, %f, %f'
-                            #     % (self.id, str(sid) + str(j), tx_cnt, self.txcnt, et - st,
-                            #        self.txcnt / self.txdelay, self.l_c / block_count, et))
-                            # if self.id ==3 : print("remain", self.retrieval_recv.qsize())
+
 
             # _collect_thread = gevent.spawn(_collect)
             _recover_threads = [None] * self.N

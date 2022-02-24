@@ -1,11 +1,7 @@
 import gevent
-from gevent import monkey, Greenlet;
+from gevent import monkey, Greenlet; monkey.patch_all(thread=False)
 
-from dispersedledger.core.bc_mvba import BM
-from dispersedledger.core.recover import RECOVER
-
-monkey.patch_all(thread=False)
-
+from dumbong.core.ng import Dumbo_NG
 
 from typing import List, Callable
 import os
@@ -46,24 +42,21 @@ def load_key(id, N):
     return sPK, sPK1, sPK2s, ePK, sSK, sSK1, sSK2, eSK
 
 
-class DL2Node (BM):
+class NGNode (Dumbo_NG):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
-                 bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
+                 bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         #self.recv_queue = recv_q
         #self.send_queue = send_q
-        self.bft_to_client1 = bft_to_client1
-        self.bft_from_server1 = bft_from_server1
-
-        self.bft_to_client2 = bft_to_client2
-        self.bft_from_server2 = bft_from_server2
+        self.bft_from_server = bft_from_server
+        self.bft_to_client = bft_to_client
         self.ready = ready
         self.stop = stop
         self.mode = mode
-        BM.__init__(self, sid, id, max(int(Bfast), 1), N, f,
-                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                       send1=None, send2=None, recv=None, K=K, mute=mute)
+        Dumbo_NG.__init__(self,sid, id, max(S, 10), max(int(Bfast), 1), N, f,
+                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
+                       send=None, recv=None, K=K, mute=mute)
 
         # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
@@ -72,13 +65,14 @@ class DL2Node (BM):
         tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
         if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
             k = 0
-            for r in range(max(self.B * self.K, 1)):
-                suffix = hex(self.id) + hex(r) + ">"
-                BM.submit_tx(self, tx[:-len(suffix)] + suffix)
-                # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
-                k += 1
-                if r % 50000 == 0:
-                    self.logger.info('node id %d just inserts 50000 TXs' % (self.id))
+            for _ in range(self.K + 1):
+                for r in range(max(self.B * self.SLOTS_NUM, 1)):
+                    suffix = hex(self.id) + hex(r) + ">"
+                    Dumbo_NG.submit_tx(self, tx[:-len(suffix)] + suffix)
+                    # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
+                    k += 1
+                    if r % 50000 == 0:
+                        self.logger.info('node id %d just inserts 50000 TXs' % (self.id))
         else:
             pass
             # TODO: submit transactions through tx_buffer
@@ -89,11 +83,8 @@ class DL2Node (BM):
         pid = os.getpid()
         self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, pid))
 
-        self._send1 = lambda j, o: self.bft_to_client1((j, o))
-        self._recv = lambda: self.bft_from_server1()
-        self._send2 = lambda j, o: self.bft_to_client2((j, o))
-        recv2 = lambda: self.bft_from_server2()
-
+        self._send = lambda j, o: self.bft_to_client((j, o))
+        self._recv = lambda: self.bft_from_server()
 
         self.prepare_bootstrap()
 
@@ -101,13 +92,6 @@ class DL2Node (BM):
             time.sleep(1)
             #gevent.sleep(1)
 
-        recover = RECOVER(self.sid, self.id, self.B, self.N, self.f,
-                         self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                         recv=recv2, K=self.K, mute=self.mute,logger=self.logger)
-
-        recover.start()
         self.run_bft()
-
-        recover.join()
 
         self.stop.value = True

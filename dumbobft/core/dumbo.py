@@ -131,7 +131,10 @@ class Dumbo():
         # if self.logger != None:
         #    self.logger.info('Backlogged tx at Node %d:' % self.id + str(tx))
         # Insert transactions to the end of TX buffer
-        self.transaction_buffer.put_nowait(tx)
+        self.transaction_buffer.put(tx)
+
+    def buffer_size(self):
+        return self.transaction_buffer.qsize()
 
     def run_bft(self):
         """Run the Dumbo protocol."""

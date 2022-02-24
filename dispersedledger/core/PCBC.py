@@ -78,12 +78,7 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
             return 0, 0, roothash
 
     if pid == leader:
-        # The leader sends the input to each participant
-        # print("block to wait for CBC input")
-
         m = input()  # block until an input is received
-
-        # print("CBC input received: ", m)
 
         assert isinstance(m, (str, bytes, list, tuple))
         stripes = encode(K, N, m)
@@ -159,7 +154,6 @@ def provablecbc(sid, pid, N, f, PK2s, SK2, leader, input, chunk, receive, send, 
                 continue
             # print("CBC finished for leader", leader)
             output = decode_output(r)
-            if logger != None:
-                logger.info("VID output in %f" % (time.time()-st))
-            # if pid == 3: print("get output of", sid, "at ", time.time())
+            # if logger != None:
+            #     logger.info("VID output in %f" % (time.time()-st))
             return output, sigmas

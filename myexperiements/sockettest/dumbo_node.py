@@ -1,3 +1,4 @@
+import gevent
 from gevent import monkey; monkey.patch_all(thread=False)
 
 import random
@@ -59,6 +60,7 @@ class DumboBFTNode (Dumbo):
         if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
             tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
             k = 0
+            print("add tx")
             for _ in range(self.K):
                 for r in range(self.B):
                     Dumbo.submit_tx(self, tx.replace(">", hex(r) + ">"))
@@ -70,24 +72,33 @@ class DumboBFTNode (Dumbo):
             # TODO: submit transactions through tx_buffer
         self.logger.info('node id %d completed the loading of dummy TXs' % (self.id))
 
+    def add_tx(self):
+        while True:
+            tx = Dumbo.buffer_size(self)
+            if tx < 20 * self.B:
+                self.prepare_bootstrap()
+            gevent.sleep(0.5)
+
     def run(self):
 
         pid = os.getpid()
         self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, pid))
 
-
+        # add_thread = gevent.spawn(self.add_tx)
         self.prepare_bootstrap()
-
+        time.sleep(1)
         while not self.ready.value:
             time.sleep(1)
             #gevent.sleep(1)
 
         self.run_bft()
+        # add_thread.join()
         self.stop.value = True
 
 def main(sid, i, B, N, f, addresses, K):
+
     badger = DumboBFTNode(sid, i, B, N, f, addresses, K)
-    badger.run_bft()
+    # badger.run_bft()
 
 
 if __name__ == '__main__':

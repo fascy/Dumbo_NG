@@ -1,11 +1,9 @@
 import gevent
 from gevent import monkey, Greenlet;
 
-from dispersedledger.core.bc_mvba import BM
-from dispersedledger.core.recover import RECOVER
+from dumbong.core.ng_k_s import Dumbo_NG_k_s
 
 monkey.patch_all(thread=False)
-
 
 from typing import List, Callable
 import os
@@ -15,8 +13,8 @@ from myexperiements.sockettest.make_random_tx import tx_generator
 from coincurve import PrivateKey, PublicKey
 from multiprocessing import Value as mpValue, Queue as mpQueue, Process
 
-def load_key(id, N):
 
+def load_key(id, N):
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sPK.key', 'rb') as fp:
         sPK = pickle.load(fp)
 
@@ -46,68 +44,68 @@ def load_key(id, N):
     return sPK, sPK1, sPK2s, ePK, sSK, sSK1, sSK2, eSK
 
 
-class DL2Node (BM):
+class NGSNode(Dumbo_NG_k_s):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
-                 bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
+                 bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug',
+                 mute=False, tx_buffer=None):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
-        #self.recv_queue = recv_q
-        #self.send_queue = send_q
-        self.bft_to_client1 = bft_to_client1
-        self.bft_from_server1 = bft_from_server1
-
-        self.bft_to_client2 = bft_to_client2
-        self.bft_from_server2 = bft_from_server2
+        # self.recv_queue = recv_q
+        # self.send_queue = send_q
+        self.bft_from_server = bft_from_server
+        self.bft_to_client = bft_to_client
         self.ready = ready
         self.stop = stop
         self.mode = mode
-        BM.__init__(self, sid, id, max(int(Bfast), 1), N, f,
-                       self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                       send1=None, send2=None, recv=None, K=K, mute=mute)
+        self.flag = 0
+        Dumbo_NG_k_s.__init__(self, sid, id, max(S, 10), max(int(Bfast), 1), N, f,
+                            self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
+                            send=None, recv=None, K=K, mute=mute)
 
         # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
     def prepare_bootstrap(self):
-        self.logger.info('node id %d is inserting dummy payload TXs' % (self.id))
+        # self.logger.info('node id %d is inserting dummy payload TXs' % (self.id))
         tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
-        if self.mode == 'test' or 'debug': #K * max(Bfast * S, Bacs)
+        if self.mode == 'test' or 'debug':
             k = 0
-            for r in range(max(self.B * self.K, 1)):
-                suffix = hex(self.id) + hex(r) + ">"
-                BM.submit_tx(self, tx[:-len(suffix)] + suffix)
-                # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
-                k += 1
-                if r % 50000 == 0:
-                    self.logger.info('node id %d just inserts 50000 TXs' % (self.id))
+            for k in range(self.K):
+                for r in range(max(self.B * self.SLOTS_NUM, 1)):
+                    suffix = hex(self.id) + hex(r) + ">"
+                    Dumbo_NG_k_s.submit_tx(self, tx[:-len(suffix)] + suffix, k)
+                    # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
+                    if r % 50000 == 0:
+                        self.logger.info('node id %d just inserts 50000 TXs into instance %d' % (self.id, k))
+            self.flag = 1
         else:
             pass
             # TODO: submit transactions through tx_buffer
         self.logger.info('node id %d completed the loading of dummy TXs' % (self.id))
+
+    def add_tx(self):
+        while True:
+            tx = Dumbo_NG_k_s.buffer_size(self, 0)
+            if tx < 100 * self.B:
+                # print("====================================================", tx)
+                self.prepare_bootstrap()
+            gevent.sleep(0.5)
 
     def run(self):
 
         pid = os.getpid()
         self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, pid))
 
-        self._send1 = lambda j, o: self.bft_to_client1((j, o))
-        self._recv = lambda: self.bft_from_server1()
-        self._send2 = lambda j, o: self.bft_to_client2((j, o))
-        recv2 = lambda: self.bft_from_server2()
+        self._send = lambda j, o: self.bft_to_client((j, o))
+        self._recv = lambda: self.bft_from_server()
 
-
+        # add_thread = gevent.spawn(self.add_tx)
         self.prepare_bootstrap()
 
         while not self.ready.value:
             time.sleep(1)
-            #gevent.sleep(1)
+            # gevent.sleep(1)
 
-        recover = RECOVER(self.sid, self.id, self.B, self.N, self.f,
-                         self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2,
-                         recv=recv2, K=self.K, mute=self.mute,logger=self.logger)
-
-        recover.start()
         self.run_bft()
-
-        recover.join()
+        # add_thread.join()
 
         self.stop.value = True

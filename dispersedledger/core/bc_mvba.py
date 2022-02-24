@@ -25,7 +25,7 @@ from gevent.queue import Queue
 from gevent.event import Event
 from honeybadgerbft.core.honeybadger_block import honeybadger_block
 from honeybadgerbft.exceptions import UnknownTagError
-from xdumbo.core.nwabc import nwatomicbroadcast
+from dumbong.core.nwabc import nwatomicbroadcast
 
 
 # v : k nwabc instances

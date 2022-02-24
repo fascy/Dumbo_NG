@@ -3,10 +3,6 @@ from gevent import monkey;
 
 from myexperiements.sockettest.dl_bmr_sockets_node import DL2Node
 from myexperiements.sockettest.dl_sockets_node import DLNode
-from myexperiements.sockettest.nwabcs_k_node import NwAbcskNode
-from myexperiements.sockettest.x_d_node import XDNode
-from myexperiements.sockettest.x_k_node import XDKNode
-from myexperiements.sockettest.x_k_s_node import XDSNode
 from network.sockets_client import NetworkClients
 from network.sockets_server import NetworkServers
 
@@ -28,8 +24,6 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1: Callable, b
                          stop: mpValue, protocol="mule", mute=False, F=100, debug=False, omitfast=False):
     bft = None
     if protocol == 'dl':
-        bft = DLNode(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
-    if protocol == 'dl2':
         bft = DL2Node(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
 
     else:
@@ -103,7 +97,7 @@ if __name__ == '__main__':
                 pub_ip = params[2]
                 port1 = int(params[3])
                 port2 = int(params[4])
-                print(pid, priv_ip, port1, port2)
+                # print(pid, priv_ip, port1, port2)
                 if pid not in range(N):
                     continue
                 if pid == i:
@@ -114,9 +108,6 @@ if __name__ == '__main__':
         assert all([node is not None for node in addresses1])
         assert all([node is not None for node in addresses2])
         print("hosts.config is correctly read")
-
-        # bft_from_server, server_to_bft = mpPipe(duplex=True)
-        # client_from_bft, bft_to_client = mpPipe(duplex=True)
 
         client_bft_mpq1 = mpQueue()
         client_from_bft1 = lambda: client_bft_mpq1.get(timeout=0.00001)
@@ -148,8 +139,6 @@ if __name__ == '__main__':
                                     server_to_bft1, server_to_bft2, server_ready1, server_ready2, stop, stop, 1, 2)
         net_client1 = NetworkClients(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
                                      client_from_bft1, client_from_bft2, client_ready1, client_ready2, stop, stop, BYTE, 0, 1)
-        # net_server2 = NetworkServer(my_address2[1], my_address2[0], i, addresses2, server_to_bft2, server_ready2, stop, 2)
-        # net_client2 = NetworkClient(my_address2[1], my_address2[0], i, addresses2, client_from_bft2, client_ready2, stop, 0)
         bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
                                    bft_from_server2, bft_to_client2, net_ready, stop, P, M, F, D, O)
 
