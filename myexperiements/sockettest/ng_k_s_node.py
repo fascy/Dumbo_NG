@@ -70,6 +70,7 @@ class NGSNode(Dumbo_NG_k_s):
         if self.mode == 'test' or 'debug':
             k = 0
             for k in range(self.K):
+                print(self.SLOTS_NUM)
                 for r in range(max(self.B * self.SLOTS_NUM, 1)):
                     suffix = hex(self.id) + hex(r) + ">"
                     Dumbo_NG_k_s.submit_tx(self, tx[:-len(suffix)] + suffix, k)

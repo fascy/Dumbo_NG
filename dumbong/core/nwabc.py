@@ -231,8 +231,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     e_time = time.time()
 
     tps = Bsize * (s - 1) / (e_time - s_time)
-    if logger is not None: logger.info(
-        "node: %d sid: %s tps: %d running time: %f" % (pid, str(sid) + " " + str(s - 1), tps, (e_time - s_time)))
+    # if logger is not None: logger.info(
+    #     "node: %d sid: %s tps: %d running time: %f" % (pid, str(sid) + " " + str(s - 1), tps, (e_time - s_time)))
 
 
     # outpt_thread.join()
