@@ -1,3 +1,5 @@
+import gc
+
 from gevent import monkey;
 from memory_profiler import profile
 from dumbobft.core.validatedagreement import validatedagreement
@@ -192,10 +194,15 @@ class Dumbo_NG_k_s:
             self._recv_thread = Greenlet(handelmsg)
             self._recv_thread.start()
 
+            def _make_send(r):
+                def _send(j, o):
+                    self._send(j, (r, o))
+                return _send
+
             while True:
                 # print(r, "start!")
                 start = time.time()
-                count = [0 for _ in range(self.N * self.K)]
+                count = [0 for _ in range(self.N)]
                 while True:
                     for i in range(self.N):
                         for j in range(self.K):
@@ -209,7 +216,7 @@ class Dumbo_NG_k_s:
 
                             if self.local_view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
                                 count[i * self.K + j] = 1
-                    if count.count(1) >= (self.N - self.f) * self.K:
+                    if count.count(1) >= (self.N - self.f):
                         break
                     time.sleep(0.001)
                 # self.abc_count = 0
@@ -222,12 +229,6 @@ class Dumbo_NG_k_s:
 
                 if self.round not in self._per_round_recv:
                     self._per_round_recv[self.round] = gevent.queue.Queue()
-
-                def _make_send(r):
-                    def _send(j, o):
-                        self._send(j, (r, o))
-
-                    return _send
 
                 send_r = _make_send(self.round)
                 recv_r = self._per_round_recv[self.round].get
@@ -260,6 +261,7 @@ class Dumbo_NG_k_s:
                 if self.round > 2:
                     del self._per_round_recv[self.round - 2]
                 self.round += 1
+
 
         self.s_time = time.time()
         if self.logger != None:
@@ -416,6 +418,7 @@ class Dumbo_NG_k_s:
         out = vaba_output.get()
 
         (view, s, txhash) = out
+
         self.help_count = 0
         self.st_sum = 0
         for i in range(N):
@@ -447,7 +450,6 @@ class Dumbo_NG_k_s:
                         pass
 
         self.local_view_s = view
-
         # self.vaba_thread.kill()
         # bc_recv_loop_thread.kill()
 
