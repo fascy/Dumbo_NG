@@ -5,13 +5,9 @@ from collections import defaultdict
 import time
 
 import gevent
-from gevent.event import Event
 
-from crypto.threshsig.boldyreva import serialize, deserialize1
 from crypto.ecdsa.ecdsa import ecdsa_sign, ecdsa_vrfy, PublicKey
 from gevent.queue import Queue
-import os
-
 
 stop = 0
 
@@ -53,7 +49,6 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     assert 0 <= pid < N
     SignThreshold = 2 * f + 1  # Wait for this many READY to output
     s = 1
-    Initsnum = 100
     BATCH_SIZE= Bsize
     proposals = defaultdict()
     Txs = defaultdict(lambda: Queue())
@@ -183,6 +178,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
             except  Exception as e:
                 if logger is not None: logger.info("Failed to get tx!")
                 continue
+
             try:
                 assert tx_s != 0
             except AssertionError:
@@ -196,10 +192,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
             s = s + 1
             last_tx = tx_s
 
-
         gevent.sleep(0)
-
-
 
     recv_thread = gevent.spawn(handel_messages)
     gevent.sleep(0)

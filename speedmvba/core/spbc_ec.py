@@ -68,11 +68,8 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
 
     if pid == leader:
         # The leader sends the input to each participant
-        # print("block to wait for SPBC input")
 
         m = input()  # block until an input is received
-
-        # print("SPBC input received: ", m[1], m[2])
 
         assert isinstance(m, (str, bytes, list, tuple))
         digest1FromLeader = hash(str((sid, m, "ECHO")))

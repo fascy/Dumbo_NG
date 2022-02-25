@@ -36,7 +36,7 @@ def set_consensus_log(id: int):
         os.mkdir(os.getcwd() + '/log')
     full_path = os.path.realpath(os.getcwd()) + '/log/' + "consensus-node-" + str(id) + ".log"
     file_handler = logging.FileHandler(full_path)
-    file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
+    file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     return logger
 
@@ -92,8 +92,6 @@ class Dumbo_NG_k_s:
         self.round = 0
         self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
         self._per_round_recv = {}
-        # self._per_round_recv = multiprocessing.Queue()
-        # self.output_list = defaultdict(lambda: Queue())
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
         # self.starttime_list = [multiprocessing.Queue() for _ in range(N*self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
@@ -214,10 +212,10 @@ class Dumbo_NG_k_s:
                     if count.count(1) >= (self.N - self.f) * self.K:
                         break
                     time.sleep(0.001)
-                self.abc_count = 0
-                for i in range(self.N * self.K):
-                    self.abc_count += self.local_view[i]
-                self.abc_count = (self.abc_count * self.B)
+                # self.abc_count = 0
+                # for i in range(self.N * self.K):
+                #     self.abc_count += self.local_view[i]
+                # self.abc_count = (self.abc_count * self.B)
 
                 vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N * self.K)],
                               [self.txs[j][self.local_view[j]] for j in range(self.N * self.K)])
@@ -323,7 +321,6 @@ class Dumbo_NG_k_s:
                          self.transaction_buffer[j].get_nowait, self.output_list[i * self.K + j].put_nowait, recv, send,
                          self.logger, 1)
         self.threads.append(t)
-
     def _run_VABA_round(self, r, tx_to_send, send, recv):
         """Run one VABA round.
         :param int r: round id
@@ -381,7 +378,7 @@ class Dumbo_NG_k_s:
                         elif view[i * self.K + j] in self.hashtable[i * self.K + j].keys():
                             try:
                                 assert self.hashtable[i * self.K + j][view[i * self.K + j]] == hashlist[i * self.K + j]
-                                del self.hashtable[i * self.K + j][view[i * self.K + j]]
+                                # del self.hashtable[i * self.K + j][view[i * self.K + j]]
                             except:
                                 print("error 2")
                                 return False
@@ -399,6 +396,7 @@ class Dumbo_NG_k_s:
                                 print("ecdsa signature failed!")
                                 return False
                             self.hashtable[i * self.K + j][view[i * self.K + j]] = hashlist[i * self.K + j]
+                            # print(i * self.K + j,":",len(self.hashtable[i * self.K + j]))
                 return True
 
             if self.debug:
@@ -443,13 +441,13 @@ class Dumbo_NG_k_s:
                         del self.txs[i * self.K + j][t]
                         del self.sigs[i * self.K + j][t]
                         del self.sts[i * self.K + j][t]
+                        del self.hashtable[i * self.K + j][t]
+
                     except:
                         pass
 
-        # print(self.tx_cnt / self.B, self.help_count)
         self.local_view_s = view
 
         # self.vaba_thread.kill()
         # bc_recv_loop_thread.kill()
 
-        return []

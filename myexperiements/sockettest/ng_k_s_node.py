@@ -83,13 +83,16 @@ class NGSNode(Dumbo_NG_k_s):
             # TODO: submit transactions through tx_buffer
         self.logger.info('node id %d completed the loading of dummy TXs' % (self.id))
 
-    def add_tx(self):
+    def add_tx(self, k):
+        itr = 0
         while True:
-            tx = Dumbo_NG_k_s.buffer_size(self, 0)
-            if tx < 100 * self.B:
-                # print("====================================================", tx)
-                self.prepare_bootstrap()
-            gevent.sleep(0.5)
+            if Dumbo_NG_k_s.buffer_size(self, k) < 100 * self.B:
+                tx = tx_generator(250)
+                for r in range(max(self.B * 100, 1)):
+                    suffix = hex(self.id) + hex(k) + hex(r) + ">"
+                    Dumbo_NG_k_s.submit_tx(self, tx[:-len(suffix)] + suffix, k)
+            itr += 1
+            gevent.sleep(2)
 
     def run(self):
 
@@ -99,14 +102,15 @@ class NGSNode(Dumbo_NG_k_s):
         self._send = lambda j, o: self.bft_to_client((j, o))
         self._recv = lambda: self.bft_from_server()
 
-        # add_thread = gevent.spawn(self.add_tx)
         self.prepare_bootstrap()
+        print("initial tx loaded")
+        add_threads = [gevent.spawn(self.add_tx, k) for k in range(self.K)]
 
         while not self.ready.value:
             time.sleep(1)
             # gevent.sleep(1)
 
         self.run_bft()
-        # add_thread.join()
+        gevent.joinall(add_threads)
 
         self.stop.value = True
