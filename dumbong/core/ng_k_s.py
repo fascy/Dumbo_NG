@@ -202,8 +202,10 @@ class Dumbo_NG_k_s:
 
             wait_input_signal = Event()
             wait_input_signal.clear()
+            vaba_input = None
 
             def get_list():
+                nonlocal vaba_input
                 count = [0 for _ in range(self.N)]
                 while True:
                     for i in range(self.N):
@@ -221,32 +223,23 @@ class Dumbo_NG_k_s:
                                         del self.txs[i * self.K + j][del_p]
                                         del self.sigs[i * self.K + j][del_p]
                                         del self.sts[i * self.K + j][del_p]
-                                    except:
-                                        pass
-                                    try:
                                         del self.hashtable[i * self.K + j][del_p]
                                     except:
                                         pass
-
                             if self.local_view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
                                 count[i] = 1
                     if count.count(1) >= (self.N - self.f) and wait_input_signal.isSet() == False:
-                        wait_input_signal.set()
                         count = [0 for _ in range(self.N)]
-                    gevent.sleep(0)
+                        vaba_input = (
+                        self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N * self.K)],
+                        [self.txs[j][self.local_view[j]] for j in range(self.N * self.K)])
+                        wait_input_signal.set()
+                    gevent.sleep(0.1)
+
+            gevent.spawn(get_list)
 
             while True:
-                # print(r, "start!")
                 start = time.time()
-
-                gevent.spawn(get_list)
-                # self.abc_count = 0
-                # for i in range(self.N * self.K):
-                #     self.abc_count += self.local_view[i]
-                # self.abc_count = (self.abc_count * self.B)
-                wait_input_signal.wait()
-                vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N * self.K)],
-                              [self.txs[j][self.local_view[j]] for j in range(self.N * self.K)])
 
                 if self.round not in self._per_round_recv:
                     self._per_round_recv[self.round] = gevent.queue.Queue()
@@ -254,8 +247,12 @@ class Dumbo_NG_k_s:
                 send_r = _make_send(self.round)
                 recv_r = self._per_round_recv[self.round].get
 
+                wait_input_signal.wait()
+                assert vaba_input is not None
                 self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
+                vaba_input = None
                 wait_input_signal.clear()
+
                 if self.round > self.countpoint:
                     self.txcnt += self.tx_cnt
 
@@ -263,7 +260,6 @@ class Dumbo_NG_k_s:
                 if self.st_sum == 0 or ((self.tx_cnt / self.B) - self.help_count) == 0:
                     self.latency = (end - start) * 1.5 / (self.round - self.countpoint + 1)
                 else:
-                    # print(((self.tx_cnt/self.B)-self.help_count))
                     self.latency = (((self.tx_cnt / self.B) - self.help_count) * end - self.st_sum) / (
                             (self.tx_cnt / self.B) - self.help_count)
 
@@ -402,7 +398,6 @@ class Dumbo_NG_k_s:
                         elif view[i * self.K + j] in self.hashtable[i * self.K + j].keys():
                             try:
                                 assert self.hashtable[i * self.K + j][view[i * self.K + j]] == hashlist[i * self.K + j]
-                                # del self.hashtable[i * self.K + j][view[i * self.K + j]]
                             except:
                                 print("error 2")
                                 return False
@@ -412,7 +407,6 @@ class Dumbo_NG_k_s:
                             try:
                                 digest2 = hashlist[i * self.K + j] + hash(str((sid_r, view[i * self.K + j])))
                                 for item in siglist[i * self.K + j]:
-                                    # print(Sigma_p)
                                     (sender, sig_p) = item
                                     assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
                             except AssertionError:
@@ -420,7 +414,6 @@ class Dumbo_NG_k_s:
                                 print("ecdsa signature failed!")
                                 return False
                             self.hashtable[i * self.K + j][view[i * self.K + j]] = hashlist[i * self.K + j]
-                            # print(i * self.K + j,":",len(self.hashtable[i * self.K + j]))
                 return True
 
             if self.debug:
@@ -440,7 +433,6 @@ class Dumbo_NG_k_s:
         out = vaba_output.get()
 
         (view, s, txhash) = out
-        print(view)
         self.help_count = 0
         self.st_sum = 0
         for i in range(N):
