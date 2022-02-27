@@ -78,7 +78,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
     s_time = time.time()
 
     def handel_messages():
-        print("start to handel msg")
+        # print("start to handel msg")
         while True:
             sender, msg = receive(timeout=1000)
             # print(msg[0])
