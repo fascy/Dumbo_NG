@@ -1,7 +1,6 @@
 from gevent import monkey;
 
 from speedmvba.core.spbc_ec import strongprovablebroadcast
-
 monkey.patch_all(thread=False)
 import hashlib
 import pickle
@@ -56,7 +55,6 @@ def recv_loop(recv_func, recv_queues):
 
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
-
 
 def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, predicate=lambda x: True, logger=None):
     """Multi-valued Byzantine consensus. It takes an input ``vi`` and will
