@@ -228,7 +228,7 @@ class Dumbo_NG_k_s:
                                         pass
 
                             if self.local_view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
-                                count[i * self.K + j] = 1
+                                count[i] = 1
                     if count.count(1) >= (self.N - self.f):
                         break
                     time.sleep(0.001)
