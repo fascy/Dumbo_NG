@@ -165,7 +165,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 if halt_tag == 'halt' and hasOutputed == False:
                     hash_f = hash(str((sid + 'SPBC' + str(halt_msg[0]), halt_msg[2], "FINAL")))
                     try:
-                        # print("-----------------", halt_msg)
                         for (k, sig_k) in halt_msg[3]:
                             assert ecdsa_vrfy(PK2s[k], hash_f,
                                               sig_k)
@@ -175,10 +174,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         continue
 
                     broadcast(('MVBA_HALT', r, r, ("halt", halt_msg)))
-                    # try:
-                    # print(pid, sid, "halt here 1")
-                    # try:
-                    # print(pid, halt_msg[2][0])
                     h = 1
                     decide(halt_msg[2][0])
                     hasOutputed = True
@@ -252,10 +247,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             v = input()
             my_msg = v
 
-            # if logger != None:
-            #    logger.info("MVBA %s get input at %s" % (sid, datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]))
-            # print("node %d gets VABA input %s" % (pid, v[0]))
-
             my_spbc_input.put_nowait((v, "null", 0, "first"))
             # print(v[0])
 
@@ -280,7 +271,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # Receive output from CBC broadcast for input values
             try:
                 msg, sigmas2 = spbc_threads[leader].get()
-                # print("spbc finished, and the msg is", msg[0])
+                # print(sid, pid, "spbc finished, and the msg is")
                 if predicate(msg[0]):
                     try:
                         if spbc_outputs[leader].empty() is not True:
@@ -288,6 +279,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         spbc_outputs[leader].put_nowait((msg, sigmas2))
                         is_spbc_delivered[leader] = 1
                         if sum(is_spbc_delivered) >= N - f:
+                            # print("n-f spbc is delivered", pid, sid)
                             wait_spbc_signal.set()
                     except:
                         pass

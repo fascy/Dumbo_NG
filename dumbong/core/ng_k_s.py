@@ -3,7 +3,6 @@ import gc
 from gevent import monkey;
 from gevent.event import Event
 
-from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
 monkey.patch_all(thread=False)
@@ -13,7 +12,7 @@ import multiprocessing
 import pickle
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
 from multiprocessing import Process, Queue
-
+import copy
 import logging
 import os
 import traceback, time
@@ -26,9 +25,6 @@ from gevent.queue import Queue
 from honeybadgerbft.exceptions import UnknownTagError
 from dumbong.core.nwabc import nwatomicbroadcast
 
-
-# k nwabc instances
-# using smvba
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -96,12 +92,9 @@ class Dumbo_NG_k_s:
         self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
         self._per_round_recv = {}
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
-        # self.starttime_list = [multiprocessing.Queue() for _ in range(N*self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.mvba_recv = multiprocessing.Queue()
-
         self.debug = debug
-
         self.s_time = 0
         self.e_time = 0
         self.tx_cnt = 0
@@ -110,7 +103,6 @@ class Dumbo_NG_k_s:
         self.latency = 0
         self.mute = mute
         self.threads = []
-
         self.local_view = [0] * (N * self.K)
         self.local_view_s = [0] * (N * self.K)
         self.txs = defaultdict(lambda: defaultdict())
@@ -126,18 +118,24 @@ class Dumbo_NG_k_s:
         self.abc_count = 0
         self.vaba_thread = None
 
-    def submit_tx(self, tx, j):
+    def submit_tx(self, tx, k):
         """Appends the given transaction to the transaction buffer.
 
         :param tx: Transaction to append to the buffer.
+        :param k: instance to append
         """
-        self.transaction_buffer[j].put_nowait(tx)
+        self.transaction_buffer[k].put_nowait(tx)
 
     def buffer_size(self, k):
+        """Return the size of the transaction buffer.
+
+        :param k: instance to append
+        """
         return self.transaction_buffer[k].qsize()
 
     def run_bft(self):
-        """Run the XDumbo protocol."""
+        """Run the Dumbo-NG protocol."""
+
         self.s_time = time.time()
         if self.mute:
             muted_nodes = [each * 3 + 1 for each in range(int((self.N - 1) / 3))]
@@ -162,23 +160,21 @@ class Dumbo_NG_k_s:
                 # gevent.sleep(0)
                 try:
                     (sender, (r, msg)) = self._recv()
-
-                    # self.logger.info('recv1' + str((sender, o)))
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
                         self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
                     else:
                         self.mvba_recv.put((r, (sender, msg)))
-
                 except:
                     continue
 
         def _get_output():
+            """Get output from broadcast and run MVBA."""
+
             self._per_round_recv = {}  # Buffer of incoming messages
             self.op = os.getpid()
 
-            # print("output process id:", self.op)
-
             def handelmsg():
+                """Handel MVBA message for each round"""
                 if os.getpid() != self.op:
                     return
                 while True:
@@ -205,6 +201,7 @@ class Dumbo_NG_k_s:
             vaba_input = None
 
             def get_list():
+                """Get output from broadcast"""
                 nonlocal vaba_input
                 count = [0 for _ in range(self.N)]
                 while True:
@@ -213,29 +210,32 @@ class Dumbo_NG_k_s:
                             while self.output_list[i * self.K + j].qsize() > 0:
                                 out = self.output_list[i * self.K + j].get()
                                 (_, s, tx, sig, st) = out
-                                if self.local_view[i * self.K + j] < s:
+                                if s > self.local_view[i * self.K + j]:
                                     self.local_view[i * self.K + j] = s
+                                # always store the transactions and QCs of the latest 200 slot
+                                # and delete the old stuff from memory
                                 self.txs[i * self.K + j][s] = tx
                                 self.sigs[i * self.K + j][s] = sig
                                 self.sts[i * self.K + j][s] = st
-                                if self.round > 200:
+                                if self.round > 200:    # delete the transactions
                                     del_p = max(0, self.local_view[i * self.K + j] - 200)
                                     try:
-                                        del self.txs[i * self.K + j][del_p]
-                                        del self.sigs[i * self.K + j][del_p]
-                                        del self.sts[i * self.K + j][del_p]
-                                        del self.hashtable[i * self.K + j][del_p]
+                                        for p in self.txs[i * self.K + j].keys() and p < del_p:
+                                            del self.txs[i * self.K + j][p]
+                                            del self.sigs[i * self.K + j][p]
+                                            del self.sts[i * self.K + j][p]
                                     except:
                                         pass
-                            if self.local_view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
+                            if self.local_view[i * self.K + j] - self.local_view_s[
+                                i * self.K + j] > 0 and wait_input_signal.isSet() == False:
                                 count[i] = 1
                     if count.count(1) >= (self.N - self.f) and wait_input_signal.isSet() == False:
                         count = [0 for _ in range(self.N)]
-                        vaba_input = (
-                        self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N * self.K)],
-                        [self.txs[j][self.local_view[j]] for j in range(self.N * self.K)])
+                        lview = copy.copy(self.local_view)
+                        vaba_input = (lview, [copy.copy(self.sigs[j][lview[j]]) for j in range(self.N * self.K)],
+                                      [copy.copy(self.txs[j][lview[j]]) for j in range(self.N * self.K)])
                         wait_input_signal.set()
-                    gevent.sleep(0.1)
+                    gevent.sleep(0)
 
             gevent.spawn(get_list)
 
@@ -265,50 +265,46 @@ class Dumbo_NG_k_s:
                 if self.round > self.countpoint:
                     self.txdelay += (end - start)
 
-                if self.logger is not None and self.round > self.countpoint:
+                if self.logger != None and self.round > self.countpoint:
                     self.logger.info(
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
                         (self.id, end - self.s_time, self.txcnt,
                          self.latency, self.txcnt / self.txdelay))
-                # if self.round > self.countpoint:
-                #     print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
-                #           (self.id, end - self.s_time, self.txcnt,
-                #            self.latency, self.txcnt / self.txdelay))
 
                 if self.round > 2:
                     del self._per_round_recv[self.round - 2]
+
                 self.round += 1
 
+        """start to run the protocol"""
         self.s_time = time.time()
         if self.logger != None:
             self.logger.info('Node %d starts to run at time:' % self.id + str(self.s_time))
 
         def _make_send_nwabc():
+            """send nwabc message"""
             def _send(j, o):
                 self._send(j, ('', o))
 
             return _send
 
-        # run n nwabc instances
+
         def abcs():
+            """run n nwabc instances"""
             self.ap = os.getpid()
-            print("run n*k abcs:", os.getpid())
-            for i in range(0, self.N):
+            for i in range(self.N):
                 for j in range(self.K):
                     send = _make_send_nwabc()
                     recv = self.fast_recv[i * self.K + j].get
                     self._run_nwabc(send, recv, i, j)
             gevent.joinall(self.threads)
 
-            # return 0
-
         self._abcs = Process(target=abcs)
-
         self._recv_output = Process(target=_get_output)
 
         self._abcs.start()
-
         self._recv_output.start()
+
         self._recv_thread = gevent.spawn(_recv_loop)
 
         self._abcs.join(timeout=86400)
@@ -354,7 +350,6 @@ class Dumbo_NG_k_s:
         N = self.N
         f = self.f
         vaba_recv = gevent.queue.Queue()
-
         vaba_input = gevent.queue.Queue(1)
         vaba_output = gevent.queue.Queue(1)
         vaba_input.put_nowait(tx_to_send)
@@ -362,12 +357,13 @@ class Dumbo_NG_k_s:
         self.tx_cnt = 0
 
         def _setup_vaba():
+            """setup one MVBA instance"""
+
             def vaba_send(k, o):
-                """Threshold encryption broadcast."""
-                """Threshold encryption broadcast."""
                 send(k, ('X_VABA', '', o))
 
             def vaba_predicate(vj):
+                """check the external validity of MVBA"""
                 siglist = [tuple() for _ in range(N * self.K)]
                 (view, siglist, hashlist) = vj
 
@@ -380,9 +376,10 @@ class Dumbo_NG_k_s:
                         if view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
                             cnt2 += 1
                             break
-
                 if cnt2 < N - f:
+                    print("less than n-f")
                     return False
+
                 # check all sig
                 for i in range(N):
                     for j in range(self.K):
@@ -390,15 +387,14 @@ class Dumbo_NG_k_s:
                         if view[i * self.K + j] <= self.local_view[i * self.K + j]:
                             try:
                                 assert self.txs[i * self.K + j][view[i * self.K + j]] == hashlist[i * self.K + j]
-                            except:
-                                print("error 1")
-                                return False
+                                return True
+                            except Exception as e:
+                                pass
                         # then find in hash table
-                        elif view[i * self.K + j] in self.hashtable[i * self.K + j].keys():
+                        if view[i * self.K + j] in self.hashtable[i * self.K + j].keys():
                             try:
                                 assert self.hashtable[i * self.K + j][view[i * self.K + j]] == hashlist[i * self.K + j]
                             except:
-                                print("error 2")
                                 return False
                         # have to check sig and regist in hash table
                         else:
@@ -415,24 +411,15 @@ class Dumbo_NG_k_s:
                             self.hashtable[i * self.K + j][view[i * self.K + j]] = hashlist[i * self.K + j]
                 return True
 
-            if self.debug:
-                self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
-                                                self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                                vaba_input.get, vaba_output.put_nowait,
-                                                vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
-
-            else:
-                self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
-                                                self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                                vaba_input.get, vaba_output.put_nowait,
-                                                vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
+            self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
+                                            self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                            vaba_input.get, vaba_output.put_nowait,
+                                            vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
 
         _setup_vaba()
 
         out = vaba_output.get()
-
         (view, s, txhash) = out
-        print(view)
         self.help_count = 0
         self.st_sum = 0
         for i in range(N):
@@ -452,7 +439,6 @@ class Dumbo_NG_k_s:
                         self.help_count += 1
                     self.st_sum += add
                     self.tx_cnt += self.B
-
+        # reset the view
         self.local_view_s = view
-        # self.vaba_thread.kill
         bc_recv_loop_thread.kill()
