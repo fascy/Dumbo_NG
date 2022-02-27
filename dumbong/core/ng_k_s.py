@@ -1,6 +1,8 @@
 import gc
 
 from gevent import monkey;
+from gevent.event import Event
+
 from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
@@ -198,9 +200,10 @@ class Dumbo_NG_k_s:
 
                 return _send
 
-            while True:
-                # print(r, "start!")
-                start = time.time()
+            wait_input_signal = Event()
+            wait_input_signal.clear()
+
+            def get_list():
                 count = [0 for _ in range(self.N)]
                 while True:
                     for i in range(self.N):
@@ -227,14 +230,21 @@ class Dumbo_NG_k_s:
 
                             if self.local_view[i * self.K + j] - self.local_view_s[i * self.K + j] > 0:
                                 count[i] = 1
-                    if count.count(1) >= (self.N - self.f):
-                        break
-                    time.sleep(0.001)
+                    if count.count(1) >= (self.N - self.f) and wait_input_signal.isSet() == False:
+                        wait_input_signal.set()
+                        count = [0 for _ in range(self.N)]
+                    gevent.sleep(0)
+
+            while True:
+                # print(r, "start!")
+                start = time.time()
+
+                gevent.spawn(get_list)
                 # self.abc_count = 0
                 # for i in range(self.N * self.K):
                 #     self.abc_count += self.local_view[i]
                 # self.abc_count = (self.abc_count * self.B)
-
+                wait_input_signal.wait()
                 vaba_input = (self.local_view, [self.sigs[j][self.local_view[j]] for j in range(self.N * self.K)],
                               [self.txs[j][self.local_view[j]] for j in range(self.N * self.K)])
 
@@ -245,6 +255,7 @@ class Dumbo_NG_k_s:
                 recv_r = self._per_round_recv[self.round].get
 
                 self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
+                wait_input_signal.clear()
                 if self.round > self.countpoint:
                     self.txcnt += self.tx_cnt
 
@@ -414,15 +425,16 @@ class Dumbo_NG_k_s:
 
             if self.debug:
                 self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
-                                           self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                           vaba_input.get, vaba_output.put_nowait,
-                                           vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
+                                                self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                                vaba_input.get, vaba_output.put_nowait,
+                                                vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
 
             else:
                 self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
-                                           self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                           vaba_input.get, vaba_output.put_nowait,
-                                           vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
+                                                self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                                vaba_input.get, vaba_output.put_nowait,
+                                                vaba_recv.get, vaba_send, vaba_predicate, logger=self.logger)
+
         _setup_vaba()
 
         out = vaba_output.get()
@@ -448,32 +460,6 @@ class Dumbo_NG_k_s:
                         self.help_count += 1
                     self.st_sum += add
                     self.tx_cnt += self.B
-
-        def catch(v_s, v, r):
-            catchup = 0
-            gevent.sleep(0.05)
-            for k in range(self.N * self.K):
-                for t in range(v_s[k] + 1, v[k]):
-                    if self.txs[k][t] == "catch":
-                        catchup += 1
-            print("sid: %d: %d txs batches need to catchup after 50ms in round %d" % (self.id, catchup, r))
-            if self.logger != None:
-                self.logger.info("sid: %d: %d txs batches need to catchup after 50ms in round %d" % (self.id, catchup, r))
-            gevent.sleep(0.05)
-            catchup2 = 0
-            for k in range(self.N * self.K):
-                for t in range(v_s[k] + 1, v[k]):
-                    if self.txs[k][t] == "":
-                        catchup2 += 1
-            print("sid: %d: %d txs batches need to catchup after 100ms in round %d" % (self.id, catchup2, r))
-            if self.logger != None:
-                self.logger.info("sid: %d: %d txs batches need to catchup after 100ms in round %d" % (self.id, catchup2, r))
-
-        if self.help_count > 0:
-            print("sid: %d: %d txs batches need to catchup in round %d" % (self.id, self.help_count, self.round))
-            if self.logger != None:
-                self.logger.info("sid: %d: %d txs batches need to catchup in round %d" % (self.id, self.help_count, self.round))
-            gevent.spawn(catch, self.local_view_s, view, self.round)
 
         self.local_view_s = view
         # self.vaba_thread.kill
