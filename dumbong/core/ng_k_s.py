@@ -1,8 +1,7 @@
 import gc
-
 from gevent import monkey;
 from gevent.event import Event
-
+from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
 monkey.patch_all(thread=False)
@@ -25,7 +24,6 @@ from gevent.queue import Queue
 from honeybadgerbft.exceptions import UnknownTagError
 from dumbong.core.nwabc import nwatomicbroadcast
 
-
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
     logger.setLevel(logging.DEBUG)
@@ -39,14 +37,11 @@ def set_consensus_log(id: int):
     logger.addHandler(file_handler)
     return logger
 
-
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
-
 class BroadcastTag(Enum):
     X_VABA = 'X-VABA'
-
 
 def broadcast_receiver_loop(recv_func, recv_queues):
     while True:
@@ -64,7 +59,6 @@ def broadcast_receiver_loop(recv_func, recv_queues):
         except AttributeError as e:
             print("error", sender, (tag, j, msg))
             traceback.print_exc(e)
-
 
 class Dumbo_NG_k_s:
     def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, mute=False,
@@ -118,29 +112,23 @@ class Dumbo_NG_k_s:
         self.abc_count = 0
         self.vaba_thread = None
 
-    def submit_tx(self, tx, k):
+    def submit_tx(self, tx, j):
         """Appends the given transaction to the transaction buffer.
 
         :param tx: Transaction to append to the buffer.
-        :param k: instance to append
         """
-        self.transaction_buffer[k].put_nowait(tx)
+        self.transaction_buffer[j].put_nowait(tx)
 
     def buffer_size(self, k):
-        """Return the size of the transaction buffer.
-
-        :param k: instance to append
-        """
         return self.transaction_buffer[k].qsize()
 
+    # Entry of the Dumbo-NG protocol
     def run_bft(self):
         """Run the Dumbo-NG protocol."""
-
         self.s_time = time.time()
         if self.mute:
             muted_nodes = [each * 3 + 1 for each in range(int((self.N - 1) / 3))]
             if self.id in muted_nodes:
-                # T = 0.00001
                 while True:
                     time.sleep(10)
 
@@ -154,10 +142,8 @@ class Dumbo_NG_k_s:
                 return
             if os.getpid() == self.ap:
                 return
-            # print("start recv loop...", os.getpid())
 
             while True:
-                # gevent.sleep(0)
                 try:
                     (sender, (r, msg)) = self._recv()
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
@@ -167,14 +153,13 @@ class Dumbo_NG_k_s:
                 except:
                     continue
 
+        # This process tracks the recent progress of broadcasts and run a seuqnce of validated agreement
+        # such that it can pack all broadcasted transactions into the ledger
         def _get_output():
-            """Get output from broadcast and run MVBA."""
-
             self._per_round_recv = {}  # Buffer of incoming messages
             self.op = os.getpid()
 
             def handelmsg():
-                """Handel MVBA message for each round"""
                 if os.getpid() != self.op:
                     return
                 while True:
@@ -199,9 +184,9 @@ class Dumbo_NG_k_s:
             wait_input_signal = Event()
             wait_input_signal.clear()
             vaba_input = None
-
+ 
+            # This is a gevent handler to process QCs passed from broadcast intances
             def get_list():
-                """Get output from broadcast"""
                 nonlocal vaba_input
                 count = [0 for _ in range(self.N)]
                 while True:
@@ -212,12 +197,15 @@ class Dumbo_NG_k_s:
                                 (_, s, tx, sig, st) = out
                                 if s > self.local_view[i * self.K + j]:
                                     self.local_view[i * self.K + j] = s
-                                # always store the transactions and QCs of the latest 200 slot
-                                # and delete the old stuff from memory
+                                # only store TX batch digest and QCs of the latest 200 slots
+                                # and delete the old stuff from memory.
+                                # This allows a faster predicate method in validated agreement
+                                # because if a QC was recently verified by the broadcast process,
+                                # no need to verify signatures in it again in predicate method.
                                 self.txs[i * self.K + j][s] = tx
                                 self.sigs[i * self.K + j][s] = sig
                                 self.sts[i * self.K + j][s] = st
-                                if self.round > 200:    # delete the transactions
+                                if self.round > 200:
                                     del_p = max(0, self.local_view[i * self.K + j] - 200)
                                     try:
                                         for p in self.txs[i * self.K + j].keys() and p < del_p:
@@ -226,20 +214,21 @@ class Dumbo_NG_k_s:
                                             del self.sts[i * self.K + j][p]
                                     except:
                                         pass
-                            if self.local_view[i * self.K + j] - self.local_view_s[
-                                i * self.K + j] > 0 and wait_input_signal.isSet() == False:
+                            if self.local_view[i*self.K + j] - self.local_view_s[i*self.K + j] > 0 and wait_input_signal.isSet() == False:
                                 count[i] = 1
                     if count.count(1) >= (self.N - self.f) and wait_input_signal.isSet() == False:
                         count = [0 for _ in range(self.N)]
                         lview = copy.copy(self.local_view)
-                        vaba_input = (lview, [copy.copy(self.sigs[j][lview[j]]) for j in range(self.N * self.K)],
-                                      [copy.copy(self.txs[j][lview[j]]) for j in range(self.N * self.K)])
+                        vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(self.N * self.K)],
+                              [self.txs[j][lview[j]] for j in range(self.N * self.K)])
                         wait_input_signal.set()
                     gevent.sleep(0)
 
             gevent.spawn(get_list)
-
+            
+            # This loop runs a sequence of validated agreement to agree on a cut of broadcasts
             while True:
+                # print(r, "start!")
                 start = time.time()
 
                 if self.round not in self._per_round_recv:
@@ -248,12 +237,14 @@ class Dumbo_NG_k_s:
                 send_r = _make_send(self.round)
                 recv_r = self._per_round_recv[self.round].get
 
+                # Here wait for enough progress to start Validated agreement
+                # The input is set by get_list() handler that processes broadcast QC
                 wait_input_signal.wait()
                 self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
                 wait_input_signal.clear()
 
                 if self.round > self.countpoint:
-                    self.txcnt += self.tx_cnt
+                    self.txcnt += self.tx_cnt   # Number of so-far output transactions
 
                 end = time.time()
                 if self.st_sum == 0 or ((self.tx_cnt / self.B) - self.help_count) == 0:
@@ -263,7 +254,7 @@ class Dumbo_NG_k_s:
                             (self.tx_cnt / self.B) - self.help_count)
 
                 if self.round > self.countpoint:
-                    self.txdelay += (end - start)
+                    self.txdelay += (end - start) # Total elapsed time of the protocol execution
 
                 if self.logger != None and self.round > self.countpoint:
                     self.logger.info(
@@ -273,47 +264,46 @@ class Dumbo_NG_k_s:
 
                 if self.round > 2:
                     del self._per_round_recv[self.round - 2]
-
                 self.round += 1
 
-        """start to run the protocol"""
         self.s_time = time.time()
         if self.logger != None:
             self.logger.info('Node %d starts to run at time:' % self.id + str(self.s_time))
 
         def _make_send_nwabc():
-            """send nwabc message"""
             def _send(j, o):
                 self._send(j, ('', o))
 
             return _send
 
-
+        # run n nwabc instances
         def abcs():
-            """run n nwabc instances"""
             self.ap = os.getpid()
-            for i in range(self.N):
+            print("run n*k abcs:", os.getpid())
+            for i in range(0, self.N):
                 for j in range(self.K):
                     send = _make_send_nwabc()
                     recv = self.fast_recv[i * self.K + j].get
                     self._run_nwabc(send, recv, i, j)
             gevent.joinall(self.threads)
 
+        # Start the agreement process and broadcast process
         self._abcs = Process(target=abcs)
         self._recv_output = Process(target=_get_output)
-
         self._abcs.start()
         self._recv_output.start()
 
+        # Start the message handler
         self._recv_thread = gevent.spawn(_recv_loop)
 
         self._abcs.join(timeout=86400)
 
         self.e_time = time.time()
 
+    # This process runs broadcast instances
+    # and it will return the lastest progress to process via multiprocessing queues
     def _run_nwabc(self, send, recv, i, j):
         """Run one NWABC instance.
-
         :param int i: slot id
         :param int j: instance j
         :param send:
@@ -321,14 +311,11 @@ class Dumbo_NG_k_s:
         """
         if os.getpid() == self.op:
             return 0
-
         sid = self.sid
         pid = self.id
         N = self.N
         f = self.f
-
         epoch_id = sid + 'nw'
-
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i * self.K + j), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
@@ -336,6 +323,7 @@ class Dumbo_NG_k_s:
                          self.logger, 1)
         self.threads.append(t)
 
+    # This method defines one validated agreement and its external validity condition
     def _run_VABA_round(self, r, tx_to_send, send, recv):
         """Run one VABA round.
         :param int r: round id
@@ -357,13 +345,10 @@ class Dumbo_NG_k_s:
         self.tx_cnt = 0
 
         def _setup_vaba():
-            """setup one MVBA instance"""
-
             def vaba_send(k, o):
                 send(k, ('X_VABA', '', o))
 
             def vaba_predicate(vj):
-                """check the external validity of MVBA"""
                 siglist = [tuple() for _ in range(N * self.K)]
                 (view, siglist, hashlist) = vj
 
@@ -377,7 +362,6 @@ class Dumbo_NG_k_s:
                             cnt2 += 1
                             break
                 if cnt2 < N - f:
-                    print("less than n-f")
                     return False
 
                 # check all sig
@@ -394,6 +378,7 @@ class Dumbo_NG_k_s:
                         if view[i * self.K + j] in self.hashtable[i * self.K + j].keys():
                             try:
                                 assert self.hashtable[i * self.K + j][view[i * self.K + j]] == hashlist[i * self.K + j]
+                                # del self.hashtable[i * self.K + j][view[i * self.K + j]]
                             except:
                                 return False
                         # have to check sig and regist in hash table
@@ -409,7 +394,9 @@ class Dumbo_NG_k_s:
                                 print("ecdsa signature failed!")
                                 return False
                             self.hashtable[i * self.K + j][view[i * self.K + j]] = hashlist[i * self.K + j]
+                            # print(i * self.K + j,":",len(self.hashtable[i * self.K + j]))
                 return True
+
 
             self.vaba_thread = gevent.spawn(speedmvba, sid + 'VABA' + str(r), pid, N, f,
                                             self.sPK, self.sSK, self.sPK2s, self.sSK2,
@@ -419,6 +406,7 @@ class Dumbo_NG_k_s:
         _setup_vaba()
 
         out = vaba_output.get()
+
         (view, s, txhash) = out
         self.help_count = 0
         self.st_sum = 0
@@ -439,6 +427,6 @@ class Dumbo_NG_k_s:
                         self.help_count += 1
                     self.st_sum += add
                     self.tx_cnt += self.B
-        # reset the view
+
         self.local_view_s = view
         bc_recv_loop_thread.kill()
