@@ -1,8 +1,6 @@
 import gc
 
-import objgraph
 from gevent import monkey;
-from memory_profiler import profile
 from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
