@@ -213,10 +213,11 @@ class Dumbo_NG_k_s:
                             while self.output_list[i * self.K + j].qsize() > 0:
                                 out = self.output_list[i * self.K + j].get()
                                 (_, s, tx, sig, st) = out
-                                self.local_view[i * self.K + j] += 1
-                                self.txs[i * self.K + j][self.local_view[i * self.K + j]] = tx
-                                self.sigs[i * self.K + j][self.local_view[i * self.K + j]] = sig
-                                self.sts[i * self.K + j][self.local_view[i * self.K + j]] = st
+                                if self.local_view[i * self.K + j] < s:
+                                    self.local_view[i * self.K + j] = s
+                                self.txs[i * self.K + j][s] = tx
+                                self.sigs[i * self.K + j][s] = sig
+                                self.sts[i * self.K + j][s] = st
                                 if self.round > 200:
                                     del_p = max(0, self.local_view[i * self.K + j] - 200)
                                     try:
@@ -248,9 +249,7 @@ class Dumbo_NG_k_s:
                 recv_r = self._per_round_recv[self.round].get
 
                 wait_input_signal.wait()
-                assert vaba_input is not None
                 self._run_VABA_round(self.round, vaba_input, send_r, recv_r)
-                vaba_input = None
                 wait_input_signal.clear()
 
                 if self.round > self.countpoint:
@@ -266,7 +265,7 @@ class Dumbo_NG_k_s:
                 if self.round > self.countpoint:
                     self.txdelay += (end - start)
 
-                if self.logger != None and self.round > self.countpoint:
+                if self.logger is not None and self.round > self.countpoint:
                     self.logger.info(
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f" %
                         (self.id, end - self.s_time, self.txcnt,
@@ -433,6 +432,7 @@ class Dumbo_NG_k_s:
         out = vaba_output.get()
 
         (view, s, txhash) = out
+        print(view)
         self.help_count = 0
         self.st_sum = 0
         for i in range(N):
