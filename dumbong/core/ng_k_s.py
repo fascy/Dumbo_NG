@@ -212,8 +212,8 @@ class Dumbo_NG_k_s:
                                 self.txs[i * self.K + j][self.local_view[i * self.K + j]] = tx
                                 self.sigs[i * self.K + j][self.local_view[i * self.K + j]] = sig
                                 self.sts[i * self.K + j][self.local_view[i * self.K + j]] = st
-                                if self.round > 20:
-                                    del_p = max(0, self.local_view[i * self.K + j] - 20)
+                                if self.round > 200:
+                                    del_p = max(0, self.local_view[i * self.K + j] - 200)
                                     try:
                                         del self.txs[i * self.K + j][del_p]
                                         del self.sigs[i * self.K + j][del_p]
@@ -431,7 +431,6 @@ class Dumbo_NG_k_s:
         print(view)
         self.help_count = 0
         self.st_sum = 0
-        record_tx =()
         for i in range(N):
             for j in range(self.K):
                 # check sigs in s[i][view[i]]
@@ -446,13 +445,11 @@ class Dumbo_NG_k_s:
 
                     except:
                         add = 0
-                        record_tx = (i * self.K + j, t)
                         self.help_count += 1
                     self.st_sum += add
                     self.tx_cnt += self.B
 
-        def catch(v_s, v, r, r_t):
-            (x, y) = r_t
+        def catch(v_s, v, r):
             catchup = 0
             gevent.sleep(0.05)
             for k in range(self.N * self.K):
@@ -476,7 +473,7 @@ class Dumbo_NG_k_s:
             print("sid: %d: %d txs batches need to catchup in round %d" % (self.id, self.help_count, self.round))
             if self.logger != None:
                 self.logger.info("sid: %d: %d txs batches need to catchup in round %d" % (self.id, self.help_count, self.round))
-            gevent.spawn(catch, self.local_view_s, view, self.round, record_tx)
+            gevent.spawn(catch, self.local_view_s, view, self.round)
 
         self.local_view_s = view
         # self.vaba_thread.kill
