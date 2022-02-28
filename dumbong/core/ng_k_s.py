@@ -418,7 +418,7 @@ class Dumbo_NG_k_s:
                     for t in range(self.local_view[i * self.K + j] + 1, view[i * self.K + j] + 1):
                         tx = "catch"
                         self.txs[i * self.K + j][t] = tx
-                for t in range(self.local_view_s[i * self.K + j] + 1, view[i * self.K + j]):
+                for t in range(self.local_view_s[i * self.K + j] + 1, view[i * self.K + j] + 1):
                     try:
                         add = self.sts[i * self.K + j][t]
 
