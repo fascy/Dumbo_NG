@@ -222,7 +222,7 @@ class Dumbo_NG_k_s:
                         vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(self.N * self.K)],
                               [self.txs[j][lview[j]] for j in range(self.N * self.K)])
                         wait_input_signal.set()
-                    gevent.sleep(0)
+                    gevent.sleep(0.1)
 
             gevent.spawn(get_list)
             
