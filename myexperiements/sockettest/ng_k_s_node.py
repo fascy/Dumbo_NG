@@ -104,13 +104,13 @@ class NGSNode(Dumbo_NG_k_s):
 
         self.prepare_bootstrap()
         print("initial tx loaded")
-        add_threads = [gevent.spawn(self.add_tx, k) for k in range(self.K)]
+        # add_threads = [gevent.spawn(self.add_tx, k) for k in range(self.K)]
 
         while not self.ready.value:
             time.sleep(1)
             # gevent.sleep(1)
 
         self.run_bft()
-        gevent.joinall(add_threads)
+        # gevent.joinall(add_threads)
 
         self.stop.value = True
