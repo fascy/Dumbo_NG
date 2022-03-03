@@ -49,7 +49,7 @@ So this codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
    ```
    for 20 epochs with a batch size of 1000tx can be:
    ```
-   ./run_local_network_test.sh 4 1 1000 2 2 20
+   ./run_local_network_test.sh 4 1 1000 2 20
    ```
    
    To run Dumbo-DL, replace line 12 of run_local_network_test.sh with:
