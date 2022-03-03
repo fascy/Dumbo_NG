@@ -47,9 +47,9 @@ So this codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
    ```
    python3 run_socket_node.py --sid 'sidA' --id $i --N $1 --f $2 --B $3 --K $4 --S $5 --T 2 --P "ng" --D True --O True &
    ```
-   for 20 epochs with a batch size of 1000tx(1 bc instance for one node) can be:
+   for 20 epochs with a batch size of 1000tx can be:
    ```
-   ./run_local_network_test.sh 4 1 1000 2 20
+   ./run_local_network_test.sh 4 1 1000 2 2 20
    ```
    
    To run Dumbo-DL, replace line 12 of run_local_network_test.sh with:
@@ -98,7 +98,7 @@ So this codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
     done
     
     # Start Protocols at all remote AWS servers
-    i=0; while [ $i -le $(( N-1 )) ]; do   ssh -i "/home/your-name/your-key-dir/your-sk.pem" ubuntu@${pubIPsVar[i]} "export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib; cd dumbo-ng; nohup python3 run_socket_node.py --sid 'sidA' --id $i --N $N --f $(( (N-1)/3 )) --B 1000 --K 2 --S 50 --T 2 --P "ng" --F 1000000 > node-$i.out" &   i=$(( i+1 )); done
+    i=0; while [ $i -le $(( N-1 )) ]; do   ssh -i "/home/your-name/your-key-dir/your-sk.pem" ubuntu@${pubIPsVar[i]} "export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib; cd dumbo-ng; nohup python3 run_socket_node.py --sid 'sidA' --id $i --N $N --f $(( (N-1)/3 )) --B 1000 --K 2 --S 20 --T 2 --P "ng" > node-$i.out" &   i=$(( i+1 )); done
  
     # Download logs from all remote AWS servers to your local PC
     i=0
