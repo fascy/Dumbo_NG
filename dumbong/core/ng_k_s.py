@@ -430,7 +430,7 @@ class Dumbo_NG_k_s:
                     self.vaba_latency = (self.vaba_latency * (epoch-self.countpoint) + (end - start)) / (epoch - self.countpoint + 1)
                 if self.logger != None and epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
-                        "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
+                        "node: %d run: %f total delivered Txs after warm-up: %d, average delay after warm-up: %f, tps after warm-up: %f, vaba delay after warm-up: %f" %
                         (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
                          self.vaba_latency))
                     print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
