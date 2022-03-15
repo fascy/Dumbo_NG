@@ -336,17 +336,14 @@ class Dumbo_NG_k_s:
 
                 return _send
 
-            wait_input_signal = Event()
-            wait_input_signal.clear()
+            # wait_input_signal = Event()
+            # wait_input_signal.clear()
 
             # This is a gevent handler to process QCs passed from broadcast intances
             def track_broadcast_progress():
-                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input, wait_input_signal
+                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input
                 count = [0 for _ in range(N)]
                 while True:
-                    if wait_input_signal.isSet():
-                        gevent.sleep(0.01)
-                        continue
                     for i in range(N):
                         for j in range(K):
                             while self.output_list[i * K + j].qsize() > 0:
@@ -375,24 +372,25 @@ class Dumbo_NG_k_s:
                                                 self.recent_digest[i * K + j].pop(p)
                                     except Exception as err:
                                         pass
-                            if wait_input_signal.isSet() == False:
-                                if cur_view[i * K + j] - prev_view[i * K + j] > 0:
-                                    count[i] = 1
+                            # if wait_input_signal.isSet() == False:
+                            if cur_view[i * K + j] - prev_view[i * K + j] > 0:
+                                count[i] = 1
                             if cur_view[i * K + j] - prev_view[i * K + j] < 0:
                                 count = [0 for _ in range(N)]
                                 break
                         else:
                             continue
                         break
-                    if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
+                    # if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
+                    if count.count(1) >= (N - f):
                         count = [0 for _ in range(N)]
                         lview = copy.copy(cur_view)
                         vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(N * K)],
                                       [self.txs[j][lview[j]] for j in range(N * K)])
-
-                        wait_input_signal.set()
+                        break
+                        # wait_input_signal.set()
                         # print("broadcasts grown....")
-                    gevent.sleep(0.01)
+                    # gevent.sleep(0.01)
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
@@ -416,10 +414,12 @@ class Dumbo_NG_k_s:
 
                 # Here wait for enough progress to start Validated agreement
                 # The input is set by track_broadcast_progress() handler that processes broadcast QC
-                wait_input_signal.wait()
+                # wait_input_signal.wait()
+                track_broadcast_progress()
                 start2 = time.time()
                 _run_VABA_round(vaba_input, send_r, recv_r)
-                wait_input_signal.clear()
+
+                # wait_input_signal.clear()
 
                 end = time.time()
 
