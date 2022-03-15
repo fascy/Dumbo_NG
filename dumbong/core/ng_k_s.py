@@ -160,7 +160,7 @@ class Dumbo_NG_k_s:
                 :param recv:
                 """
                 nonlocal epoch, sid, pid, N, K, f, prev_view, cur_view, recent_digest
-
+                gc.collect()
 
                 prev_view_e = copy.copy(prev_view)
                 # Unique sid for each round
