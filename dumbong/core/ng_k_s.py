@@ -297,11 +297,11 @@ class Dumbo_NG_k_s:
                             except:
                                 add = 0
                                 self.help_count += 1
-                                if epoch > self.countpoint:
+                                if epoch > self.countpoint+1:
                                     self.catch_up_sum += 1
                             self.st_sum += add
                             self.tx_cnt += self.B
-                if epoch > self.countpoint and self.help_count > 0:
+                if epoch > self.countpoint+1 and self.help_count > 0:
                     # print(
                     #     "sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (self.id, self.help_count, epoch, self.catch_up_sum, self.catch_up_sum/(self.total_tx/self.B)))
                     if self.logger != None:
@@ -433,9 +433,9 @@ class Dumbo_NG_k_s:
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
                         (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
                          self.vaba_latency))
-                    print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
-                          (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
-                           self.vaba_latency))
+                    # print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
+                    #       (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
+                    #        self.vaba_latency))
 
                 if epoch > 2:
                     del per_epoch_recv[epoch - 2]
