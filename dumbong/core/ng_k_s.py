@@ -161,6 +161,7 @@ class Dumbo_NG_k_s:
                 """
                 nonlocal epoch, sid, pid, N, K, f, prev_view, cur_view, recent_digest
 
+
                 prev_view_e = copy.copy(prev_view)
                 # Unique sid for each round
 
@@ -335,11 +336,17 @@ class Dumbo_NG_k_s:
 
                 return _send
 
+            wait_input_signal = Event()
+            wait_input_signal.clear()
+
             # This is a gevent handler to process QCs passed from broadcast intances
             def track_broadcast_progress():
-                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input
+                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input, wait_input_signal
                 count = [0 for _ in range(N)]
                 while True:
+                    if wait_input_signal.isSet():
+                        gevent.sleep(0.01)
+                        continue
                     for i in range(N):
                         for j in range(K):
                             while self.output_list[i * K + j].qsize() > 0:
@@ -373,7 +380,6 @@ class Dumbo_NG_k_s:
                                     count[i] = 1
                             if cur_view[i * K + j] - prev_view[i * K + j] < 0:
                                 count = [0 for _ in range(N)]
-                                tag = [[0 for _ in range(K)] for _ in range(N)]
                                 break
                         else:
                             continue
@@ -391,8 +397,7 @@ class Dumbo_NG_k_s:
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
             gevent.spawn(track_broadcast_progress)
-            wait_input_signal = Event()
-            wait_input_signal.clear()
+
             vaba_input = None
 
             # This loop runs a sequence of validated agreement to agree on a cut of broadcasts
