@@ -214,8 +214,11 @@ class Dumbo_NG_k_s:
                                         assert self.txs[i * K + j][view[i * K + j]] == digestlist[i * K + j]
                                         # print("pass predicate...1")
                                         return True
-                                    except Exception as e:
-                                        print(e)
+                                    except AssertionError as e:
+                                        if self.logger is not None: self.logger.info(e)
+                                        pass
+                                    except KeyError as e:
+                                        if self.logger is not None: self.logger.info(e)
                                         pass
                                 # then find in hash table
                                 if view[i * K + j] in recent_digest[i * K + j].keys():
@@ -352,8 +355,8 @@ class Dumbo_NG_k_s:
                                 self.txs[i * self.K + j][s] = tx
                                 self.sigs[i * self.K + j][s] = sig
                                 self.sts[i * self.K + j][s] = st
-                                if epoch > 200:
-                                    del_p = max(0, cur_view[i * K + j] - 200)
+                                if epoch > 50:
+                                    del_p = max(0, cur_view[i * K + j] - 50)
                                     try:
                                         for p in list(self.txs[i * K + j]):
                                             if p < del_p:
@@ -440,35 +443,6 @@ class Dumbo_NG_k_s:
                 if epoch > 2:
                     del per_epoch_recv[epoch - 2]
                 epoch += 1
-
-                # if epoch == 20000:
-                #    print("####################")
-                #    objgraph.show_most_common_types(limit=5)
-                # if len(objgraph.by_type('deque')) > 50000:
-                #    gevent.sleep(1)
-                #    gc.collect()
-                #    for z in range(10):
-                #        objgraph.show_backrefs(
-                #            random.choice(objgraph.by_type('deque')),
-                #            max_depth=20,
-                #            filename='deque-'+str(int(epoch/20))+"-"+str(self.id)+"-"+str(z)+'.dot')
-                #        objgraph.show_backrefs(
-                #            random.choice(objgraph.by_type('callback')),
-                #            max_depth=20,
-                #            filename='callback-'+str(int(epoch/20))+"-"+str(self.id)+"-"+str(z)+'.dot')
-                #        objgraph.show_backrefs(
-                #            random.choice(objgraph.by_type('tuple')),
-                #            max_depth=20,
-                #            filename='tuple-'+str(int(epoch/20))+"-"+str(self.id)+"-"+str(z)+'.dot')
-                #        objgraph.show_backrefs(
-                #            random.choice(objgraph.by_type('cell')),
-                #            max_depth=20,
-                #            filename='cell-'+str(int(epoch/20))+"-"+str(self.id)+"-"+str(z)+'.dot')
-                #        objgraph.show_backrefs(
-                #            random.choice(objgraph.by_type('Queue')),
-                #            max_depth=20,
-                #            filename='Queue-'+str(int(epoch/20))+"-"+str(self.id)+"-"+str(z)+'.dot')
-                #    return
 
         self.s_time = time.time()
         if self.logger != None:
