@@ -23,7 +23,6 @@ from gevent.queue import Queue
 from honeybadgerbft.exceptions import UnknownTagError
 from dumbong.core.nwabc import nwatomicbroadcast
 
-gc.disable()
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -255,7 +254,7 @@ class Dumbo_NG_k_s:
                 vaba_thread_r.start()
                 out = vaba_output.get()
                 (view, s, txhash) = out
-                prev_view = view
+
                 # print("vaba returns....")
                 def catch(v_s, v, r):
                     catchup = 0
@@ -314,7 +313,7 @@ class Dumbo_NG_k_s:
                         self.id, self.help_count, epoch,
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
                     gevent.spawn(catch, cur_view, view, epoch)
-                # prev_view = view
+                prev_view = view
                 vaba_thread_r.kill()
 
             def handle_msg():
@@ -337,12 +336,12 @@ class Dumbo_NG_k_s:
 
                 return _send
 
-            # wait_input_signal = Event()
-            # wait_input_signal.clear()
+            wait_input_signal = Event()
+            wait_input_signal.clear()
 
             # This is a gevent handler to process QCs passed from broadcast intances
             def track_broadcast_progress():
-                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input
+                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input, wait_input_signal
                 count = [0 for _ in range(N)]
                 while True:
                     for i in range(N):
@@ -373,29 +372,28 @@ class Dumbo_NG_k_s:
                                                 self.recent_digest[i * K + j].pop(p)
                                     except Exception as err:
                                         pass
-                            # if wait_input_signal.isSet() == False:
-                            if cur_view[i * K + j] - prev_view[i * K + j] > 0:
-                                count[i] = 1
+                            if wait_input_signal.isSet() == False:
+                                if cur_view[i * K + j] - prev_view[i * K + j] > 0:
+                                    count[i] = 1
                             if cur_view[i * K + j] - prev_view[i * K + j] < 0:
                                 count = [0 for _ in range(N)]
                                 break
                         else:
                             continue
                         break
-                    # if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
-                    if count.count(1) >= (N - f):
+                    if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
                         count = [0 for _ in range(N)]
                         lview = copy.copy(cur_view)
                         vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(N * K)],
                                       [self.txs[j][lview[j]] for j in range(N * K)])
-                        break
-                        # wait_input_signal.set()
+
+                        wait_input_signal.set()
                         # print("broadcasts grown....")
-                    # gevent.sleep(0.01)
+                    gevent.sleep(0.01)
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
-            # gevent.spawn(track_broadcast_progress)
+            gevent.spawn(track_broadcast_progress)
 
             vaba_input = None
 
@@ -415,12 +413,10 @@ class Dumbo_NG_k_s:
 
                 # Here wait for enough progress to start Validated agreement
                 # The input is set by track_broadcast_progress() handler that processes broadcast QC
-                # wait_input_signal.wait()
-                track_broadcast_progress()
+                wait_input_signal.wait()
                 start2 = time.time()
                 _run_VABA_round(vaba_input, send_r, recv_r)
-
-                # wait_input_signal.clear()
+                wait_input_signal.clear()
 
                 end = time.time()
 

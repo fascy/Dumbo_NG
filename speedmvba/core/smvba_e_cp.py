@@ -1,3 +1,5 @@
+import time
+
 from gevent import monkey;
 
 from speedmvba.core.spbc_ec import strongprovablebroadcast
@@ -41,8 +43,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     :param f: the number of byzantine parties
     :param PK: ``boldyreva.TBLSPublicKey`` with threshold f+1
     :param SK: ``boldyreva.TBLSPrivateKey`` with threshold f+1
-    :param PK1: ``boldyreva.TBLSPublicKey`` with threshold n-f
-    :param SK1: ``boldyreva.TBLSPrivateKey`` with threshold n-f
     :param list PK2s: an array of ``coincurve.PublicKey'', i.e., N public keys of ECDSA for all parties
     :param PublicKey SK2: ``coincurve.PrivateKey'', i.e., secret key of ECDSA
     :param input: ``input()`` is called to receive an input
@@ -212,7 +212,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     except:
                         pass
                     # recv_loop_thred.kill()
-                    # if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
+                    if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
             except:
                 pass
 
@@ -365,6 +365,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             halt = (Leader, 2, msg, s2)
             broadcast(('MVBA_HALT', r, pid, ("halt", halt)))
             # print(pid, sid, "halt here 2")
+            if logger is not None: logger.info("round %d smvba decide in shortcut %f" % (r, time.time()))
             decide(msg[0])
             h = 1
             break
@@ -481,8 +482,8 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
                             halt_msg = (Leader, 2, vote_msg[2], tuple(list(vote_yes_shares.items())[:N - f]))
                             broadcast(('MVBA_HALT', r, pid, ("halt", halt_msg)))
-                            # if logger is not None: logger.info(
-                            #     "round %d smvba decide in vote yes %f" % (r, time.time()))
+                            if logger is not None: logger.info(
+                                "round %d smvba decide in vote yes %f" % (r, time.time()))
 
                             decide(vote_msg[2][0])
                             h = 1
