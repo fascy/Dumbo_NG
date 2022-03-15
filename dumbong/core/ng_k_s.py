@@ -383,7 +383,7 @@ class Dumbo_NG_k_s:
 
                         wait_input_signal.set()
                         # print("broadcasts grown....")
-                    gevent.sleep(0.05)
+                    gevent.sleep(0.01)
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
