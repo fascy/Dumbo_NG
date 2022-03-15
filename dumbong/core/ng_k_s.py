@@ -412,6 +412,7 @@ class Dumbo_NG_k_s:
                 # Here wait for enough progress to start Validated agreement
                 # The input is set by track_broadcast_progress() handler that processes broadcast QC
                 wait_input_signal.wait()
+                start2 = time.time()
                 _run_VABA_round(vaba_input, send_r, recv_r)
                 wait_input_signal.clear()
 
@@ -431,16 +432,16 @@ class Dumbo_NG_k_s:
                 if self.logger != None and epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
-                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f" %
+                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f, vaba delay2: %f" %
                         (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
                          self.total_tx / self.total_delay, self.tx_cnt,
-                         self.vaba_latency, end - start))
+                         self.vaba_latency, end - start, end-start2))
                     print(
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
-                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f" %
+                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f, vaba delay2: %f" %
                         (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
                          self.total_tx / self.total_delay, self.tx_cnt,
-                         self.vaba_latency, end - start))
+                         self.vaba_latency, end - start, end - start2))
 
                 if epoch > 2:
                     del per_epoch_recv[epoch - 2]
