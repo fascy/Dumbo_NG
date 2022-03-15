@@ -43,7 +43,8 @@ def hash(x):
 
 
 class Dumbo_NG_k_s:
-    def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, countpoint=0, mute=False,
+    def __init__(self, sid, pid, S, B, N, f, sPK, sSK, sPK1, sSK1, sPK2s, sSK2, ePK, eSK, send, recv, K=3, countpoint=0,
+                 mute=False,
                  debug=False):
 
         self.sid = sid
@@ -252,6 +253,7 @@ class Dumbo_NG_k_s:
                 vaba_thread_r.start()
                 out = vaba_output.get()
                 (view, s, txhash) = out
+
                 # print("vaba returns....")
                 def catch(v_s, v, r):
                     catchup = 0
@@ -265,7 +267,8 @@ class Dumbo_NG_k_s:
                     # print("sid: %d: %d txs batches need to catchup after 50ms in round %d, %d in total, %f " % (self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1/(self.total_tx/self.B)))
                     if self.logger != None:
                         self.logger.info(
-                            "sid: %d: %d txs batches need to catchup after 50ms in round %d%d in total, %f " % (self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1/(self.total_tx/self.B)))
+                            "sid: %d: %d txs batches need to catchup after 50ms in round %d%d in total, %f " % (
+                            self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1 / (self.total_tx / self.B)))
 
                     gevent.sleep(0.05)
                     catchup2 = 0
@@ -278,8 +281,8 @@ class Dumbo_NG_k_s:
                     # print("sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2/(self.total_tx/self.B)))
                     if self.logger != None:
                         self.logger.info(
-                            "sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2/(self.total_tx/self.B)))
-
+                            "sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (
+                            self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2 / (self.total_tx / self.B)))
 
                 self.help_count = 0
                 self.st_sum = 0
@@ -297,16 +300,17 @@ class Dumbo_NG_k_s:
                             except:
                                 add = 0
                                 self.help_count += 1
-                                if epoch > self.countpoint+1:
+                                if epoch > self.countpoint + 1:
                                     self.catch_up_sum += 1
                             self.st_sum += add
                             self.tx_cnt += self.B
-                if epoch > self.countpoint+1 and self.help_count > 0:
+                if epoch > self.countpoint + 1 and self.help_count > 0:
                     # print(
                     #     "sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (self.id, self.help_count, epoch, self.catch_up_sum, self.catch_up_sum/(self.total_tx/self.B)))
                     if self.logger != None:
-                        self.logger.info("sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (self.id, self.help_count, epoch,
-                                                                                                                    self.catch_up_sum, self.catch_up_sum/(self.total_tx/self.B)))
+                        self.logger.info("sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (
+                        self.id, self.help_count, epoch,
+                        self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
                     gevent.spawn(catch, cur_view, view, epoch)
                 prev_view = view
                 vaba_thread_r.kill()
@@ -380,7 +384,6 @@ class Dumbo_NG_k_s:
                         vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(N * K)],
                                       [self.txs[j][lview[j]] for j in range(N * K)])
 
-
                         wait_input_signal.set()
                         # print("broadcasts grown....")
                     gevent.sleep(0.01)
@@ -423,15 +426,21 @@ class Dumbo_NG_k_s:
                     self.a_latency = (self.a_latency * (
                             self.total_tx - self.tx_cnt) + self.latency * self.tx_cnt) / self.total_tx
                     # Calculate the overal average latency of all past epoches
-                    self.vaba_latency = (self.vaba_latency * (epoch-self.countpoint) + (end - start)) / (epoch - self.countpoint + 1)
+                    self.vaba_latency = (self.vaba_latency * (epoch - self.countpoint) + (end - start)) / (
+                                epoch - self.countpoint + 1)
                 if self.logger != None and epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
-                        "node: %d run: %f total delivered Txs after warm-up: %d, average delay after warm-up: %f, tps after warm-up: %f, vaba delay after warm-up: %f" %
-                        (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
-                         self.vaba_latency))
-                    print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
-                          (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
-                           self.vaba_latency))
+                        "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
+                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f" %
+                        (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
+                         self.total_tx / self.total_delay, self.tx_cnt,
+                         self.vaba_latency, end - start))
+                    print(
+                        "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
+                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f" %
+                        (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
+                         self.total_tx / self.total_delay, self.tx_cnt,
+                         self.vaba_latency, end - start))
 
                 if epoch > 2:
                     del per_epoch_recv[epoch - 2]
