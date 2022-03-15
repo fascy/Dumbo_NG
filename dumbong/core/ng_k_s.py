@@ -394,7 +394,7 @@ class Dumbo_NG_k_s:
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
-            gevent.spawn(track_broadcast_progress)
+            # gevent.spawn(track_broadcast_progress)
 
             vaba_input = None
 
