@@ -334,7 +334,6 @@ class Dumbo_NG_k_s:
             # This is a gevent handler to process QCs passed from broadcast intances
             def track_broadcast_progress():
                 nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input
-                tag = [[0 for _ in range(K)] for _ in range(N)]
                 count = [0 for _ in range(N)]
                 while True:
                     for i in range(N):
@@ -367,9 +366,7 @@ class Dumbo_NG_k_s:
                                         pass
                             if wait_input_signal.isSet() == False:
                                 if cur_view[i * K + j] - prev_view[i * K + j] > 0:
-                                    if tag[i][j] == 0:
-                                        tag[i][j] = 1
-                                        count[i] += 1
+                                    count[i] = 1
                             if cur_view[i * K + j] - prev_view[i * K + j] < 0:
                                 count = [0 for _ in range(N)]
                                 tag = [[0 for _ in range(K)] for _ in range(N)]
@@ -377,9 +374,8 @@ class Dumbo_NG_k_s:
                         else:
                             continue
                         break
-                    if count.count(K) >= (N - f) and wait_input_signal.isSet() == False:
+                    if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
                         count = [0 for _ in range(N)]
-                        tag = [[0 for _ in range(K)] for _ in range(N)]
                         lview = copy.copy(cur_view)
                         vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(N * K)],
                                       [self.txs[j][lview[j]] for j in range(N * K)])
@@ -387,7 +383,7 @@ class Dumbo_NG_k_s:
 
                         wait_input_signal.set()
                         # print("broadcasts grown....")
-                    gevent.sleep(0.1)
+                    gevent.sleep(0.05)
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
