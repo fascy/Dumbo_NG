@@ -18,14 +18,14 @@ from ctypes import c_bool
 
 
 def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bft_to_client: Callable, ready: mpValue,
-                         stop: mpValue, protocol="ng", mute=False, F=100, debug=False, omitfast=False):
+                         stop: mpValue, protocol="ng", mute=False, F=100, debug=False, omitfast=False, countpoint=0):
     bft = None
     if protocol == 'dumbo':
         bft = DumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'sdumbo':
         bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client,  ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'ng':
-        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute)
+        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, countpoint=countpoint)
     else:
         print("Only support dumbo or sdumbo or mule or ng")
     return bft
@@ -62,6 +62,8 @@ if __name__ == '__main__':
                         help='whether to debug mode', type=bool, default=False)
     parser.add_argument('--O', metavar='O', required=False,
                         help='whether to omit the fast path', type=bool, default=False)
+    parser.add_argument('--C', metavar='C', required=False,
+                        help='point to start measure tps and latency', type=int, default=0)
     args = parser.parse_args()
 
     # Some parameters
@@ -78,6 +80,7 @@ if __name__ == '__main__':
     F = args.F
     D = args.D
     O = args.O
+    C = args.C
 
     # Random generator
     rnd = random.Random(sid)
@@ -119,7 +122,7 @@ if __name__ == '__main__':
 
         net_server = NetworkServer(my_address[1], my_address[0], i, addresses, server_to_bft, server_ready, stop)
         net_client = NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
-        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O)
+        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O, C)
 
         net_server.start()
         net_client.start()

@@ -20,38 +20,14 @@ from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
 from honeybadgerbft.exceptions import UnknownTagError
 
 
-
 class MessageTag(Enum):
     MVBA_SPBC = 'MVBA_SPBC'  # [Queue()] * N
     MVBA_ELECT = 'MVBA_ELECT'  #
     MVBA_ABA = 'MVBA_ABA'  # [Queue()] * Number_of_ABA_Iterations
     MVBA_HALT = 'MVBA_HALT'
 
-
 MessageReceiverQueues = namedtuple(
     'MessageReceiverQueues', ('MVBA_SPBC', 'MVBA_ELECT', 'MVBA_ABA', 'MVBA_HALT'))
-
-
-def recv_loop(recv_func, recv_queues):
-    while True:
-        sender, (tag, r, j, msg) = recv_func(timeout=1000)
-        # print("recv2", (sender, (tag, j, msg[0])))
-
-        if tag not in MessageTag.__members__:
-            raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
-                tag, MessageTag.__members__.keys()))
-        recv_queue = recv_queues._asdict()[tag]
-        if tag in {MessageTag.MVBA_SPBC.value}:
-            recv_queue = recv_queue[r][j]
-        elif tag not in {MessageTag.MVBA_ELECT.value, MessageTag.MVBA_HALT.value}:
-            recv_queue = recv_queue[r]
-        try:
-            recv_queue.put_nowait((sender, msg))
-        except AttributeError as e:
-            # print((sender, msg))
-            traceback.print_exc(e)
-        gevent.sleep(0)
-
 
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
@@ -88,26 +64,60 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     """
     """ 
     """
+
+    r = 0
+    h = 0
+
+    def recv_loop(recv_func, recv_queues):
+        nonlocal r
+        while h == 0:
+            gevent.sleep(0.0001)
+            try:
+                sender, (tag, r0, j, msg) = recv_func()
+            except:
+                continue
+            if r0 < r:
+                continue
+            # print("recv2", (sender, (tag, j, msg[0])))
+            if tag not in MessageTag.__members__:
+                raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
+                    tag, MessageTag.__members__.keys()))
+            recv_queue = recv_queues._asdict()[tag]
+            if tag in {MessageTag.MVBA_SPBC.value}:
+                try:
+                    recv_queue = recv_queue[r0][j]
+                except:
+                   pass
+            elif tag not in {MessageTag.MVBA_ELECT.value, MessageTag.MVBA_HALT.value}:
+                recv_queue = recv_queue[r0]
+            try:
+                recv_queue.put_nowait((sender, msg))
+            except AttributeError as e:
+                # print((sender, msg))
+                #traceback.print_exc(e)
+                pass
+
+
     my_spbc_input = Queue(1)
 
-    vote_recvs = defaultdict(lambda: Queue())
     aba_recvs = defaultdict(lambda: Queue())
 
-    # spbc_recvs = [[Queue() for _ in range(N)] for _ in range(20)]
     spbc_recvs = defaultdict(lambda: [Queue() for _ in range(N)])
     coin_recv = Queue()
     # commit_recvs = [Queue() for _ in range(N)]
     halt_recv = Queue()
 
-    spbc_threads = [None] * N
-    spbc_outputs = [Queue(1) for _ in range(N)]
-    spbc_s1_list = [Queue(1) for _ in range(N)]
-    s1_list = [Queue(1) for _ in range(N)]
+    spbc_threads = {}
+    spbc_s1_threads = {}
+    spbc_outputs = {}
+    spbc_s1_list = {}
+    spbc_flags = {}
+    s1_list = {}
 
-    is_spbc_delivered = [0] * N
-    is_s1_delivered = [0] * N
+    is_spbc_delivered = {}
+    is_s1_delivered = {}
 
-    Leaders = [Queue(1) for _ in range(50)]
+    Leaders = defaultdict(lambda: Queue(1))
 
     recv_queues = MessageReceiverQueues(
         MVBA_SPBC=spbc_recvs,
@@ -118,11 +128,11 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
     )
     recv_loop_thred = Greenlet(recv_loop, receive, recv_queues)
     recv_loop_thred.start()
-    h = 0
+    
     def broadcast(o):
         send(-1, o)
 
-    def spbc_pridict(m):
+    def spbc_predicate(m):
         msg, proof, round, tag = m
 
         # both yes and no vote
@@ -151,15 +161,14 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 return -2
             return 2
 
-    r = 0
 
     def halt():
-        global h
+        nonlocal h
         h = 0
         hasOutputed = False
         while h == 0:
+            gevent.sleep(0.0001)
             try:
-                gevent.sleep(0.001)
                 sender, halt_msg = halt_recv.get_nowait()
                 halt_tag, halt_msg = halt_msg
                 if halt_tag == 'halt' and hasOutputed == False:
@@ -177,18 +186,54 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     h = 1
                     decide(halt_msg[2][0])
                     hasOutputed = True
-                    for i in range(N):
-                        if spbc_threads is not None:
-                            spbc_threads[i].kill()
-                    recv_loop_thred.kill()
+                    try:
+                        for i in range(N):
+                            spbc_flags[r][i][0] = False
+                            spbc_threads[r][i].kill()
+                            try:
+                                spbc_s1_list[r][i].put_nowait("Dummy")
+                            except:
+                                pass
+                            spbc_s1_threads[r][i].kill()
+
+                        for j in range(N):
+                            del spbc_recvs[r][j]
+
+                        del spbc_recvs[r]
+                        del spbc_threads[r]
+                        del spbc_s1_threads[r]
+                        del spbc_outputs[r]
+                        del spbc_s1_list[r]
+                        del spbc_flags[r]
+                        del s1_list[r]
+                        del is_spbc_delivered[r] 
+                        del is_s1_delivered[r] 
+                        del aba_recvs
+                    except:
+                        pass
+                    # recv_loop_thred.kill()
                     # if logger is not None: logger.info("round %d smvba decide in halt %f" % (r, time.time()))
             except:
                 pass
+
+
+
 
     halt_recv_thred = gevent.spawn(halt)
     # halt_recv_thred.start()
 
     while h == 0:
+        gevent.sleep(0.0001)
+        
+        spbc_threads[r] = [None] * N
+        spbc_outputs[r] = [Queue(1) for _ in range(N)]
+        spbc_s1_list[r] = [Queue(1) for _ in range(N)]
+        s1_list[r] = [Queue(1) for _ in range(N)]
+
+        is_spbc_delivered[r] = [0] * N
+        is_s1_delivered[r] = [0] * N
+        spbc_flags[r] = [[True] for _ in range(N)]
+
         """ 
         Setup the sub protocols Input Broadcast SPBCs"""
         for j in range(N):
@@ -205,12 +250,11 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
             # Only leader gets input
             spbc_input = my_spbc_input.get if j == pid else None
-            spbc = gevent.spawn(strongprovablebroadcast, sid + 'SPBC' + str(j), pid, N, f, PK2s, SK2, j,
-                                spbc_input, spbc_s1_list[j].put_nowait, spbc_recvs[r][j].get, make_spbc_send(j, r),
-                                r, logger, spbc_pridict)
+            spbc_threads[r][j] = gevent.spawn(strongprovablebroadcast, sid + 'SPBC' + str(j), pid, N, f, PK2s, SK2, j,
+                                spbc_input, spbc_s1_list[r][j].put_nowait, spbc_recvs[r][j].get, make_spbc_send(j, r),
+                                r, logger, spbc_predicate, spbc_flags[r][j])
             # cbc.get is a blocking function to get cbc output
             # cbc_outputs[j].put_nowait(cbc.get())
-            spbc_threads[j] = spbc
             # gevent.sleep(0)
             # print(pid, "spbc start in round ", r)
 
@@ -254,15 +298,16 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             gevent.spawn(wait_for_input)
 
         def get_spbc_s1(leader):
-            sid, pid, msg, sigmas1 = spbc_s1_list[leader].get()
+            try:
+                sid, pid, msg, sigmas1 = spbc_s1_list[r][leader].get()
+            except:
+                return
             # print(sid, pid, "finish pcbc in round", r)
-            if s1_list[leader].empty() is not True:
-                s1_list[leader].get()
+            s1_list[r][leader].put_nowait((msg, sigmas1))
+            is_s1_delivered[r][leader] = 1
 
-            s1_list[leader].put_nowait((msg, sigmas1))
-            is_s1_delivered[leader] = 1
 
-        spbc_s1_threads = [gevent.spawn(get_spbc_s1, node) for node in range(N)]
+        spbc_s1_threads[r] = [gevent.spawn(get_spbc_s1, node) for node in range(N)]
 
         wait_spbc_signal = Event()
         wait_spbc_signal.clear()
@@ -270,27 +315,37 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         def wait_for_spbc_to_continue(leader):
             # Receive output from CBC broadcast for input values
             try:
-                msg, sigmas2 = spbc_threads[leader].get()
+                msg, sigmas2 = spbc_threads[r][leader].get()
                 # print(sid, pid, "spbc finished, and the msg is")
                 if predicate(msg[0]):
                     try:
-                        if spbc_outputs[leader].empty() is not True:
-                            spbc_outputs[leader].get()
-                        spbc_outputs[leader].put_nowait((msg, sigmas2))
-                        is_spbc_delivered[leader] = 1
-                        if sum(is_spbc_delivered) >= N - f:
+                        spbc_outputs[r][leader].put_nowait((msg, sigmas2))
+                        is_spbc_delivered[r][leader] = 1
+                        if sum(is_spbc_delivered[r]) == N - f:
                             # print("n-f spbc is delivered", pid, sid)
                             wait_spbc_signal.set()
                     except:
                         pass
                 else:
+                    print(leader, sid)
                     pass
             except:
                 pass
 
         spbc_out_threads = [gevent.spawn(wait_for_spbc_to_continue, node) for node in range(N)]
-
         wait_spbc_signal.wait()
+
+        
+        for i in range(N):
+            if spbc_threads[r] is not None:
+                spbc_flags[r][i][0] = False
+                spbc_threads[r][i].kill()
+                try:
+                    spbc_s1_list[r][i].put_nowait("Dummy")
+                except:
+                    pass                    
+                spbc_s1_threads[r][i].kill()
+
         # print("Node %d finishes n-f SPBC" % pid)
         # print(is_spbc_delivered)
 
@@ -305,32 +360,50 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         # print("coin has a seed:", seed)
         Leader = seed % N
         Leaders[r].put(Leader)
-        if is_spbc_delivered[Leader] == 1:
-            msg, s2 = spbc_outputs[Leader].get()
+        if is_spbc_delivered[r][Leader] == 1:
+            msg, s2 = spbc_outputs[r][Leader].get()
             halt = (Leader, 2, msg, s2)
             broadcast(('MVBA_HALT', r, pid, ("halt", halt)))
-            # try:
             # print(pid, sid, "halt here 2")
             decide(msg[0])
             h = 1
-            for i in range(N):
-                if spbc_threads is not None:
-                    spbc_threads[i].kill()
-            recv_loop_thred.kill()
-            halt_recv_thred.kill()
-            # if logger is not None: logger.info("round %d smvba decide in shortcut. %f" % (r, time.time()))
-            # return 2
-        if is_s1_delivered[Leader] == 1:
-            msg, s1 = s1_list[Leader].queue[0]
+            break
+
+        if is_s1_delivered[r][Leader] == 1:
+            msg, s1 = s1_list[r][Leader].queue[0]
             prevote = (Leader, 1, msg, s1)
             # print(pid, sid, "prevote in round ", r)
         else:
             digest_no = hash(str((sid, Leader, r, 'pre')))
             # digest_no = PK1.hash_message(str((sid, Leader, r, 'pre')))
             prevote = (Leader, 0, "bottom", ecdsa_sign(SK2, digest_no))
-            # prevote = (Leader, 0, "bottom", SK1.sign(digest_no))
-            # print(pid, sid, "prevote no in round ", r)
         broadcast(('MVBA_ABA', r, r, ('prevote', prevote)))
+
+        try:
+            for i in range(N):
+                spbc_flags[r][i][0] = False
+                spbc_threads[r][i].kill()
+                try:
+                    spbc_s1_list[r][i].put_nowait("Dummy")
+                except:
+                    pass
+                spbc_s1_threads[r][i].kill()
+
+            for j in range(N):
+                del spbc_recvs[r][j]
+
+            del spbc_recvs[r]
+            del spbc_threads[r]
+            del spbc_s1_threads[r]
+            del spbc_outputs[r]
+            del spbc_s1_list[r]
+            del spbc_flags[r]
+            del s1_list[r]
+            del is_spbc_delivered[r] 
+            del is_s1_delivered[r] 
+
+        except:
+            pass
 
         prevote_no_shares = dict()
         vote_yes_shares = dict()
@@ -340,8 +413,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             # gevent.sleep(0.001)
             hasVoted = False
             hasOutputed = False
+            gevent.sleep(0.0001)
+
             try:
-                gevent.sleep(0.001)
                 sender, aba_msg = aba_recvs[r].get_nowait()
                 aba_tag, vote_msg = aba_msg
                 if aba_tag == 'prevote' and hasVoted == False:
@@ -353,8 +427,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         # print(pid, "get prevote no in round", r)
                         try:
                             assert vote_msg[0] == Leader
-                            # assert (ecdsa_vrfy(PK2s[sender], digest_no, vote_msg[3]))
-                            # assert (PK1.verify_share(vote_msg[3], sender, digest_no) == 1)
                         except AssertionError:
                             if logger is not None: logger.info("pre-vote no failed!")
                             print("pre-vote no failed!")
@@ -371,9 +443,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     elif vote_msg[1] == 1:
                         try:
                             assert vote_msg[0] == Leader
-                            # for (k, sig_k) in vote_msg[3]:
-                            #     assert ecdsa_vrfy(PK2s[k], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "ECHO"))),
-                            #                       sig_k)
                         except AssertionError:
                             if logger is not None: logger.info("pre-vote Signature failed!")
                             print("pre-vote Signature failed!")
@@ -417,12 +486,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
                             decide(vote_msg[2][0])
                             h = 1
-                            for i in range(N):
-                                if spbc_threads is not None:
-                                    spbc_threads[i].kill()
-                            recv_loop_thred.kill()
-                            halt_recv_thred.kill()
-                            # return 1
+                            break
                     # vote no
                     if vote_msg[1] == 0:
                         if vote_msg[0] != Leader:
@@ -465,7 +529,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                     # both vote no and vote yes
                     if (len(vote_no_shares) > 0) and (len(vote_yes_shares) > 0):
                         # print("both vote no and vote yes, move to next round with")
-                        my_spbc_input.put_nowait((vote_yes_msg, vote_msg[3], r, 'yn'))
+                        my_spbc_input.put_nowait((vote_yes_msg[0], vote_msg[3], r, 'yn'))
                         r += 1
                         prevote_no_shares.clear()
                         vote_yes_shares.clear()
@@ -474,3 +538,10 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         break
             except:
                 pass
+
+
+    recv_loop_thred.kill()
+    halt_recv_thred.kill()
+    del halt_recv
+    del aba_recvs
+    # print(pid, sid, "sMVBA quit")

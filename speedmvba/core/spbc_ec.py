@@ -1,12 +1,9 @@
-from queue import Queue
-
 from gevent import monkey;
-
 monkey.patch_all(thread=False)
-
+from queue import Queue
 from datetime import datetime
 from collections import defaultdict
-import hashlib, pickle
+import hashlib, pickle, gevent
 from crypto.threshsig.boldyreva import serialize, deserialize1
 from crypto.threshsig.boldyreva import TBLSPrivateKey, TBLSPublicKey
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
@@ -16,8 +13,7 @@ def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
 
-
-def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, r, logger=None, predicate=lambda x: True):
+def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, r, logger=None, predicate=lambda x: True, flag=[True]):
     """Consistent broadcast
     :param str sid: session identifier
     :param int pid: ``0 <= pid < N``
@@ -59,10 +55,10 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
     finalSent = False
     cbc_echo_sshares = dict()
     cbc_echo_sshares2 = dict()
+
     def broadcast(o):
         for i in range(N):
             send(i, o)
-        #send(-1, o)
 
     # print("SPBC starts...")
 
@@ -79,11 +75,13 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
         # print("Leader %d broadcasts SPBC SEND messages" % leader)
 
     # Handle all consensus messages
-    while True:
-        # gevent.sleep(0)
-
+    while flag[0]:
+        gevent.sleep(0.0001)
         (j, msg) = receive()
         # print("recv", (j, msg))
+
+        if flag[0] is False:
+            continue
 
         if msg[0] == 'SPBC_SEND':
             # CBC_SEND message

@@ -48,7 +48,7 @@ class NGSNode(Dumbo_NG_k_s):
 
     def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
                  bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug',
-                 mute=False, tx_buffer=None):
+                 mute=False, tx_buffer=None, countpoint=0):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         # self.recv_queue = recv_q
         # self.send_queue = send_q
@@ -58,9 +58,10 @@ class NGSNode(Dumbo_NG_k_s):
         self.stop = stop
         self.mode = mode
         self.flag = 0
+        self.countpoint = countpoint
         Dumbo_NG_k_s.__init__(self, sid, id, max(S, 10), max(int(Bfast), 1), N, f,
                             self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
-                            send=None, recv=None, K=K, mute=mute)
+                            send=None, recv=None, K=K, countpoint=countpoint, mute=mute)
 
         # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
