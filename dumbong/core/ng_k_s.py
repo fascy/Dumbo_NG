@@ -5,9 +5,6 @@ from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
 monkey.patch_all(thread=False)
-import objgraph
-import random
-import objgraph, signal, random
 import hashlib
 import multiprocessing
 import pickle
