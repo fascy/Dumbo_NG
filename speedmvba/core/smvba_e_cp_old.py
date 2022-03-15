@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from speedmvba.core.spbc_ec import strongprovablebroadcast
+from speedmvba.core.spbc_ec_old import strongprovablebroadcast
 monkey.patch_all(thread=False)
 import hashlib
 import pickle
@@ -31,26 +31,6 @@ class MessageTag(Enum):
 MessageReceiverQueues = namedtuple(
     'MessageReceiverQueues', ('MVBA_SPBC', 'MVBA_ELECT', 'MVBA_ABA', 'MVBA_HALT'))
 
-
-def recv_loop(recv_func, recv_queues):
-    while True:
-        sender, (tag, r, j, msg) = recv_func(timeout=1000)
-        # print("recv2", (sender, (tag, j, msg[0])))
-
-        if tag not in MessageTag.__members__:
-            raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
-                tag, MessageTag.__members__.keys()))
-        recv_queue = recv_queues._asdict()[tag]
-        if tag in {MessageTag.MVBA_SPBC.value}:
-            recv_queue = recv_queue[r][j]
-        elif tag not in {MessageTag.MVBA_ELECT.value, MessageTag.MVBA_HALT.value}:
-            recv_queue = recv_queue[r]
-        try:
-            recv_queue.put_nowait((sender, msg))
-        except AttributeError as e:
-            # print((sender, msg))
-            traceback.print_exc(e)
-        gevent.sleep(0)
 
 
 def hash(x):
@@ -116,9 +96,36 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         MVBA_HALT=halt_recv
 
     )
+    h = 0
+    def recv_loop(recv_func, recv_queues):
+        while h == 0:
+            gevent.sleep(0.0001)
+            try:
+                sender, (tag, r0, j, msg) = recv_func()
+            except:
+                continue
+            # print("recv2", (sender, (tag, j, msg[0])))
+            if tag not in MessageTag.__members__:
+                raise UnknownTagError('Unknown tag: {}! Must be one of {}.'.format(
+                    tag, MessageTag.__members__.keys()))
+            recv_queue = recv_queues._asdict()[tag]
+            if tag in {MessageTag.MVBA_SPBC.value}:
+                try:
+                    recv_queue = recv_queue[r0][j]
+                except:
+                    pass
+            elif tag not in {MessageTag.MVBA_ELECT.value, MessageTag.MVBA_HALT.value}:
+                recv_queue = recv_queue[r0]
+            try:
+                recv_queue.put_nowait((sender, msg))
+            except AttributeError as e:
+                # print((sender, msg))
+                # traceback.print_exc(e)
+                pass
+
     recv_loop_thred = Greenlet(recv_loop, receive, recv_queues)
     recv_loop_thred.start()
-    h = 0
+
     def broadcast(o):
         send(-1, o)
 
