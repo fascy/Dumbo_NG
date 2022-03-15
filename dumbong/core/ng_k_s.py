@@ -23,6 +23,7 @@ from gevent.queue import Queue
 from honeybadgerbft.exceptions import UnknownTagError
 from dumbong.core.nwabc import nwatomicbroadcast
 
+gc.disable()
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -254,7 +255,7 @@ class Dumbo_NG_k_s:
                 vaba_thread_r.start()
                 out = vaba_output.get()
                 (view, s, txhash) = out
-
+                prev_view = view
                 # print("vaba returns....")
                 def catch(v_s, v, r):
                     catchup = 0
@@ -313,7 +314,7 @@ class Dumbo_NG_k_s:
                         self.id, self.help_count, epoch,
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
                     gevent.spawn(catch, cur_view, view, epoch)
-                prev_view = view
+                # prev_view = view
                 vaba_thread_r.kill()
 
             def handle_msg():
