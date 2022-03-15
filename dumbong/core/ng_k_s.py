@@ -387,7 +387,7 @@ class Dumbo_NG_k_s:
 
                         wait_input_signal.set()
                         # print("broadcasts grown....")
-                    gevent.sleep(0.05)
+                    gevent.sleep(0.1)
 
             del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
@@ -400,7 +400,7 @@ class Dumbo_NG_k_s:
             # zero = time.time()
             while True:
                 # print(r, "start!")
-                if epoch == self.countpoint:
+                if epoch == self.countpoint + 1:
                     zero = time.time()
                 start = time.time()
 
@@ -433,9 +433,9 @@ class Dumbo_NG_k_s:
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
                         (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
                          self.vaba_latency))
-                    # print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
-                    #       (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
-                    #        self.vaba_latency))
+                    print("node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
+                          (self.id, end - self.s_time, self.total_tx, self.a_latency, self.total_tx / self.total_delay,
+                           self.vaba_latency))
 
                 if epoch > 2:
                     del per_epoch_recv[epoch - 2]
