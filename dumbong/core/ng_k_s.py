@@ -427,7 +427,7 @@ class Dumbo_NG_k_s:
                     self.a_latency = (self.a_latency * (
                             self.total_tx - self.tx_cnt) + self.latency * self.tx_cnt) / self.total_tx
                     # Calculate the overal average latency of all past epoches
-                    self.vaba_latency = (self.vaba_latency * epoch + (end - start)) / (epoch + 1)
+                    self.vaba_latency = (self.vaba_latency * (epoch-self.countpoint) + (end - start)) / (epoch - self.countpoint + 1)
                 if self.logger != None and epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, tps: %f, vaba delay: %f" %
