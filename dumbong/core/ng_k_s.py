@@ -312,7 +312,7 @@ class Dumbo_NG_k_s:
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
                     gevent.spawn(catch, cur_view, view, epoch)
                 prev_view = view
-                vaba_thread_r.kill()
+                # vaba_thread_r.kill()
 
             def handle_msg():
                 nonlocal epoch, per_epoch_recv
