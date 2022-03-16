@@ -1,5 +1,5 @@
 import time
-
+import gc
 from gevent import monkey;
 
 from speedmvba.core.spbc_ec import strongprovablebroadcast
@@ -20,7 +20,6 @@ from gevent.queue import Queue
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
 
 from honeybadgerbft.exceptions import UnknownTagError
-
 
 class MessageTag(Enum):
     MVBA_SPBC = 'MVBA_SPBC'  # [Queue()] * N
@@ -541,8 +540,14 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 pass
 
 
-    recv_loop_thred.kill()
-    halt_recv_thred.kill()
+
+    #print(pid, sid, "sMVBA starts quit")
+    halt_recv_thred.join()
+    # halt_recv_thred.kill()
+    #print(pid, sid, "sMVBA half-way quit")
+    recv_loop_thred.join()
+    # recv_loop_thred.kill()
+    #print(pid, sid, "sMVBA completes quit")
     del halt_recv
     del aba_recvs
     # print(pid, sid, "sMVBA quit")

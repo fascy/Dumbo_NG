@@ -1,7 +1,6 @@
 import gc
 from gevent import monkey;
 from gevent.event import Event
-from dumbobft.core.validatedagreement import validatedagreement
 from speedmvba.core.smvba_e_cp import speedmvba
 
 monkey.patch_all(thread=False)
@@ -15,7 +14,6 @@ import logging
 import os
 import traceback, time
 import gevent
-import numpy as np
 from collections import namedtuple, defaultdict
 from enum import Enum
 from gevent import Greenlet
@@ -65,10 +63,11 @@ class Dumbo_NG_k_s:
         self._recv = recv
         self.logger = set_consensus_log(pid)
         self.K = K
-        self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
+        # self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
+        self.transaction_buffer =[gevent.queue.Queue() for _ in range(self.K)]
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
-        self.mvba_recv = multiprocessing.Queue()
+        self.mvba_recv = gevent.queue.Queue()
         self.debug = debug
         self.s_time = 0
         self.tx_cnt = 0
@@ -83,7 +82,7 @@ class Dumbo_NG_k_s:
         self.sts = defaultdict(lambda: defaultdict())
         self.st_sum = 0
         self.help_count = 0
-        self.op = 0
+        self.op = os.getpid()
         self.ap = 0
         self.countpoint = countpoint
         self.abc_count = 0
@@ -118,8 +117,8 @@ class Dumbo_NG_k_s:
 
         def _recv_loop():
             """Receive messages."""
-            if os.getpid() == self.op:
-                return
+            # if os.getpid() == self.op:
+            #     return
             if os.getpid() == self.ap:
                 return
             while True:
@@ -160,7 +159,6 @@ class Dumbo_NG_k_s:
                 :param recv:
                 """
                 nonlocal epoch, sid, pid, N, K, f, prev_view, cur_view, recent_digest
-                gc.collect()
 
                 prev_view_e = copy.copy(prev_view)
                 # Unique sid for each round
@@ -391,7 +389,6 @@ class Dumbo_NG_k_s:
                         # print("broadcasts grown....")
                     gevent.sleep(0.01)
 
-            del self.transaction_buffer[0]
             gevent.spawn(handle_msg)
             gevent.spawn(track_broadcast_progress)
 
@@ -472,9 +469,11 @@ class Dumbo_NG_k_s:
 
         # Start the agreement process and broadcast process
         self._abcs = Process(target=abcs)
-        self._recv_output = Process(target=_finalize_output)
         self._abcs.start()
-        self._recv_output.start()
+        # self._recv_output = Process(target=_finalize_output)
+        self._recv_output = gevent.spawn(_finalize_output)
+
+        # self._recv_output.start()
 
         # Start the message handler
         self._recv_thread = gevent.spawn(_recv_loop)
