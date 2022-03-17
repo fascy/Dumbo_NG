@@ -67,7 +67,7 @@ class Dumbo_NG_k_s:
         self.transaction_buffer =[gevent.queue.Queue() for _ in range(self.K)]
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
-        self.mvba_recv = gevent.queue.Queue()
+        self.mvba_recv = defaultdict(lambda: gevent.queue.Queue())
         self.debug = debug
         self.s_time = 0
         self.tx_cnt = 0
@@ -90,6 +90,7 @@ class Dumbo_NG_k_s:
         self.catch_up_sum = 0
         self.catch_up_sum1 = 0
         self.catch_up_sum2 = 0
+        self.epoch = 0
 
     def submit_tx(self, tx, j):
         """Appends the given transaction to the transaction buffer.
@@ -117,25 +118,28 @@ class Dumbo_NG_k_s:
 
         def _recv_loop():
             """Receive messages."""
-            # if os.getpid() == self.op:
-            #     return
-            if os.getpid() == self.ap:
+            if os.getpid() != self.op:
                 return
+            print("run _recv_loop:", os.getpid())
             while True:
                 try:
                     (sender, (r, msg)) = self._recv()
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
+                        #print(msg[0])
                         self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
                     else:
-                        self.mvba_recv.put_nowait((r, (sender, msg)))
+                        if r < self.epoch:
+                            continue
+                        self.mvba_recv[r].put_nowait((sender, msg[2]))
                 except:
                     continue
+                gevent.sleep(0.001)
 
         # This process tracks the recent progress of broadcasts and run a seuqnce of validated agreement
         # such that it can pack all broadcasted transactions into the ledger
         def _finalize_output():
 
-            epoch = 0
+            # epoch = 0
             sid = self.sid
             pid = self.id
             N = self.N
@@ -147,7 +151,7 @@ class Dumbo_NG_k_s:
 
             recent_digest = defaultdict((lambda: defaultdict()))
 
-            per_epoch_recv = {}  # Buffer of incoming messages
+            # per_epoch_recv = {}  # Buffer of incoming messages
             self.op = os.getpid()
 
             # This method defines one validated agreement and its external validity condition
@@ -158,7 +162,7 @@ class Dumbo_NG_k_s:
                 :param send:
                 :param recv:
                 """
-                nonlocal epoch, sid, pid, N, K, f, prev_view, cur_view, recent_digest
+                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest
 
                 prev_view_e = copy.copy(prev_view)
                 # Unique sid for each round
@@ -166,7 +170,7 @@ class Dumbo_NG_k_s:
                 vaba_input = gevent.queue.Queue(1)
                 vaba_output = gevent.queue.Queue(1)
                 vaba_input.put_nowait(tx_to_send)
-                sid_e = sid + ':' + str(epoch)
+                sid_e = sid + ':' + str(self.epoch)
                 self.tx_cnt = 0
 
                 # def make_vaba_send():
@@ -175,7 +179,7 @@ class Dumbo_NG_k_s:
                 #    return vaba_send
 
                 def make_vaba_predicate():
-                    nonlocal epoch, sid, pid, N, K, f, prev_view_e, cur_view, recent_digest
+                    nonlocal sid, pid, N, K, f, prev_view_e, cur_view, recent_digest
 
                     def vaba_predicate(vj):
                         siglist = [tuple() for _ in range(N * K)]
@@ -244,7 +248,7 @@ class Dumbo_NG_k_s:
                     return vaba_predicate
 
                 # print("vaba starts....")
-                vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(epoch), pid, N, f,
+                vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(self.epoch), pid, N, f,
                                          self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                          vaba_input.get, vaba_output.put_nowait,
                                          recv, send, make_vaba_predicate(), logger=self.logger)
@@ -261,7 +265,7 @@ class Dumbo_NG_k_s:
                         for t in range(v_s[k] + 1, v[k] + 1):
                             if self.txs[k][t] == "catch":
                                 catchup += 1
-                                if epoch > self.countpoint:
+                                if self.epoch > self.countpoint:
                                     self.catch_up_sum1 += 1
                     # print("sid: %d: %d txs batches need to catchup after 50ms in round %d, %d in total, %f " % (self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1/(self.total_tx/self.B)))
                     if self.logger != None:
@@ -275,7 +279,7 @@ class Dumbo_NG_k_s:
                         for t in range(v_s[k] + 1, v[k] + 1):
                             if self.txs[k][t] == "catch":
                                 catchup2 += 1
-                                if epoch > self.countpoint:
+                                if self.epoch > self.countpoint:
                                     self.catch_up_sum2 += 1
                     # print("sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2/(self.total_tx/self.B)))
                     if self.logger != None:
@@ -299,21 +303,21 @@ class Dumbo_NG_k_s:
                             except:
                                 add = 0
                                 self.help_count += 1
-                                if epoch > self.countpoint + 1:
+                                if self.epoch > self.countpoint + 1:
                                     self.catch_up_sum += 1
                             self.st_sum += add
                             self.tx_cnt += self.B
-                if epoch > self.countpoint + 1 and self.help_count > 0:
+                if self.epoch > self.countpoint + 1 and self.help_count > 0:
                     # print(
                     #     "sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (self.id, self.help_count, epoch, self.catch_up_sum, self.catch_up_sum/(self.total_tx/self.B)))
                     if self.logger != None:
                         self.logger.info("sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (
-                        self.id, self.help_count, epoch,
+                        self.id, self.help_count, self.epoch,
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
                     # gevent.spawn(catch, cur_view, view, epoch)
                 prev_view = view
                 # vaba_thread_r.kill()
-
+            """
             def handle_msg():
                 nonlocal epoch, per_epoch_recv
                 if os.getpid() != self.op:
@@ -327,7 +331,7 @@ class Dumbo_NG_k_s:
                         per_epoch_recv[r0] = gevent.queue.Queue()
                     per_epoch_recv[r0].put_nowait((sender, msg))
                     # print((r0, sender, tag, j, msg))
-
+                """
             def _make_vaba_send(r):
                 def _send(j, o):
                     self._send(j, (r, ('X_VABA', '', o)))
@@ -357,7 +361,7 @@ class Dumbo_NG_k_s:
                                 self.txs[i * self.K + j][s] = tx
                                 self.sigs[i * self.K + j][s] = sig
                                 self.sts[i * self.K + j][s] = st
-                                if epoch > 50:
+                                if self.epoch > 50:
                                     del_p = max(0, cur_view[i * K + j] - 50)
                                     try:
                                         for p in list(self.txs[i * K + j]):
@@ -389,7 +393,7 @@ class Dumbo_NG_k_s:
                         # print("broadcasts grown....")
                     gevent.sleep(0.01)
 
-            gevent.spawn(handle_msg)
+            # gevent.spawn(handle_msg)
             gevent.spawn(track_broadcast_progress)
 
             vaba_input = None
@@ -398,15 +402,12 @@ class Dumbo_NG_k_s:
             # zero = time.time()
             while True:
                 # print(r, "start!")
-                if epoch == self.countpoint + 1:
+                if self.epoch == self.countpoint + 1:
                     zero = time.time()
                 start = time.time()
 
-                if epoch not in per_epoch_recv:
-                    per_epoch_recv[epoch] = gevent.queue.Queue()
-
-                send_r = _make_vaba_send(epoch)
-                recv_r = per_epoch_recv[epoch].get_nowait
+                send_r = _make_vaba_send(self.epoch)
+                recv_r = self.mvba_recv[self.epoch].get_nowait
 
                 # Here wait for enough progress to start Validated agreement
                 # The input is set by track_broadcast_progress() handler that processes broadcast QC
@@ -417,7 +418,7 @@ class Dumbo_NG_k_s:
 
                 end = time.time()
 
-                if epoch > self.countpoint:  # Start to count statistics after some warmup
+                if self.epoch > self.countpoint:  # Start to count statistics after some warmup
                     self.total_tx += self.tx_cnt  # Number of so-far output transactions
                     self.total_delay = end - zero  # Total elapsed time of the protocol execution
                     self.latency = (((self.tx_cnt / self.B) - self.help_count) * end - self.st_sum) / (
@@ -426,9 +427,9 @@ class Dumbo_NG_k_s:
                     self.a_latency = (self.a_latency * (
                             self.total_tx - self.tx_cnt) + self.latency * self.tx_cnt) / self.total_tx
                     # Calculate the overal average latency of all past epoches
-                    self.vaba_latency = (self.vaba_latency * (epoch - self.countpoint) + (end - start)) / (
-                                epoch - self.countpoint + 1)
-                if self.logger != None and epoch > self.countpoint:
+                    self.vaba_latency = (self.vaba_latency * (self.epoch - self.countpoint) + (end - start)) / (
+                                self.epoch - self.countpoint + 1)
+                if self.logger != None and self.epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
                         "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
                         " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f, vaba delay2: %f" %
@@ -442,9 +443,9 @@ class Dumbo_NG_k_s:
                          self.total_tx / self.total_delay, self.tx_cnt,
                          self.vaba_latency, end - start, end - start2))
 
-                if epoch > 2:
-                    del per_epoch_recv[epoch - 2]
-                epoch += 1
+                if self.epoch > 2:
+                    del self.mvba_recv[self.epoch - 3]
+                self.epoch += 1
 
         self.s_time = time.time()
         if self.logger != None:
