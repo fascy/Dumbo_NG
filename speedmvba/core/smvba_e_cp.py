@@ -181,9 +181,12 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         print("vote Signature failed!")
                         continue
 
-                    broadcast(('MVBA_HALT', r, r, ("halt", halt_msg)))
+                    send(-2, ('MVBA_HALT', r, r, ("halt", halt_msg)))
                     h = 1
-                    decide(halt_msg[2][0])
+                    try:
+                        decide(halt_msg[2][0])
+                    except:
+                        pass
                     hasOutputed = True
                     try:
                         for i in range(N):
@@ -322,6 +325,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         is_spbc_delivered[r][leader] = 1
                         if sum(is_spbc_delivered[r]) == N - f:
                             # print("n-f spbc is delivered", pid, sid)
+                            gevent.sleep(0.1)
                             wait_spbc_signal.set()
                     except:
                         pass
@@ -333,6 +337,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
         spbc_out_threads = [gevent.spawn(wait_for_spbc_to_continue, node) for node in range(N)]
         wait_spbc_signal.wait()
+        gevent.sleep(0.1)
 
         
         for i in range(N):
@@ -360,13 +365,17 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
         Leader = seed % N
         Leaders[r].put(Leader)
         if is_spbc_delivered[r][Leader] == 1:
+            h = 1
             msg, s2 = spbc_outputs[r][Leader].get()
             halt = (Leader, 2, msg, s2)
-            broadcast(('MVBA_HALT', r, pid, ("halt", halt)))
+            halt_recv.put_nowait("dummy")
+            send(-2, ('MVBA_HALT', r, pid, ("halt", halt)))
             # print(pid, sid, "halt here 2")
             if logger is not None: logger.info("round %d smvba decide in shortcut %f" % (r, time.time()))
-            decide(msg[0])
-            h = 1
+            try:
+                decide(msg[0])
+            except:
+                pass
             break
 
         if is_s1_delivered[r][Leader] == 1:
@@ -477,15 +486,19 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         vote_yes_msg = vote_msg[2]
                         # 2f+1 vote yes
                         if len(vote_yes_shares) == N - f:
+                            h = 1
                             hasOutputed = True
 
                             halt_msg = (Leader, 2, vote_msg[2], tuple(list(vote_yes_shares.items())[:N - f]))
-                            broadcast(('MVBA_HALT', r, pid, ("halt", halt_msg)))
+                            halt_recv.put_nowait("dummy")
+                            send(-2, ('MVBA_HALT', r, pid, ("halt", halt_msg)))
                             if logger is not None: logger.info(
                                 "round %d smvba decide in vote yes %f" % (r, time.time()))
+                            try:
+                                decide(vote_msg[2][0])
+                            except:
+                                pass
 
-                            decide(vote_msg[2][0])
-                            h = 1
                             break
                     # vote no
                     if vote_msg[1] == 0:
