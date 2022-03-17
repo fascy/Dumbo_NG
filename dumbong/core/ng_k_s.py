@@ -127,7 +127,7 @@ class Dumbo_NG_k_s:
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
                         self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
                     else:
-                        self.mvba_recv.put((r, (sender, msg)))
+                        self.mvba_recv.put_nowait((r, (sender, msg)))
                 except:
                     continue
 
@@ -310,7 +310,7 @@ class Dumbo_NG_k_s:
                         self.logger.info("sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (
                         self.id, self.help_count, epoch,
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
-                    gevent.spawn(catch, cur_view, view, epoch)
+                    # gevent.spawn(catch, cur_view, view, epoch)
                 prev_view = view
                 # vaba_thread_r.kill()
 
