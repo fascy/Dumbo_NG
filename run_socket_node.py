@@ -1,6 +1,6 @@
 from gevent import monkey;
-from myexperiements.sockettest.ng_k_s_node import NGSNode
 
+import network
 
 monkey.patch_all(thread=False)
 
@@ -11,8 +11,10 @@ from typing import List, Callable
 from gevent import Greenlet
 from myexperiements.sockettest.dumbo_node import DumboBFTNode
 from myexperiements.sockettest.sdumbo_node import SDumboBFTNode
+from myexperiements.sockettest.ng_k_s_node import NGSNode
 from network.socket_server import NetworkServer
 from network.socket_client import NetworkClient
+from network.socket_client_ng import NetworkClient
 from multiprocessing import Value as mpValue, Queue as mpQueue
 from ctypes import c_bool
 
@@ -25,9 +27,10 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bf
     elif protocol == 'sdumbo':
         bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client,  ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'ng':
-        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, countpoint=countpoint)
+        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute,
+                      countpoint=countpoint)
     else:
-        print("Only support dumbo or sdumbo or mule or ng")
+        print("Only support dumbo or sdumbo or ng or dl")
     return bft
 
 
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--T', metavar='T', required=False,
                         help='fast path timeout', type=float, default=1)
     parser.add_argument('--P', metavar='P', required=False,
-                        help='protocol to execute', type=str, default="mule")
+                        help='protocol to execute', type=str, default="ng")
     parser.add_argument('--M', metavar='M', required=False,
                         help='whether to mute a third of nodes', type=bool, default=False)
     parser.add_argument('--F', metavar='F', required=False,
@@ -104,12 +107,13 @@ if __name__ == '__main__':
         assert all([node is not None for node in addresses])
         print("hosts.config is correctly read")
 
+
         client_bft_mpq = mpQueue()
         #client_from_bft = client_bft_mpq.get
         client_from_bft = lambda: client_bft_mpq.get(timeout=0.00001)
 
-        # bft_to_client = client_bft_mpq.put_nowait
         bft_to_client = client_bft_mpq.put_nowait
+
         server_bft_mpq = mpQueue()
         #bft_from_server = server_bft_mpq.get
         bft_from_server = lambda: server_bft_mpq.get(timeout=0.00001)
@@ -119,9 +123,11 @@ if __name__ == '__main__':
         server_ready = mpValue(c_bool, False)
         net_ready = mpValue(c_bool, False)
         stop = mpValue(c_bool, False)
-
+        if P == 'ng':
+            net_client = network.socket_client_ng.NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
+        else:
+            net_client = network.socket_client.NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
         net_server = NetworkServer(my_address[1], my_address[0], i, addresses, server_to_bft, server_ready, stop)
-        net_client = NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
         bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O, C)
 
         net_server.start()

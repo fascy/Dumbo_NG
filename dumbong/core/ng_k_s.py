@@ -1,4 +1,6 @@
-import gc
+import collections
+import zlib
+
 from gevent import monkey;
 from gevent.event import Event
 from speedmvba.core.smvba_e_cp import speedmvba
@@ -8,6 +10,7 @@ import hashlib
 import multiprocessing
 import pickle
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
+from fastecdsa import curve, ecdsa, keys
 from multiprocessing import Process, Queue
 import copy
 import logging
@@ -63,8 +66,8 @@ class Dumbo_NG_k_s:
         self._recv = recv
         self.logger = set_consensus_log(pid)
         self.K = K
-        # self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
-        self.transaction_buffer =[gevent.queue.Queue() for _ in range(self.K)]
+        self.transaction_buffer = defaultdict(lambda: collections.deque())
+        # self.transaction_buffer =[collections.deque() for _ in range(self.K)]
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.mvba_recv = defaultdict(lambda: gevent.queue.Queue())
@@ -73,6 +76,7 @@ class Dumbo_NG_k_s:
         self.tx_cnt = 0
         self.total_tx = 0
         self.total_delay = 0
+        self.count_delay = 0
         self.latency = 0
         self.a_latency = 0
         self.mute = mute
@@ -96,10 +100,10 @@ class Dumbo_NG_k_s:
         """Appends the given transaction to the transaction buffer.
         :param tx: Transaction to append to the buffer.
         """
-        self.transaction_buffer[j].put_nowait(tx)
+        self.transaction_buffer[j].append(tx)
 
     def buffer_size(self, k):
-        return self.transaction_buffer[k].qsize()
+        return len(self.transaction_buffer[k])
 
     # Entry of the Dumbo-NG protocol
     def run_bft(self):
@@ -124,15 +128,17 @@ class Dumbo_NG_k_s:
             while True:
                 try:
                     (sender, (r, msg)) = self._recv()
+                    # print("in ng recv:", r, msg[0])
                     if msg[0] == 'PROPOSAL' or msg[0] == 'VOTE':
-                        #print(msg[0])
                         self.fast_recv[int(msg[1][6:])].put_nowait((sender, msg))
                     else:
                         if r < self.epoch:
                             continue
                         self.mvba_recv[r].put_nowait((sender, msg[2]))
-                except:
+                except Exception as e:
+                    # print(e)
                     continue
+
                 gevent.sleep(0.001)
 
         # This process tracks the recent progress of broadcasts and run a seuqnce of validated agreement
@@ -183,8 +189,7 @@ class Dumbo_NG_k_s:
 
                     def vaba_predicate(vj):
                         siglist = [tuple() for _ in range(N * K)]
-                        (view, siglist, digestlist) = vj
-
+                        (view, sigsdata, digestlist) = vj
                         # check n-f gorws
                         cnt2 = 0
                         for i in range(N):
@@ -230,12 +235,14 @@ class Dumbo_NG_k_s:
                                         return False
                                 # have to check sig and regist in hash table
                                 else:
+                                    pass
                                     sid_r = sid + 'nw' + str(i * K + j)
                                     try:
                                         digest2 = digestlist[i * K + j] + hash(str((sid_r, view[i * K + j])))
                                         for item in siglist[i * K + j]:
                                             (sender, sig_p) = item
-                                            assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
+                                            # assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
+                                            assert ecdsa.verify(sig_p, digest2, self.sPK2[sender], curve=curve.P192)
                                     except AssertionError:
                                         if self.logger is not None: self.logger.info("ecdsa signature failed!")
                                         print("ecdsa signature failed!")
@@ -251,7 +258,7 @@ class Dumbo_NG_k_s:
                 vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(self.epoch), pid, N, f,
                                          self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                          vaba_input.get, vaba_output.put_nowait,
-                                         recv, send, make_vaba_predicate(), logger=self.logger)
+                                         recv, send, predicate=make_vaba_predicate(), logger=self.logger)
 
                 vaba_thread_r.start()
                 out = vaba_output.get()
@@ -270,7 +277,7 @@ class Dumbo_NG_k_s:
                     # print("sid: %d: %d txs batches need to catchup after 50ms in round %d, %d in total, %f " % (self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1/(self.total_tx/self.B)))
                     if self.logger != None:
                         self.logger.info(
-                            "sid: %d: %d txs batches need to catchup after 50ms in round %d%d in total, %f " % (
+                            "sid: %d: %d txs batches need to call help after 50ms in epoch %d, %d in total, %f " % (
                             self.id, catchup, r, self.catch_up_sum1, self.catch_up_sum1 / (self.total_tx / self.B)))
 
                     gevent.sleep(0.05)
@@ -284,7 +291,7 @@ class Dumbo_NG_k_s:
                     # print("sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2/(self.total_tx/self.B)))
                     if self.logger != None:
                         self.logger.info(
-                            "sid: %d: %d txs batches need to catchup after 100ms in round %d, %d in total, %f " % (
+                            "sid: %d: %d txs batches need to call help after 100ms in epoch %d, %d in total, %f " % (
                             self.id, catchup2, r, self.catch_up_sum2, self.catch_up_sum2 / (self.total_tx / self.B)))
 
                 self.help_count = 0
@@ -307,141 +314,147 @@ class Dumbo_NG_k_s:
                                     self.catch_up_sum += 1
                             self.st_sum += add
                             self.tx_cnt += self.B
-                if self.epoch > self.countpoint + 1 and self.help_count > 0:
+                if self.epoch > self.countpoint + 1:
                     # print(
                     #     "sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (self.id, self.help_count, epoch, self.catch_up_sum, self.catch_up_sum/(self.total_tx/self.B)))
                     if self.logger != None:
-                        self.logger.info("sid: %d: %d txs batches need to catchup in round %d, %d in total, %f " % (
+                        self.logger.info("sid: %d: %d txs batches need to call help in epoch %d, %d in total, %f " % (
                         self.id, self.help_count, self.epoch,
                         self.catch_up_sum, self.catch_up_sum / (self.total_tx / self.B)))
-                    # gevent.spawn(catch, cur_view, view, epoch)
+                    gevent.spawn(catch, cur_view, view, self.epoch)
                 prev_view = view
                 # vaba_thread_r.kill()
-            """
-            def handle_msg():
-                nonlocal epoch, per_epoch_recv
-                if os.getpid() != self.op:
-                    return
-                while True:
-                    (r0, (sender, (tag, j, msg))) = self.mvba_recv.get(timeout=100)
-                    if r0 < epoch:
-                        # print("mesage drop...")
-                        continue
-                    if r0 not in per_epoch_recv:
-                        per_epoch_recv[r0] = gevent.queue.Queue()
-                    per_epoch_recv[r0].put_nowait((sender, msg))
-                    # print((r0, sender, tag, j, msg))
-                """
+
             def _make_vaba_send(r):
                 def _send(j, o):
                     self._send(j, (r, ('X_VABA', '', o)))
 
                 return _send
 
-            wait_input_signal = Event()
-            wait_input_signal.clear()
-
-            # This is a gevent handler to process QCs passed from broadcast intances
-            def track_broadcast_progress():
-                nonlocal sid, pid, N, K, f, prev_view, cur_view, recent_digest, vaba_input, wait_input_signal
-                count = [0 for _ in range(N)]
+            # only store TX batch digest and QCs of the latest 200 slots
+            # and delete the old stuff from memory.
+            # This allows a faster predicate method in validated agreement
+            # because if a QC was recently verified by the broadcast process,
+            # no need to verify signatures in it again in predicate method.
+            def track_progress():
+                if os.getpid() != self.op:
+                    return
                 while True:
-                    for i in range(N):
-                        for j in range(K):
-                            while self.output_list[i * K + j].qsize() > 0:
-                                out = self.output_list[i * K + j].get()
+                    for i in range(self.N):
+                        for j in range(self.K):
+                            while self.output_list[i * self.K + j].qsize() > 0:
+                                out = self.output_list[i * self.K + j].get()
                                 (_, s, tx, sig, st) = out
-                                if s > cur_view[i * K + j]:
-                                    cur_view[i * K + j] = s
-                                # only store TX batch digest and QCs of the latest 200 slots
-                                # and delete the old stuff from memory.
-                                # This allows a faster predicate method in validated agreement
-                                # because if a QC was recently verified by the broadcast process,
-                                # no need to verify signatures in it again in predicate method.
-                                self.txs[i * self.K + j][s] = tx
-                                self.sigs[i * self.K + j][s] = sig
-                                self.sts[i * self.K + j][s] = st
-                                if self.epoch > 50:
-                                    del_p = max(0, cur_view[i * K + j] - 50)
-                                    try:
-                                        for p in list(self.txs[i * K + j]):
-                                            if p < del_p:
-                                                self.txs[i * K + j].pop(p)
-                                                self.sigs[i * K + j].pop(p)
-                                                self.sts[i * K + j].pop(p)
-                                        for p in list(recent_digest[i * K + j]):
-                                            if p < del_p:
-                                                self.recent_digest[i * K + j].pop(p)
-                                    except Exception as err:
-                                        pass
-                            if wait_input_signal.isSet() == False:
-                                if cur_view[i * K + j] - prev_view[i * K + j] > 0:
-                                    count[i] = 1
-                            if cur_view[i * K + j] - prev_view[i * K + j] < 0:
-                                count = [0 for _ in range(N)]
-                                break
-                        else:
-                            continue
-                        break
-                    if count.count(1) >= (N - f) and wait_input_signal.isSet() == False:
-                        count = [0 for _ in range(N)]
-                        lview = copy.copy(cur_view)
-                        vaba_input = (lview, [self.sigs[j][lview[j]] for j in range(N * K)],
-                                      [self.txs[j][lview[j]] for j in range(N * K)])
 
-                        wait_input_signal.set()
-                        # print("broadcasts grown....")
-                    gevent.sleep(0.01)
+                                if s > cur_view[i * self.K + j]:
+                                    cur_view[i * self.K + j] = s
+                                    self.txs[i * self.K + j][s] = tx
+                                    self.sigs[i * self.K + j][s] = sig
+                                    self.sts[i * self.K + j][s] = st
+                                    if self.epoch > 50:
+                                        del_p = max(0, cur_view[i * self.K + j] - 50)
+                                        try:
+                                            for p in list(self.txs[i * self.K + j]):
+                                                if p < del_p:
+                                                    self.txs[i * self.K + j].pop(p)
+                                                    self.sigs[i * self.K + j].pop(p)
+                                                    self.sts[i * self.K + j].pop(p)
+                                            for p in list(recent_digest[i * K + j]):
+                                                if p < del_p:
+                                                    self.recent_digest[i * K + j].pop(p)
+                                        except Exception as err:
+                                            pass
+                    gevent.sleep(0.1)
 
-            # gevent.spawn(handle_msg)
-            gevent.spawn(track_broadcast_progress)
-
+            gevent.spawn(track_progress)
             vaba_input = None
 
             # This loop runs a sequence of validated agreement to agree on a cut of broadcasts
             # zero = time.time()
+            if self.epoch == 0:
+                if self.logger != None:
+                    self.logger.info("*************************************************************")
+                    self.logger.info("                         warm-up start                       ")
+                    self.logger.info("*************************************************************")
             while True:
                 # print(r, "start!")
                 if self.epoch == self.countpoint + 1:
                     zero = time.time()
+                    if self.logger != None:
+                        self.logger.info("warm-up time: %f" % (zero-self.s_time))
+                        self.logger.info("*************************************************************")
+                        self.logger.info("                       warm-up finished                      ")
+                        self.logger.info("*************************************************************")
+
+
                 start = time.time()
 
                 send_r = _make_vaba_send(self.epoch)
-                recv_r = self.mvba_recv[self.epoch].get_nowait
+                recv_r = self.mvba_recv[self.epoch].get
 
                 # Here wait for enough progress to start Validated agreement
                 # The input is set by track_broadcast_progress() handler that processes broadcast QC
-                wait_input_signal.wait()
+                # wait_input_signal.wait()
+                # Here wait for enough progress to start Validated agreement
+                while True:
+                    count = [0 for _ in range(self.N)]
+                    #print(self.local_view)
+                    for i in range(self.N):
+                        for j in range(self.K):
+                            grow = cur_view[i * self.K + j] - prev_view[i * self.K + j]
+                            if grow < 0:
+                                count[i] = -1
+                                break
+                            elif grow > 0:
+                                count[i] = 1
+                        else:
+                            continue
+                        break
+                    if sum(count) >= self.N - self.f and -1 not in count:
+                        break
+                    gevent.sleep(0)
+
+                lview = copy.copy(cur_view)
+                sig_str = pickle.dumps([self.sigs[j][lview[j]] for j in range(int(self.N * self.K))])
+                sig_str_compress = zlib.compress(sig_str)
+                vaba_input = (lview, sig_str_compress,
+                                      [self.txs[j][lview[j]] for j in range(self.N * self.K)])
+
                 start2 = time.time()
                 _run_VABA_round(vaba_input, send_r, recv_r)
-                wait_input_signal.clear()
 
                 end = time.time()
 
                 if self.epoch > self.countpoint:  # Start to count statistics after some warmup
                     self.total_tx += self.tx_cnt  # Number of so-far output transactions
-                    self.total_delay = end - zero  # Total elapsed time of the protocol execution
+                    self.count_delay = end - zero # running time after warming up
                     self.latency = (((self.tx_cnt / self.B) - self.help_count) * end - self.st_sum) / (
                             (self.tx_cnt / self.B) - self.help_count)
                     # Calculate the latency of this epoch
                     self.a_latency = (self.a_latency * (
                             self.total_tx - self.tx_cnt) + self.latency * self.tx_cnt) / self.total_tx
                     # Calculate the overal average latency of all past epoches
-                    self.vaba_latency = (self.vaba_latency * (self.epoch - self.countpoint) + (end - start)) / (
+                    self.vaba_latency = (self.vaba_latency * (self.epoch - self.countpoint) + (end - start2)) / (
                                 self.epoch - self.countpoint + 1)
                 if self.logger != None and self.epoch > self.countpoint:
                     self.logger.info(  # Print average delay/throughput to the execution log
-                        "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
-                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f, vaba delay2: %f" %
-                        (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
-                         self.total_tx / self.total_delay, self.tx_cnt,
-                         self.vaba_latency, end - start, end-start2))
+                        "node: %d epoch: %d run: %f, "
+                        "total delivered Txs after warm-up: %d, "
+                        "average delay after warm-up: %f, "
+                        " tps after warm-up: %f, "
+                        "average vaba delay after warm-up: %f" %
+                        (self.id, self.epoch, end - self.s_time, self.total_tx, self.a_latency,
+                         self.total_tx / self.count_delay,
+                         self.vaba_latency))
                     print(
-                        "node: %d run: %f total delivered Txs: %d, average delay: %f, latency:%f,"
-                        " tps: %f, tx number: %f, vaba delay_a: %f, vaba delay: %f, vaba delay2: %f" %
-                        (self.id, end - self.s_time, self.total_tx, self.a_latency, self.latency,
-                         self.total_tx / self.total_delay, self.tx_cnt,
-                         self.vaba_latency, end - start, end - start2))
+                        "node: %d epoch: %d run: %f, "
+                        "total delivered Txs after warm-up: %d, "
+                        "average delay after warm-up: %f, "
+                        " tps after warm-up: %f, "
+                        "average vaba delay after warm-up: %f" %
+                        (self.id, self.epoch, end - self.s_time, self.total_tx, self.a_latency,
+                         self.total_tx / self.count_delay,
+                         self.vaba_latency))
 
                 if self.epoch > 2:
                     del self.mvba_recv[self.epoch - 3]
@@ -453,6 +466,7 @@ class Dumbo_NG_k_s:
 
         def _make_send_nwabc():
             def _send(j, o):
+                # print(j, o[0], o[1])
                 self._send(j, ('', o))
 
             return _send
@@ -471,10 +485,8 @@ class Dumbo_NG_k_s:
         # Start the agreement process and broadcast process
         self._abcs = Process(target=abcs)
         self._abcs.start()
-        # self._recv_output = Process(target=_finalize_output)
         self._recv_output = gevent.spawn(_finalize_output)
 
-        # self._recv_output.start()
 
         # Start the message handler
         self._recv_thread = gevent.spawn(_recv_loop)
@@ -500,6 +512,6 @@ class Dumbo_NG_k_s:
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i * self.K + j), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
-                         self.transaction_buffer[j].get_nowait, self.output_list[i * self.K + j].put_nowait, recv, send,
+                         self.transaction_buffer[j].popleft, self.output_list[i * self.K + j].put_nowait, recv, send,
                          self.logger, 1)
         self.threads.append(t)

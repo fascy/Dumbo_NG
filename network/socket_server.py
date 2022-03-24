@@ -41,7 +41,7 @@ class NetworkServer (Process):
             try:
                 while not self.stop.value:
                     if self.win == 1:
-                        buf += sock.recv(212992)
+                        buf += sock.recv(int(212992/2))
                     else:
                         buf += sock.recv(25600)
                         # buf += sock.recv(106496)
@@ -54,7 +54,7 @@ class NetworkServer (Process):
                             # assert j in range(self.N)
                             self.server_to_bft((j, o))
                             # self.logger.info('recv' + str((j, o)))
-                            # print('recv' + str((j, o)))
+                            # print('recv' + str((j, o[0], o[1][0], o[1][1])))
                         else:
                             self.logger.error('syntax error messages')
                             raise ValueError
@@ -78,7 +78,6 @@ class NetworkServer (Process):
     def _address_to_id(self, address: tuple):
         for i in range(self.N):
             if address[0] != '127.0.0.1' and address[0] == self.addresses_list[i][0]:
-                print("333333333", i)
                 return i
         # print(address[1], address[0])
         # print("3333", int((address[1] - 10000) / 200))

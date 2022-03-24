@@ -1,4 +1,6 @@
 import gevent
+from fastecdsa import keys, curve
+from fastecdsa.point import Point
 from gevent import monkey, Greenlet;
 
 from dumbong.core.ng_k_s import Dumbo_NG_k_s
@@ -10,7 +12,6 @@ import os
 import pickle
 from gevent import time, monkey
 from myexperiements.sockettest.make_random_tx import tx_generator
-from coincurve import PrivateKey, PublicKey
 from multiprocessing import Value as mpValue, Queue as mpQueue, Process
 
 
@@ -23,8 +24,9 @@ def load_key(id, N):
 
     sPK2s = []
     for i in range(N):
-        with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sPK2-' + str(i) + '.key', 'rb') as fp:
-            sPK2s.append(PublicKey(pickle.load(fp)))
+        with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sPK2-192-' + str(i) + '.key', 'rb') as fp:
+            (x, y) = pickle.load(fp)
+            sPK2s.append(Point(x, y, curve=curve.P192))
 
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'ePK.key', 'rb') as fp:
         ePK = pickle.load(fp)
@@ -35,9 +37,9 @@ def load_key(id, N):
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK1-' + str(id) + '.key', 'rb') as fp:
         sSK1 = pickle.load(fp)
 
-    with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK2-' + str(id) + '.key', 'rb') as fp:
-        sSK2 = PrivateKey(pickle.load(fp))
-
+    with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK2-192-' + str(id) + '.key', 'rb') as fp:
+        sSK2 = pickle.load(fp)
+        print(sSK2)
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'eSK-' + str(id) + '.key', 'rb') as fp:
         eSK = pickle.load(fp)
 
@@ -50,8 +52,6 @@ class NGSNode(Dumbo_NG_k_s):
                  bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug',
                  mute=False, tx_buffer=None, countpoint=0):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
-        # self.recv_queue = recv_q
-        # self.send_queue = send_q
         self.bft_from_server = bft_from_server
         self.bft_to_client = bft_to_client
         self.ready = ready
@@ -60,58 +60,64 @@ class NGSNode(Dumbo_NG_k_s):
         self.flag = 0
         self.countpoint = countpoint
         Dumbo_NG_k_s.__init__(self, sid, id, max(S, 10), max(int(Bfast), 1), N, f,
-                            self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
-                            send=None, recv=None, K=K, countpoint=countpoint, mute=mute)
+                              self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
+                              send=None, recv=None, K=K, countpoint=countpoint, mute=mute)
 
         # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
-    def prepare_bootstrap(self):
-        # self.logger.info('node id %d is inserting dummy payload TXs' % (self.id))
-        tx = tx_generator(250)  # Set each dummy TX to be 250 Byte
-        if self.mode == 'test' or 'debug':
-            k = 0
-            for k in range(self.K):
-                # print(self.SLOTS_NUM)
-                for r in range(max(self.B * self.SLOTS_NUM, 1)):
-                    suffix = hex(self.id) + hex(r) + ">"
-                    Dumbo_NG_k_s.submit_tx(self, tx[:-len(suffix)] + suffix, k)
-                    # print("submit to buffer: ", tx[:-len(suffix)] + suffix)
-                    if r % 50000 == 0:
-                        self.logger.info('node id %d just inserts 50000 TXs into instance %d' % (self.id, k))
-            self.flag = 1
-        else:
-            pass
-            # TODO: submit transactions through tx_buffer
-        self.logger.info('node id %d completed the loading of dummy TXs' % (self.id))
+        self.initial = [0] * self.K
+        # Hotstuff.__init__(self, sid, id, max(S, 200), max(int(Bfast), 1), N, f, self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK, send=None, recv=None, K=K, mute=mute)
 
-    def add_tx(self, k):
+    def client(self, k):
+        if os.getpid() == self.op:
+            return
         itr = 0
+        rnd_tx = tx_generator(250)
+        suffix = hex(self.id) + hex(k) + ">"
+        for r in range(max(self.SLOTS_NUM * self.B, 1)):
+            suffix1 = hex(r) + suffix
+            Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix1)] + suffix1], k)
+        self.initial[k] = 1
         while True:
-            if Dumbo_NG_k_s.buffer_size(self, k) < 100 * self.B:
-                tx = tx_generator(250)
-                for r in range(max(self.B * self.SLOTS_NUM, 1)):
-                    suffix = hex(self.id) + hex(k) + hex(r) + ">"
-                    Dumbo_NG_k_s.submit_tx(self, tx[:-len(suffix)] + suffix, k)
+            gevent.sleep(4)
+            suffix1 = hex(itr) + suffix
+            buffer_len = Dumbo_NG_k_s.buffer_size(self, k)
+            if buffer_len < 15 * self.B:
+                for r in range(max(5 * self.B, 1)):
+                    suffix2 = hex(r) + suffix1
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+            elif buffer_len < 10 * self.B:
+                for r in range(max(10 * self.B, 1)):
+                    suffix2 = hex(r) + suffix1
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+            elif buffer_len < 5 * self.B:
+                for r in range(max(15 * self.B, 1)):
+                    suffix2 = hex(r) + suffix1
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+            else:
+                continue
             itr += 1
-            gevent.sleep(2)
 
     def run(self):
 
-        pid = os.getpid()
-        self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, pid))
+        # self.logger.info('node %d\'s starts to run consensus on process id %d' % (self.id, self.op))
 
         self._send = lambda j, o: self.bft_to_client((j, o))
         self._recv = lambda: self.bft_from_server()
 
-        self.prepare_bootstrap()
-        print("initial tx loaded")
-        add_threads = [gevent.spawn(self.add_tx, k) for k in range(self.K)]
+        # print("initial tx loading")
+
+        client_threads = [gevent.spawn(self.client, k) for k in range(self.K)]
+
+        while sum(self.initial) == self.K:
+            gevent.sleep(1)
+        # print("initial tx loaded")
 
         while not self.ready.value:
             time.sleep(1)
             # gevent.sleep(1)
 
         self.run_bft()
-        gevent.joinall(add_threads)
+        gevent.joinall(client_threads)
 
         self.stop.value = True
