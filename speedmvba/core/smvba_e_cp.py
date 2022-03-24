@@ -1,6 +1,6 @@
 from gevent import monkey;
 
-from speedmvba.core.spbc_ec import strongprovablebroadcast
+from speedmvba.core.spbc_ec_cp import strongprovablebroadcast
 
 monkey.patch_all(thread=False)
 import hashlib
