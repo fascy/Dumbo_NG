@@ -175,7 +175,10 @@ class RECOVER(Process):
                             self.l_c += (et - st)
                             self.txdelay = et - self.s_time
                             block_count = self.txcnt / self.B
-
+                            self.logger.info(
+                                'Node %d Delivers Block of %s with %d TXs, %d in total, tps:%f, %f, %f'
+                                % (self.id, str(sid) + str(j), tx_cnt, self.txcnt,
+                                   self.txcnt / self.txdelay, self.l_c / block_count, et))
                             self.logger.info(
                                 'Block of %s recover in %f second' % (str(sid) + str(j), et - self.re_time[sid][j]))
 

@@ -111,9 +111,9 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 assert ecdsa_vrfy(PK2s[j], digest1FromLeader, sig1)
                 # assert ecdsa.verify(sig1, digest1FromLeader, PK2s[j], curve=curve.P192)
             except AssertionError:
-                print("1-Signature share failed in SPBC!", (r, sid, pid, j, msg))
-                print(digest1FromLeader)
-                if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
+                # print("1-Signature share failed in SPBC!", (r, sid, pid, j, msg))
+                # print(digest1FromLeader)
+                # if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
                 continue
             # print("I accept CBC_ECHO from node %d" % j)
             cbc_echo_sshares[j] = sig1
@@ -139,8 +139,8 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                     assert ecdsa_vrfy(PK2s[k], hash_e, sig)
                     # assert ecdsa.verify(sig, hash_e, PK2s[k], curve=curve.P192)
             except AssertionError:
-                if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
-                print("1-Signature failed!", (r, sid, pid, j, msg))
+                # if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
+                # print("1-Signature failed!", (r, sid, pid, j, msg))
                 continue
             # print("CBC finished for leader", leader)
             digest2 = hash(str((sid, m, "FINAL")))
@@ -165,8 +165,8 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 # assert ecdsa.verify(sig2, digest2, PK2s[j], curve=curve.P192)
                 # assert PK1.verify_share(sig2, j, digest2)
             except AssertionError:
-                print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
-                if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
+                # print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
+                # if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
                 continue
 
             # print("I accept CBC_ECHO from node %d" % j)
