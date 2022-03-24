@@ -71,52 +71,49 @@ class NGSNode(Dumbo_NG_k_s):
         if os.getpid() == self.op:
             return
         itr = 0
-        rnd_tx = tx_generator(250)
+        rnd_tx = tx_generator(250 * self.B)
         suffix = hex(self.id) + hex(k) + ">"
         batch = []
-        for r in range(max(self.SLOTS_NUM * self.B, 1)):
+        for r in range(max(self.SLOTS_NUM, 1)):
             suffix1 = hex(r) + suffix
             tx = rnd_tx[:-len(suffix1)] + suffix1
             batch.append(tx)
-            if (r + 1) % self.B == 0:
-                Dumbo_NG_k_s.submit_tx(self, batch, k)
-                batch = []
-                gevent.sleep(0.001)
+            Dumbo_NG_k_s.submit_tx(self, batch, k)
+            batch = []
+            gevent.sleep(0.001)
         self.initial[k] = 1
         while True:
             gevent.sleep(4)
             suffix1 = hex(itr) + suffix
             buffer_len = Dumbo_NG_k_s.buffer_size(self, k)
-            if buffer_len < 15 * self.B:
+            if buffer_len < 15:
                 batch = []
-                for r in range(max(5 * self.B, 1)):
+                for r in range(max(5, 1)):
                     suffix2 = hex(r) + suffix1
                     tx = rnd_tx[:-len(suffix2)] + suffix2
                     batch.append(tx)
-                    if (r + 1) % self.B == 0:
-                        Dumbo_NG_k_s.submit_tx(self, batch, k)
-                        batch = []
-                        gevent.sleep(0.001)
-            elif buffer_len < 10 * self.B:
+                    Dumbo_NG_k_s.submit_tx(self, batch, k)
+                    batch = []
+                    gevent.sleep(0.001)
+            elif buffer_len < 10:
                 batch = []
-                for r in range(max(10 * self.B, 1)):
+                for r in range(max(10, 1)):
                     suffix2 = hex(r) + suffix1
                     tx = rnd_tx[:-len(suffix2)] + suffix2
                     batch.append(tx)
-                    if (r + 1) % self.B == 0:
-                        Dumbo_NG_k_s.submit_tx(self, batch, k)
-                        batch = []
-                        gevent.sleep(0.001)
-            elif buffer_len < 5 * self.B:
+                    Dumbo_NG_k_s.submit_tx(self, batch, k)
+                    batch = []
+                    gevent.sleep(0.001)
+            elif buffer_len < 5:
                 batch = []
-                for r in range(max(10 * self.B, 1)):
+                for r in range(max(10, 1)):
                     suffix2 = hex(r) + suffix1
                     tx = rnd_tx[:-len(suffix2)] + suffix2
                     batch.append(tx)
-                    if (r + 1) % self.B == 0:
-                        Dumbo_NG_k_s.submit_tx(self, batch, k)
-                        batch = []
-                        gevent.sleep(0.001)
+
+                    Dumbo_NG_k_s.submit_tx(self, batch, k)
+                    batch = []
+                    gevent.sleep(0.001)
             else:
                 continue
             itr += 1
