@@ -1,19 +1,22 @@
-from gevent import monkey;
-monkey.patch_all(thread=False)
 from queue import Queue
+
+from gevent import monkey;
+
+monkey.patch_all(thread=False)
+
 from datetime import datetime
 from collections import defaultdict
-import hashlib, pickle, gevent
+import hashlib, pickle
 from crypto.threshsig.boldyreva import serialize, deserialize1
 from crypto.threshsig.boldyreva import TBLSPrivateKey, TBLSPublicKey
 from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
-
 
 def hash(x):
     return hashlib.sha256(pickle.dumps(x)).digest()
 
 
-def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, r, logger=None, predicate=lambda x: True, flag=[True]):
+
+def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, receive, send, r, logger=None, predicate=lambda x: True):
     """Consistent broadcast
     :param str sid: session identifier
     :param int pid: ``0 <= pid < N``
@@ -55,34 +58,34 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
     finalSent = False
     cbc_echo_sshares = dict()
     cbc_echo_sshares2 = dict()
-
     def broadcast(o):
         for i in range(N):
             send(i, o)
+        #send(-1, o)
 
     # print("SPBC starts...")
 
     if pid == leader:
         # The leader sends the input to each participant
+        # print("block to wait for SPBC input")
 
         m = input()  # block until an input is received
+
+        # print("SPBC input received: ", m[1], m[2])
 
         assert isinstance(m, (str, bytes, list, tuple))
         digest1FromLeader = hash(str((sid, m, "ECHO")))
         # print("leader", pid, "has digest:", digestFromLeader)
         cbc_echo_sshares[pid] = ecdsa_sign(SK2, digest1FromLeader)
-        # cbc_echo_sshares[pid] = ecdsa.sign(digest1FromLeader, SK2, curve=curve.P192)
         broadcast(('SPBC_SEND', m))
         # print("Leader %d broadcasts SPBC SEND messages" % leader)
 
     # Handle all consensus messages
-    while flag[0]:
-        gevent.sleep(0.0001)
+    while True:
+        # gevent.sleep(0)
+
         (j, msg) = receive()
         # print("recv", (j, msg))
-
-        if flag[0] is False:
-            continue
 
         if msg[0] == 'SPBC_SEND':
             # CBC_SEND message
@@ -94,7 +97,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             digest1FromLeader = hash(str((sid, m, "ECHO")))
             # print("Node", pid, "has message", m)
             send(leader, ('SPBC_ECHO', ecdsa_sign(SK2, digest1FromLeader)))
-            # send(leader, ('SPBC_ECHO', ecdsa.sign(digest1FromLeader, SK2, curve=curve.P192)))
 
         elif msg[0] == 'SPBC_ECHO':
             # CBC_READY message
@@ -109,7 +111,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             try:
                 # assert PK1.verify_share(sig1, j, digest1FromLeader)
                 assert ecdsa_vrfy(PK2s[j], digest1FromLeader, sig1)
-                # assert ecdsa.verify(sig1, digest1FromLeader, PK2s[j], curve=curve.P192)
             except AssertionError:
                 # print("1-Signature share failed in SPBC!", (r, sid, pid, j, msg))
                 # print(digest1FromLeader)
@@ -133,19 +134,17 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 print("A SPBC_SEND message from node %d other than leader %d" % (j, leader), msg)
                 continue
             (_, m, sigmas) = msg
-            hash_e = hash(str((sid, m, "ECHO")))
             try:
+                hash_e = hash(str((sid, m, "ECHO")))
                 for (k, sig) in sigmas:
                     assert ecdsa_vrfy(PK2s[k], hash_e, sig)
-                    # assert ecdsa.verify(sig, hash_e, PK2s[k], curve=curve.P192)
             except AssertionError:
-                # if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
-                # print("1-Signature failed!", (r, sid, pid, j, msg))
+                if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
+                print("1-Signature failed!", (r, sid, pid, j, msg))
                 continue
             # print("CBC finished for leader", leader)
             digest2 = hash(str((sid, m, "FINAL")))
             send(leader, ('SPBC_FINAL', ecdsa_sign(SK2, digest2)))
-            # send(leader, ('SPBC_FINAL', ecdsa.sign(digest2, SK2, curve=curve.P192)))
             if output is not None:
                 output((sid, pid, m, sigmas))
 
@@ -159,16 +158,13 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 continue
             (_, sig2) = msg
             digest2 = hash(str((sid, m, "FINAL")))
-
             try:
                 assert ecdsa_vrfy(PK2s[j], digest2, sig2)
-                # assert ecdsa.verify(sig2, digest2, PK2s[j], curve=curve.P192)
                 # assert PK1.verify_share(sig2, j, digest2)
             except AssertionError:
-                # print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
-                # if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
+                print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
+                if logger is not None: logger.info("Signature share failed in SPBC!", (sid, pid, j, msg))
                 continue
-
             # print("I accept CBC_ECHO from node %d" % j)
             cbc_echo_sshares2[j] = sig2
             if len(cbc_echo_sshares2) == EchoThreshold and not finalSent:
@@ -192,7 +188,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 hash_f = hash(str((sid, m, "FINAL")))
                 for (k, sig) in sigmas2:
                     assert ecdsa_vrfy(PK2s[k], hash_f, sig)
-                    # assert ecdsa.verify(sig, hash_f, PK2s[k], curve=curve.P192)
                     # assert PK1.verify_signature(sigmas2, PK1.hash_message(str((sid, m, "FINAL"))))
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))

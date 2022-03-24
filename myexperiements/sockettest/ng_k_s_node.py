@@ -1,4 +1,5 @@
 import gevent
+from coincurve import PrivateKey, PublicKey
 from fastecdsa import keys, curve
 from fastecdsa.point import Point
 from gevent import monkey, Greenlet;
@@ -24,9 +25,8 @@ def load_key(id, N):
 
     sPK2s = []
     for i in range(N):
-        with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sPK2-192-' + str(i) + '.key', 'rb') as fp:
-            (x, y) = pickle.load(fp)
-            sPK2s.append(Point(x, y, curve=curve.P192))
+        with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sPK2-' + str(i) + '.key', 'rb') as fp:
+            sPK2s.append(PublicKey(pickle.load(fp)))
 
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'ePK.key', 'rb') as fp:
         ePK = pickle.load(fp)
@@ -37,9 +37,8 @@ def load_key(id, N):
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK1-' + str(id) + '.key', 'rb') as fp:
         sSK1 = pickle.load(fp)
 
-    with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK2-192-' + str(id) + '.key', 'rb') as fp:
-        sSK2 = pickle.load(fp)
-        print(sSK2)
+    with open(os.getcwd() + '/keys-' + str(N) + '/' + 'sSK2-' + str(id) + '.key', 'rb') as fp:
+        sSK2 = PrivateKey(pickle.load(fp))
     with open(os.getcwd() + '/keys-' + str(N) + '/' + 'eSK-' + str(id) + '.key', 'rb') as fp:
         eSK = pickle.load(fp)
 

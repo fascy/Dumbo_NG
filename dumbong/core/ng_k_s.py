@@ -10,7 +10,6 @@ import hashlib
 import multiprocessing
 import pickle
 from crypto.ecdsa.ecdsa import ecdsa_vrfy
-from fastecdsa import curve, ecdsa, keys
 from multiprocessing import Process, Queue
 import copy
 import logging
@@ -241,8 +240,8 @@ class Dumbo_NG_k_s:
                                         digest2 = digestlist[i * K + j] + hash(str((sid_r, view[i * K + j])))
                                         for item in siglist[i * K + j]:
                                             (sender, sig_p) = item
-                                            # assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
-                                            assert ecdsa.verify(sig_p, digest2, self.sPK2[sender], curve=curve.P192)
+                                            assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
+                                            # assert ecdsa.verify(sig_p, digest2, self.sPK2[sender], curve=curve.P192)
                                     except AssertionError:
                                         if self.logger is not None: self.logger.info("ecdsa signature failed!")
                                         print("ecdsa signature failed!")

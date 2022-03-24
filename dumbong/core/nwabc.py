@@ -1,5 +1,7 @@
 from gevent import monkey;
-from fastecdsa import curve, ecdsa
+
+from crypto.ecdsa.ecdsa import ecdsa_vrfy, ecdsa_sign
+
 monkey.patch_all(thread=False)
 import hashlib, pickle
 from collections import defaultdict
@@ -119,8 +121,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 if sender not in voters[r]:
                     try:
                         digest1 = hash(str(proposals[r])) + hash(str((sid, r)))
-                        # assert ecdsa_vrfy(PK2s[sender], digest1, sigsh)
-                        assert ecdsa.verify(sigsh, digest1, PK2s[sender], curve=curve.P192)
+                        assert ecdsa_vrfy(PK2s[sender], digest1, sigsh)
+                        # assert ecdsa.verify(sigsh, digest1, PK2s[sender], curve=curve.P192)
                         # print(sender, PK2s[sender])
                     except AssertionError:
                         if logger is not None: logger.info("Signature share failed in vote for %s!" % str(msg))
@@ -165,8 +167,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     digest2 = hash(str(last_tx)) + hash(str((sid, s - 1)))
                     for item in last_sigs:
                         (sender, sig_p) = item
-                        # assert ecdsa_vrfy(PK2s[sender], digest2, sig_p)
-                        assert ecdsa.verify(sig_p, digest2, PK2s[sender], curve=curve.P192)
+                        assert ecdsa_vrfy(PK2s[sender], digest2, sig_p)
+                        # assert ecdsa.verify(sig_p, digest2, PK2s[sender], curve=curve.P192)
                 except AssertionError:
                     if logger is not None: logger.info("ecdsa signature failed!")
                     continue
@@ -192,7 +194,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                 stop = 1
                 return 0
             digest1 = hash(str(tx_s)) + hash(str((sid, s)))
-            sig = ecdsa.sign(digest1, SK2, curve=curve.P192)
+            # sig = ecdsa.sign(digest1, SK2, curve=curve.P192)
+            sig = ecdsa_sign(SK2, digest1)
             send(leader, ('VOTE', sid, s, sig))
             s = s + 1
             last_tx = tx_s
