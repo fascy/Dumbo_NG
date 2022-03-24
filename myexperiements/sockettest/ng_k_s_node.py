@@ -83,12 +83,12 @@ class NGSNode(Dumbo_NG_k_s):
             gevent.sleep(0.001)
         self.initial[k] = 1
         while True:
-            gevent.sleep(0.4)
+            gevent.sleep(0.2)
             suffix1 = hex(itr) + suffix
             buffer_len = Dumbo_NG_k_s.buffer_size(self, k)
             if buffer_len < 10:
                 batch = []
-                for r in range(max(1, 2)):
+                for r in range(max(1, 1)):
                     suffix2 = hex(r) + suffix1
                     tx = rnd_tx[:-len(suffix2)] + suffix2
                     batch.append(tx)
