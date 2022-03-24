@@ -73,26 +73,26 @@ class NGSNode(Dumbo_NG_k_s):
         itr = 0
         rnd_tx = tx_generator(250)
         suffix = hex(self.id) + hex(k) + ">"
-        for r in range(max(self.SLOTS_NUM * self.B, 1)):
+        for r in range(max(self.SLOTS_NUM, 1)):
             suffix1 = hex(r) + suffix
-            Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix1)] + suffix1], k)
+            Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix1)] + suffix1] * self.B, k)
         self.initial[k] = 1
         while True:
-            gevent.sleep(4)
+            gevent.sleep(5)
             suffix1 = hex(itr) + suffix
             buffer_len = Dumbo_NG_k_s.buffer_size(self, k)
             if buffer_len < 15 * self.B:
-                for r in range(max(5 * self.B, 1)):
+                for r in range(max(5, 1)):
                     suffix2 = hex(r) + suffix1
-                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2] * self.B, k)
             elif buffer_len < 10 * self.B:
-                for r in range(max(10 * self.B, 1)):
+                for r in range(max(10, 1)):
                     suffix2 = hex(r) + suffix1
-                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2] * self.B, k)
             elif buffer_len < 5 * self.B:
-                for r in range(max(15 * self.B, 1)):
+                for r in range(max(15, 1)):
                     suffix2 = hex(r) + suffix1
-                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2], k)
+                    Dumbo_NG_k_s.submit_tx(self, [rnd_tx[:-len(suffix2)] + suffix2] * self.B, k)
             else:
                 continue
             itr += 1
