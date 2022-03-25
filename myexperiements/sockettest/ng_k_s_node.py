@@ -74,12 +74,9 @@ class NGSNode(Dumbo_NG_k_s):
         rnd_tx = tx_generator(250)
         suffix = hex(self.id) + hex(k) + ">"
         for r in range(max(self.SLOTS_NUM, 1)):
-            tx = ""
-            for b in range (self.B):
-                suffix1 = hex(r) + suffix
-                # tx = rnd_tx[:-len(suffix1)] + suffix1
-                tx += f'{rnd_tx[:-len(suffix1)]}{suffix1}'
-                # batch.append(tx)
+            suffix1 = hex(r) + suffix
+            tx_s = f'{rnd_tx[:-len(suffix1)]}{suffix1}'
+            tx = tuple([tx_s for _ in range(self.B)])
             Dumbo_NG_k_s.submit_tx(self, tx, k)
 
         self.initial[k] = 1
@@ -89,10 +86,9 @@ class NGSNode(Dumbo_NG_k_s):
             buffer_len = Dumbo_NG_k_s.buffer_size(self, k)
             if buffer_len < 10:
                 for r in range(max(1, 1)):
-                    tx = ""
-                    for b in range (self.B):
-                        suffix2 = hex(r) + suffix1
-                        tx += f'{rnd_tx[:-len(suffix2)]}{suffix2}'
+                    suffix2 = hex(r) + suffix1
+                    tx_s = f'{rnd_tx[:-len(suffix2)]}{suffix2}'
+                    tx = tuple([tx_s for _ in range(self.B)])
                     # tx = rnd_tx[:-len(suffix2)] + suffix2
                     # batch.append(tx)
                     Dumbo_NG_k_s.submit_tx(self, tx, k)
