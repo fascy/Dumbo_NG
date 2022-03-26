@@ -66,8 +66,8 @@ class Dumbo_NG_k_s:
         self.logger = set_consensus_log(pid)
         self.K = K
         # self.transaction_buffer = defaultdict(lambda: collections.deque())
-        self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
-        # self.transaction_buffer =[collections.deque() for _ in range(self.K)]
+        # self.transaction_buffer = defaultdict(lambda: gevent.queue.Queue())
+        self.transaction_buffer =[collections.deque() for _ in range(self.K)]
         self.output_list = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.fast_recv = [multiprocessing.Queue() for _ in range(N * self.K)]
         self.mvba_recv = defaultdict(lambda: gevent.queue.Queue())
@@ -100,12 +100,12 @@ class Dumbo_NG_k_s:
         """Appends the given transaction to the transaction buffer.
         :param tx: Transaction to append to the buffer.
         """
-        # self.transaction_buffer[j].append(tx)
-        self.transaction_buffer[j].put_nowait(tx)
+        self.transaction_buffer[j].append(tx)
+        # self.transaction_buffer[j].put_nowait(tx)
 
     def buffer_size(self, k):
-        # return len(self.transaction_buffer[k])
-        return self.transaction_buffer[k].qsize()
+        return len(self.transaction_buffer[k])
+        # return self.transaction_buffer[k].qsize()
 
     # Entry of the Dumbo-NG protocol
     def run_bft(self):
@@ -514,6 +514,6 @@ class Dumbo_NG_k_s:
         leader = i
         t = gevent.spawn(nwatomicbroadcast, epoch_id + str(i * self.K + j), pid, N, f, self.B,
                          self.sPK2s, self.sSK2, leader,
-                         self.transaction_buffer[j].get, self.output_list[i * self.K + j].put_nowait, recv, send,
+                         self.transaction_buffer[j].popleft, self.output_list[i * self.K + j].put_nowait, recv, send,
                          self.logger, 1)
         self.threads.append(t)
