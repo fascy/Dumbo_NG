@@ -418,8 +418,8 @@ class Dumbo_NG_k_s:
 
                 lview = copy.copy(cur_view)
                 sig_str = pickle.dumps([self.sigs[j][lview[j]] for j in range(int(self.N * self.K))])
-                sig_str_compress = zlib.compress(sig_str)
-                vaba_input = (lview, sig_str_compress,
+                # sig_str_compress = zlib.compress(sig_str)
+                vaba_input = (lview, sig_str,
                                       [self.txs[j][lview[j]] for j in range(self.N * self.K)])
 
                 start2 = time.time()
