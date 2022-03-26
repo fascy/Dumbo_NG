@@ -80,7 +80,6 @@ class NGSNode(Dumbo_NG_k_s):
             Dumbo_NG_k_s.submit_tx(self, tx, k)
 
         self.initial[k] = 1
-        add_count = 0
         while True:
             gevent.sleep(0.2)
             suffix1 = hex(itr) + suffix
@@ -93,10 +92,6 @@ class NGSNode(Dumbo_NG_k_s):
                     # tx = rnd_tx[:-len(suffix2)] + suffix2
                     # batch.append(tx)
                     Dumbo_NG_k_s.submit_tx(self, tx, k)
-                    add_count += 1
-                    if add_count == 10:
-                        gevent.sleep(0.001)
-                        add_count = 0
             else:
                 continue
             itr += 1
