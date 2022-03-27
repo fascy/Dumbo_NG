@@ -34,7 +34,7 @@ class NetworkClient(Process):
         self.is_out_sock_connected = [False] * self.N
 
         self.socks = [None for _ in self.addresses_list]
-        self.sock_queues = [Queue() for _ in self.addresses_list]
+        self.sock_queues = [PriorityQueue() for _ in self.addresses_list]
 
         self.sock_locks = [lock.Semaphore() for _ in self.addresses_list]
         self.s = s
@@ -62,6 +62,8 @@ class NetworkClient(Process):
         # gevent.joinall(send_threads)
 
     def _connect(self, j: int):
+        self.logger.info(
+            'node %d\'s socket client starts to make outgoing connections to node %d server' % (self.id, j))
         sock = socket.socket()
         if self.ip == '127.0.0.1':
             # print(self.ip"bind", self.port + j + 1)
@@ -69,34 +71,39 @@ class NetworkClient(Process):
         try:
             sock.connect(self.addresses_list[j])
             self.socks[j] = sock
+            self.logger.info('node %d\'s socket client made an outgoing connection to node %d server' % (self.id, j))
             return True
         except Exception as e1:
-            self.logger.error(str(j)+str((e1, traceback.print_exc())))
+            self.logger.info('node %d\'s socket client fails to make connection to node %d server' % (self.id, j))
             return False
 
     def _send(self, j: int):
         while not self.stop.value:
             gevent.sleep(0.005)
             # self.sock_locks[j].acquire()
-            p, _, o = self.sock_queues[j].get()
+            p1, p2, o = self.sock_queues[j].get()
+            msg = pickle.dumps(o)
             while True:
                 try:
                     # time.sleep(int(self.id) * 0.01)
-                    msg = pickle.dumps(o)
                     self.socks[j].sendall(msg + self.SEP)
                     break
-                except Exception as e:
+                except:
                     self.logger.error("fail to send msg")
                     if o[1][0] == 'X_VABA':
                         self.logger.error(str((j, o[1][0], o[0])))
                     else:
                         self.logger.error(str((j, o[1][0], o[1][2])))
                     self.logger.error(str((e, traceback.print_exc())))
-                    gevent.sleep(0.001)
-                    self._connect(j)
-                    continue
-                    # self.socks[j].close()
-                    # self.sock_locks[j].release()
+                    # self.logger.error(str((e1, traceback.print_exc())))
+                    self.socks[j].shutdown(socket.SHUT_RDWR)
+                    self.socks[j].close()
+                    while True:
+                        succ = self._connect(j)
+                        if succ:
+                            break
+                        else:
+                            gevent.sleep(0.001)
 
     ##
     def _handle_send_loop(self):
@@ -105,37 +112,40 @@ class NetworkClient(Process):
 
                 j, o = self.client_from_bft()
                 # print("！！！！！！！！！！！！1", j, o)
+                # o = self.send_queue[j].get_nowait()
 
+                # self.logger.info('send' + str((j, o)))
                 try:
-                    #self._send(j, pickle.dumps(o))
-                    if j == -1: # -1 means broadcast
+                    # self._send(j, pickle.dumps(o))
+                    if j == -1:  # -1 means broadcast
                         if o[1][0] == 'X_VABA':
                             for i in range(self.N):
-                                self.sock_queues[i].put_nowait((-1,0,o))
+                                self.sock_queues[i].put_nowait((-1, 0, o))
                         elif o[1][0] == 'PROPOSAL':
                             slot = o[1][2]
                             for i in range(self.N):
-                                self.sock_queues[i].put_nowait((1,-o[1][2],o))
+                                self.sock_queues[i].put_nowait((1, -o[1][2], o))
                         else:
                             for i in range(self.N):
-                                self.sock_queues[i].put_nowait((1,0,o))
-                    elif j == -2: # -2 means broadcast except myself
+                                self.sock_queues[i].put_nowait((1, 0, o))
+                    elif j == -2:  # -2 means broadcast except myself
                         if o[1][0] == 'X_VABA':
                             for i in range(self.N):
-                                self.sock_queues[i].put_nowait((-2,0,o))
+                                self.sock_queues[i].put_nowait((-2, 0, o))
                         else:
                             for i in range(self.N):
-                                self.sock_queues[i].put_nowait((1,0,o))
+                                self.sock_queues[i].put_nowait((1, 0, o))
                     else:
                         if o[1][0] == 'X_VABA':
-                            self.sock_queues[j].put_nowait((-1,0,o))
+                            self.sock_queues[j].put_nowait((-1, 0, o))
                         else:
-                            self.sock_queues[j].put_nowait((1,0,o))
+                            self.sock_queues[j].put_nowait((1, 0, o))
                 except Exception as e:
                     self.logger.error(str(("problem objective when sending", o)))
                     traceback.print_exc()
             except:
                 pass
+
         # print("sending loop quits ...")
 
     def run(self):
