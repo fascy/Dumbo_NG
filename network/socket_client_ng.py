@@ -90,14 +90,16 @@ class NetworkClient(Process):
                     break
                 except Exception as e:
                     self.logger.error("fail to send msg")
-                    if o[1][0] == 'X_VABA':
-                        self.logger.error(str((j, o[1][0], o[0])))
-                    else:
-                        self.logger.error(str((j, o[1][0], o[1][2])))
-                    self.logger.error(str((e, traceback.print_exc())))
-                    # self.logger.error(str((e1, traceback.print_exc())))
-                    self.socks[j].shutdown(socket.SHUT_RDWR)
-                    self.socks[j].close()
+                    try:
+                        if o[1][0] == 'X_VABA':
+                            self.logger.error(str((j, o[1][0], o[0])))
+                        else:
+                            self.logger.error(str((j, o[1][0], o[1][2])))
+                        self.logger.error(str((e, traceback.print_exc())))
+                        self.socks[j].shutdown(socket.SHUT_RDWR)
+                        self.socks[j].close()
+                    except:
+                        pass
                     while True:
                         succ = self._connect(j)
                         if succ:
