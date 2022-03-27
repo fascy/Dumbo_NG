@@ -105,7 +105,7 @@ class NetworkClient(Process):
                         if succ:
                             break
                         else:
-                            gevent.sleep(0.001)
+                            gevent.sleep(0.01)
 
     ##
     def _handle_send_loop(self):

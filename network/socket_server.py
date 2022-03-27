@@ -75,7 +75,7 @@ class NetworkServer(Process):
         # self.streamServer.serve_forever()
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((self.ip, self.port))
-        server.listen(128)
+        server.listen(1024)
         while True:
             sock, address = server.accept()
             gevent.spawn(_handler, sock, address)
