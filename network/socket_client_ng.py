@@ -92,6 +92,7 @@ class NetworkClient(Process):
                         self.logger.error(str((j, o[1][0], o[1][2])))
                     self.logger.error(str((e, traceback.print_exc())))
                     gevent.sleep(0.001)
+                    self._connect(j)
                     continue
                     # self.socks[j].close()
                     # self.sock_locks[j].release()
