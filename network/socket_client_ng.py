@@ -88,7 +88,7 @@ class NetworkClient(Process):
                     # time.sleep(int(self.id) * 0.01)
                     self.socks[j].sendall(msg + self.SEP)
                     break
-                except:
+                except Exception as e:
                     self.logger.error("fail to send msg")
                     if o[1][0] == 'X_VABA':
                         self.logger.error(str((j, o[1][0], o[0])))
