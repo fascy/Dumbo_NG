@@ -78,16 +78,23 @@ class NetworkClient(Process):
             gevent.sleep(0.005)
             # self.sock_locks[j].acquire()
             p, _, o = self.sock_queues[j].get()
-            try:
-                # time.sleep(int(self.id) * 0.01)
-                msg = pickle.dumps(o)
-                self.socks[j].sendall(msg + self.SEP)
-            except:
-                self.logger.error("fail to send msg")
-                # self.logger.error(str((e1, traceback.print_exc())))
-                self.socks[j].close()
-                break
-                # self.sock_locks[j].release()
+            while True:
+                try:
+                    # time.sleep(int(self.id) * 0.01)
+                    msg = pickle.dumps(o)
+                    self.socks[j].sendall(msg + self.SEP)
+                    break
+                except Exception as e:
+                    self.logger.error("fail to send msg")
+                    if o[1][0] == 'X_VABA':
+                        self.logger.error(str((j, o[1][0], o[0])))
+                    else:
+                        self.logger.error(str((j, o[1][0], o[1][2])))
+                    self.logger.error(str((e, traceback.print_exc())))
+                    gevent.sleep(0.001)
+                    continue
+                    # self.socks[j].close()
+                    # self.sock_locks[j].release()
 
     ##
     def _handle_send_loop(self):
