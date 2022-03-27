@@ -1,3 +1,4 @@
+import gevent
 from gevent import monkey;
 
 import network
@@ -136,6 +137,9 @@ if __name__ == '__main__':
         while not client_ready.value or not server_ready.value:
             time.sleep(1)
             print("waiting for network ready...")
+
+        gevent.sleep(3)
+        time.sleep(3)
 
         with net_ready.get_lock():
             net_ready.value = True
