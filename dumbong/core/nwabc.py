@@ -176,9 +176,9 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     continue
                 if output is not None:
                     output((sid, s - 1, hash(str(last_tx)), last_sigs, last_st))
-                    if logger is not None and s % 10 == 0:
-                        logger.info("%s %d: %f" % (sid, s - 1, time.time() - last_st))
-                        print("%s %d: %f" % (sid, s - 1, time.time() - last_st))
+                    # if logger is not None and s % 10 == 0:
+                    #     logger.info("%s %d: %f" % (sid, s - 1, time.time() - last_st))
+                    #     print("%s %d: %f" % (sid, s - 1, time.time() - last_st))
                     if pid == leader:
                         if s > 20:
                             del proposals[s - 20]
