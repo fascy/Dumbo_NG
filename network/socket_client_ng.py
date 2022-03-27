@@ -71,6 +71,7 @@ class NetworkClient(Process):
             self.socks[j] = sock
             return True
         except Exception as e1:
+            self.logger.error(str((e1, traceback.print_exc())))
             return False
 
     def _send(self, j: int):
