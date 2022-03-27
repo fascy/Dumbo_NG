@@ -34,7 +34,7 @@ class NetworkClient(Process):
         self.is_out_sock_connected = [False] * self.N
 
         self.socks = [None for _ in self.addresses_list]
-        self.sock_queues = [PriorityQueue() for _ in self.addresses_list]
+        self.sock_queues = [Queue() for _ in self.addresses_list]
 
         self.sock_locks = [lock.Semaphore() for _ in self.addresses_list]
         self.s = s
