@@ -148,7 +148,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             try:
                 for (k, sig_k) in proof:
                     assert ecdsa_vrfy(PK2s[k], hash_e, sig_k)
-                    # assert ecdsa.verify(sig_k, hash_e, PK2s[k], curve=curve.P192)
             except AssertionError:
                 if logger is not None: logger.info("sig L verify failed!")
                 print("sig L verify failed!")
@@ -160,7 +159,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             try:
                 for (k, sig_nono) in proof:
                     assert ecdsa_vrfy(PK2s[sender], digest_no_no, sig_nono)
-                    # assert ecdsa.verify(sig_nono, digest_no_no, PK2s[sender], curve=curve.P192)
             except AssertionError:
                 if logger is not None: logger.info("sig nono verify failed!")
                 print("sig nono verify failed!")
@@ -182,7 +180,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                 try:
                     for (k, sig_k) in halt_msg[3]:
                         assert ecdsa_vrfy(PK2s[k], hash_f, sig_k)
-                        # assert ecdsa.verify(sig_k, hash_f, PK2s[k], curve=curve.P192)
                 except AssertionError:
                     if logger is not None: logger.info("vote Signature failed!")
                     print("vote Signature failed!")
@@ -391,7 +388,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
             else:
                 digest_no = hash(str((sid, Leader, r, 'pre')))
                 prevote = (Leader, 0, "bottom", ecdsa_sign(SK2, digest_no))
-                # prevote = (Leader, 0, "bottom", ecdsa.sign(digest_no, SK2, curve=curve.P192))
             broadcast(('MVBA_ABA', r, r, ('prevote', prevote)))
         except:
             # print("KEY ERROR of is_s1_delivered! Guess h: " + str(h))
@@ -443,7 +439,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         try:
                             assert vote_msg[0] == Leader
                             assert ecdsa_vrfy(PK2s[sender], digest_no, vote_msg[3])
-                            # assert ecdsa.verify(vote_msg[3], digest_no, PK2s[sender], curve=curve.P192)
                         except AssertionError:
                             if logger is not None: logger.info("pre-vote no failed!")
                             print("pre-vote no failed!")
@@ -453,7 +448,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                             sigmas_no = tuple(list(prevote_no_shares.items())[:N - f])
                             digest_no_no = hash(str((sid, Leader, r, 'vote')))
                             vote = (Leader, 0, "bottom", sigmas_no, ecdsa_sign(SK2, digest_no_no))
-                            # vote = (Leader, 0, "bottom", sigmas_no, ecdsa.sign(digest_no_no, SK2, curve=curve.P192))
                             broadcast(('MVBA_ABA', r, r, ('vote', vote)))
                             hasVoted = True
 
@@ -466,7 +460,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                             continue
                         pii = hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL")))
                         vote = (Leader, 1, vote_msg[2], vote_msg[3], ecdsa_sign(SK2, pii))
-                        # vote = (Leader, 1, vote_msg[2], vote_msg[3], ecdsa.sign(pii, SK2, curve=curve.P192))
 
                         broadcast(('MVBA_ABA', r, r, ('vote', vote)))
                         hasVoted = True
@@ -482,10 +475,7 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                         try:
                             for (k, sig_k) in vote_msg[3]:
                                 assert ecdsa_vrfy(PK2s[k],hash_e, sig_k)
-                                # assert ecdsa.verify(sig_k, hash_e, PK2s[k], curve=curve.P192)
-                            # assert ecdsa.verify(vote_msg[4],
-                            #                     hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL"))),
-                            #                     PK2s[sender], curve=curve.P192)
+
                             assert ecdsa_vrfy(PK2s[sender], hash(str((sid + 'SPBC' + str(Leader), vote_msg[2], "FINAL"))), vote_msg[4])
                         except AssertionError:
                             if logger is not None: logger.info("vote Signature failed!")
@@ -518,11 +508,9 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                             # vrify sigmas_no
                             for (k, sig_k) in vote_msg[3]:
                                 ecdsa_vrfy(PK2s[k], hash_pre, sig_k)
-                                # ecdsa.verify(sig_k, hash_pre, PK2s[k], curve=curve.P192)
                             # vrify no_no
                             digest_no_no = hash(str((sid, Leader, r, 'vote')))
                             assert ecdsa_vrfy(PK2s[sender], digest_no_no, vote_msg[4])
-                            # assert ecdsa.verify(vote_msg[4], digest_no_no, PK2s[sender], curve=curve.P192)
                         except AssertionError:
                             if logger is not None: logger.info("vote no failed!")
                             print(pid, "vote no failed! sigmas in round", r)

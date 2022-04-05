@@ -1,11 +1,7 @@
-import collections
-import zlib
-
 from gevent import monkey;
-from gevent.event import Event
-from speedmvba.core.smvba_e_cp import speedmvba
-
 monkey.patch_all(thread=False)
+
+import collections
 import hashlib
 import multiprocessing
 import pickle
@@ -17,12 +13,10 @@ import os
 import traceback, time
 import gevent
 from collections import namedtuple, defaultdict
-from enum import Enum
 from gevent import Greenlet
 from gevent.queue import Queue
-from honeybadgerbft.exceptions import UnknownTagError
 from dumbong.core.nwabc import nwatomicbroadcast
-
+from speedmvba.core.smvba_e_cp import speedmvba
 
 def set_consensus_log(id: int):
     logger = logging.getLogger("consensus-node-" + str(id))
@@ -244,7 +238,6 @@ class Dumbo_NG_k_s:
                                         for item in siglist[i * K + j]:
                                             (sender, sig_p) = item
                                             assert ecdsa_vrfy(self.sPK2s[sender], digest2, sig_p)
-                                            # assert ecdsa.verify(sig_p, digest2, self.sPK2[sender], curve=curve.P192)
                                     except AssertionError:
                                         if self.logger is not None: self.logger.info("ecdsa signature failed!")
                                         print("ecdsa signature failed!")
@@ -418,7 +411,6 @@ class Dumbo_NG_k_s:
 
                 lview = copy.copy(cur_view)
                 sig_str = pickle.dumps([self.sigs[j][lview[j]] for j in range(int(self.N * self.K))])
-                # sig_str_compress = zlib.compress(sig_str)
                 vaba_input = (lview, sig_str,
                                       [self.txs[j][lview[j]] for j in range(self.N * self.K)])
 

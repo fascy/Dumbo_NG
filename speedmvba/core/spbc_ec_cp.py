@@ -71,7 +71,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
         digest1FromLeader = hash(str((sid, m, "ECHO")))
         # print("leader", pid, "has digest:", digestFromLeader)
         cbc_echo_sshares[pid] = ecdsa_sign(SK2, digest1FromLeader)
-        # cbc_echo_sshares[pid] = ecdsa.sign(digest1FromLeader, SK2, curve=curve.P192)
         broadcast(('SPBC_SEND', m))
         # print("Leader %d broadcasts SPBC SEND messages" % leader)
 
@@ -94,8 +93,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             digest1FromLeader = hash(str((sid, m, "ECHO")))
             # print("Node", pid, "has message", m)
             send(leader, ('SPBC_ECHO', ecdsa_sign(SK2, digest1FromLeader)))
-            # send(leader, ('SPBC_ECHO', ecdsa.sign(digest1FromLeader, SK2, curve=curve.P192)))
-
         elif msg[0] == 'SPBC_ECHO':
             # CBC_READY message
             # print("I receive CBC_ECHO from node %d" % j)
@@ -109,7 +106,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             try:
                 # assert PK1.verify_share(sig1, j, digest1FromLeader)
                 assert ecdsa_vrfy(PK2s[j], digest1FromLeader, sig1)
-                # assert ecdsa.verify(sig1, digest1FromLeader, PK2s[j], curve=curve.P192)
             except AssertionError:
                 print("1-Signature share failed in SPBC!", (r, sid, pid, j, msg))
                 print(digest1FromLeader)
@@ -137,7 +133,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             try:
                 for (k, sig) in sigmas:
                     assert ecdsa_vrfy(PK2s[k], hash_e, sig)
-                    # assert ecdsa.verify(sig, hash_e, PK2s[k], curve=curve.P192)
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
                 print("1-Signature failed!", (r, sid, pid, j, msg))
@@ -145,7 +140,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
             # print("CBC finished for leader", leader)
             digest2 = hash(str((sid, m, "FINAL")))
             send(leader, ('SPBC_FINAL', ecdsa_sign(SK2, digest2)))
-            # send(leader, ('SPBC_FINAL', ecdsa.sign(digest2, SK2, curve=curve.P192)))
             if output is not None:
                 output((sid, pid, m, sigmas))
 
@@ -162,7 +156,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
 
             try:
                 assert ecdsa_vrfy(PK2s[j], digest2, sig2)
-                # assert ecdsa.verify(sig2, digest2, PK2s[j], curve=curve.P192)
                 # assert PK1.verify_share(sig2, j, digest2)
             except AssertionError:
                 print("2-Signature share failed in SPBC!", (sid, pid, j, msg))
@@ -192,7 +185,6 @@ def strongprovablebroadcast(sid, pid, N, f, PK2s, SK2, leader, input, output, re
                 hash_f = hash(str((sid, m, "FINAL")))
                 for (k, sig) in sigmas2:
                     assert ecdsa_vrfy(PK2s[k], hash_f, sig)
-                    # assert ecdsa.verify(sig, hash_f, PK2s[k], curve=curve.P192)
                     # assert PK1.verify_signature(sigmas2, PK1.hash_message(str((sid, m, "FINAL"))))
             except AssertionError:
                 if logger is not None: logger.info("Signature failed!", (sid, pid, j, msg))
