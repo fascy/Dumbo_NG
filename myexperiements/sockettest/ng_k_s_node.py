@@ -47,7 +47,7 @@ def load_key(id, N):
 
 class NGSNode(Dumbo_NG_k_s):
 
-    def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
+    def __init__(self, sid, id, S, Bfast, Bacs, N, f,
                  bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug',
                  mute=False, tx_buffer=None, countpoint=0):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)

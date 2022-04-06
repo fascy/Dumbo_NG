@@ -48,7 +48,7 @@ def load_key(id, N):
 
 class DL2Node (BM):
 
-    def __init__(self, sid, id, S, T, Bfast, Bacs, N, f,
+    def __init__(self, sid, id, S, Bfast, Bacs, N, f,
                  bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug', mute=False, tx_buffer=None):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         #self.recv_queue = recv_q

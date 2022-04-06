@@ -301,21 +301,6 @@ class BM:
                 """Threshold encryption broadcast."""
                 send(k, ('ACS_VACS', '', o))
 
-            # wait_progress.wait()
-
-            # def wait_pcbc():
-            #    while len(self.bc_instances[sid + ':PCBC' + str(r)]) < N - f:
-            # while self.bc_instances[sid + ':PCBC' + str(r)][pid]
-            #        gevent.sleep(0.00001)
-            #    #wait_progress.set()
-            # print("N - f bc instances have finished in round ", r)
-            # print(self.bc_instances[sid + 'PCBC' + str(r)].keys())
-            # for i in self.bc_instances[sid + ':PCBC' + str(r)].keys():
-            #    (_, v, st, sigs) = self.bc_instances[sid + ':PCBC' + str(r)][i]
-            #    (_, _, root) = v
-            #    values[i] = sid + ':PCBC' + str(r), i, root, sigs
-            # vacs_input.put(values)
-
             def vaba_predicate(m):
                 counter = 0
                 if type(m) is list:
@@ -332,36 +317,15 @@ class BM:
             return Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
                             self.sPK, self.sSK, self.sPK2s, self.sSK2,
                             vacs_input.get, vacs_output.put_nowait,
-                            vacs_recv.get, vacs_send, vaba_predicate, self.logger)
-            # else:
-            # mvba_thread = Greenlet(speedmvba, sid + 'MVBA' + str(r), pid, N, f,
-            #                        self.sPK, self.sSK, self.sPK2s, self.sSK2,
-            #                        vacs_input.get, vacs_output.put_nowait,
-            #                        vacs_recv.get, vacs_send, vaba_predicate)
+                            vacs_recv.get, vacs_send, vaba_predicate, None)
 
-            # mvba_thread.start()
-            # return mvba_thread
-
-        # N instances of PRBC
-        # if self.id == 3: print("start to run pcbc of round", self.round, "at ", time.time())
         pcbc_threads = [None] * N
         for j in range(N):
             # print(self.id, "start to set up PCBC %d" % j)
             pcbc_threads[j] = _setup_pcbc(j)
 
-        # One instance of (validated) ACS
-        # print("start to set up VACS")
-        # if self.id == 3: print("start to run mvba of round", self.round, "at ", time.time())
         mvba_thread = _setup_vacs()
         mvba_thread.start()
-
-        # while True:
-        #    gevent.sleep(0.0001)
-        #    try:
-        #        mvbaout = (list(vacs_output.get_nowait()))
-        #        break
-        #    except:
-        #        continue
 
         mvbaout = list(vacs_output.get())
 

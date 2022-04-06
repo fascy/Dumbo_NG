@@ -457,9 +457,10 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                                 if len(vote_no_shares) == N - f:
                                     pis = tuple(list(vote_no_shares.items())[:N - f])
                                     # print(pid, sid, "n-f no vote, move to next round with in round", r)
+                                    r += 1
                                     my_spbc_input.put_nowait((my_msg, pis, r, 'no'))
                                     # my_spbc_input.put_nowait(my_msg)
-                                    r += 1
+
                                     prevote_no_shares.clear()
                                     vote_yes_shares.clear()
                                     vote_no_shares.clear()
@@ -469,10 +470,11 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                             # both vote no and vote yes
                             if (len(vote_no_shares) > 0) and (len(vote_yes_shares) > 0):
                                 # print("both vote no and vote yes, move to next round with")
+                                r += 1
                                 my_spbc_input.put_nowait((vote_yes_msg[0], vote_msg[3], r, 'yn'))
                                 # print("------------------------------------", vote_yes_msg)
                                 # my_spbc_input.put_nowait(vote_yes_msg)
-                                r += 1
+
                                 prevote_no_shares.clear()
                                 vote_yes_shares.clear()
                                 vote_no_shares.clear()

@@ -20,18 +20,17 @@ from multiprocessing import Value as mpValue, Queue as mpQueue
 from ctypes import c_bool
 
 
-def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server: Callable, bft_to_client: Callable, ready: mpValue,
+def instantiate_bft_node(sid, i, B, N, f, K, S, bft_from_server: Callable, bft_to_client: Callable, ready: mpValue,
                          stop: mpValue, protocol="ng", mute=False, F=100, debug=False, omitfast=False, countpoint=0):
     bft = None
     if protocol == 'dumbo':
         bft = DumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'sdumbo':
-        bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client,  ready, stop, K, mute=mute, debug=debug)
+        bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'ng':
-        bft = NGSNode(sid, i, S, T, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute,
-                      countpoint=countpoint)
+        bft = NGSNode(sid, i, S, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, countpoint=countpoint)
     else:
-        print("Only support dumbo or sdumbo or ng or dl")
+        print("Only support dumbo or sdumbo or ng")
     return bft
 
 
@@ -54,8 +53,6 @@ if __name__ == '__main__':
                         help='rounds to execute', type=int)
     parser.add_argument('--S', metavar='S', required=False,
                         help='slots to execute', type=int, default=50)
-    parser.add_argument('--T', metavar='T', required=False,
-                        help='fast path timeout', type=float, default=1)
     parser.add_argument('--P', metavar='P', required=False,
                         help='protocol to execute', type=str, default="ng")
     parser.add_argument('--M', metavar='M', required=False,
@@ -78,7 +75,6 @@ if __name__ == '__main__':
     B = args.B
     K = args.K
     S = args.S
-    T = args.T
     P = args.P
     M = args.M
     F = args.F
@@ -129,7 +125,7 @@ if __name__ == '__main__':
         else:
             net_client = network.socket_client.NetworkClient(my_address[1], my_address[0], i, addresses, client_from_bft, client_ready, stop)
         net_server = NetworkServer(my_address[1], my_address[0], i, addresses, server_to_bft, server_ready, stop)
-        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O, C)
+        bft = instantiate_bft_node(sid, i, B, N, f, K, S, bft_from_server, bft_to_client, net_ready, stop, P, M, F, D, O, C)
 
         net_server.start()
         net_client.start()

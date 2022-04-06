@@ -18,11 +18,11 @@ from multiprocessing import Value as mpValue, Queue as mpQueue
 from ctypes import c_bool
 
 
-def instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue,
+def instantiate_bft_node(sid, i, B, N, f, K, S, bft_from_server1: Callable, bft_to_client1: Callable,bft_from_server2: Callable, bft_to_client2: Callable, ready: mpValue,
                          stop: mpValue, protocol="mule", mute=False, F=100, debug=False, omitfast=False):
     bft = None
     if protocol == 'dl':
-        bft = DL2Node(sid, i, S, T, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
+        bft = DL2Node(sid, i, S, B, F, N, f, bft_from_server1, bft_to_client1, bft_from_server2, bft_to_client2, ready, stop, K, mute=mute)
 
     else:
         print("Only support dl")
@@ -48,8 +48,6 @@ if __name__ == '__main__':
                         help='rounds to execute', type=int)
     parser.add_argument('--S', metavar='S', required=False,
                         help='slots to execute', type=int, default=50)
-    parser.add_argument('--T', metavar='T', required=False,
-                        help='fast path timeout', type=float, default=1)
     parser.add_argument('--P', metavar='P', required=False,
                         help='protocol to execute', type=str, default="mule")
     parser.add_argument('--M', metavar='M', required=False,
@@ -72,7 +70,6 @@ if __name__ == '__main__':
     B = args.B
     K = args.K
     S = args.S
-    T = args.T
     P = args.P
     M = args.M
     F = args.F
@@ -137,7 +134,7 @@ if __name__ == '__main__':
                                     server_to_bft1, server_to_bft2, server_ready1, server_ready2, stop, stop, 1, 2)
         net_client1 = NetworkClients(my_address1[1], my_address2[1], my_address1[0], my_address2[0], i, addresses1, addresses2,
                                      client_from_bft1, client_from_bft2, client_ready1, client_ready2, stop, stop, BYTE, 0, 1)
-        bft = instantiate_bft_node(sid, i, B, N, f, K, S, T, bft_from_server1, bft_to_client1,
+        bft = instantiate_bft_node(sid, i, B, N, f, K, S, bft_from_server1, bft_to_client1,
                                    bft_from_server2, bft_to_client2, net_ready, stop, P, M, F, D, O)
 
         net_server1.start()
