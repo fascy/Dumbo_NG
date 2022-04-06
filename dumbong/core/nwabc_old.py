@@ -71,7 +71,7 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
 
     if pid == leader:
         # print()
-        proposals[1] = json.dumps([input() for _ in range(BATCH_SIZE)])
+        proposals[1] = input()
         broadcast(('PROPOSAL', sid, s, proposals[1], time.time(), 0))
     stop = 0
 
@@ -123,8 +123,8 @@ def nwatomicbroadcast(sid, pid, N, f, Bsize, PK2s, SK2, leader, input, output, r
                     if len(voters[r]) == N - f:
                         Sigma1 = tuple(votes[r].items())
                         try:
-                            proposals[r+1] = json.dumps([input() for _ in range(BATCH_SIZE)])
-                        except  Exception as e:
+                            proposals[r + 1] = input()
+                        except Exception as e:
                             # if logger is not None: logger.info("all msg in buffer has been sent!")
                             proposals[r + 1] = 0
                             broadcast(('PROPOSAL', sid, r + 1, proposals[r + 1], time.time(), Sigma1))
