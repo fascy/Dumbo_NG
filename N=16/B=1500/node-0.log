@@ -1,0 +1,653 @@
+2022-04-07 14:26:32,730 ng_k_s.py [line:459] run_bft INFO Node 0 starts to run at time:1649341592.7304153 
+2022-04-07 14:26:32,733 ng_k_s.py [line:371] _finalize_output INFO ************************************************************* 
+2022-04-07 14:26:32,733 ng_k_s.py [line:372] _finalize_output INFO                          warm-up start                        
+2022-04-07 14:26:32,733 ng_k_s.py [line:373] _finalize_output INFO ************************************************************* 
+2022-04-07 14:26:59,469 nwabc.py [line:105] handel_messages INFO sid: sidAnw20, 0 catch up in total 
+2022-04-07 14:26:59,889 nwabc.py [line:105] handel_messages INFO sid: sidAnw4, 0 catch up in total 
+2022-04-07 14:26:59,931 nwabc.py [line:105] handel_messages INFO sid: sidAnw21, 0 catch up in total 
+2022-04-07 14:26:59,995 nwabc.py [line:105] handel_messages INFO sid: sidAnw5, 0 catch up in total 
+2022-04-07 14:27:01,242 nwabc.py [line:105] handel_messages INFO sid: sidAnw28, 0 catch up in total 
+2022-04-07 14:27:01,272 nwabc.py [line:105] handel_messages INFO sid: sidAnw26, 0 catch up in total 
+2022-04-07 14:27:01,344 nwabc.py [line:105] handel_messages INFO sid: sidAnw29, 0 catch up in total 
+2022-04-07 14:27:01,402 nwabc.py [line:105] handel_messages INFO sid: sidAnw27, 0 catch up in total 
+2022-04-07 14:27:01,403 nwabc.py [line:105] handel_messages INFO sid: sidAnw22, 0 catch up in total 
+2022-04-07 14:27:01,767 nwabc.py [line:105] handel_messages INFO sid: sidAnw23, 0 catch up in total 
+2022-04-07 14:27:03,798 ng_k_s.py [line:379] _finalize_output INFO warm-up time: 31.068488 
+2022-04-07 14:27:03,799 ng_k_s.py [line:380] _finalize_output INFO ************************************************************* 
+2022-04-07 14:27:03,801 ng_k_s.py [line:381] _finalize_output INFO                        warm-up finished                       
+2022-04-07 14:27:03,801 ng_k_s.py [line:382] _finalize_output INFO ************************************************************* 
+2022-04-07 14:27:03,925 nwabc.py [line:105] handel_messages INFO sid: sidAnw8, 0 catch up in total 
+2022-04-07 14:27:04,156 nwabc.py [line:105] handel_messages INFO sid: sidAnw9, 0 catch up in total 
+2022-04-07 14:27:04,462 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 41 run: 31.731861, total delivered Txs after warm-up: 123000, average delay after warm-up: 1.659002,  tps after warm-up: 185416.049810, average vaba delay after warm-up: 0.330002 
+2022-04-07 14:27:05,180 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 42, 0 in total, 0.000000  
+2022-04-07 14:27:05,183 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 42 run: 32.453040, total delivered Txs after warm-up: 243000, average delay after warm-up: 1.623168,  tps after warm-up: 175508.094565, average vaba delay after warm-up: 0.459372 
+2022-04-07 14:27:05,234 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 42, 0 in total, 0.000000  
+2022-04-07 14:27:05,285 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 42, 0 in total, 0.000000  
+2022-04-07 14:27:05,388 nwabc.py [line:105] handel_messages INFO sid: sidAnw30, 0 catch up in total 
+2022-04-07 14:27:05,501 nwabc.py [line:105] handel_messages INFO sid: sidAnw31, 0 catch up in total 
+2022-04-07 14:27:05,616 nwabc.py [line:105] handel_messages INFO sid: sidAnw3, 0 catch up in total 
+2022-04-07 14:27:05,804 nwabc.py [line:105] handel_messages INFO sid: sidAnw2, 0 catch up in total 
+2022-04-07 14:27:05,825 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 43, 0 in total, 0.000000  
+2022-04-07 14:27:05,827 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 43 run: 33.097049, total delivered Txs after warm-up: 346500, average delay after warm-up: 1.581997,  tps after warm-up: 170810.707485, average vaba delay after warm-up: 0.505398 
+2022-04-07 14:27:05,879 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 43, 0 in total, 0.000000  
+2022-04-07 14:27:05,929 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 43, 0 in total, 0.000000  
+2022-04-07 14:27:05,963 nwabc.py [line:105] handel_messages INFO sid: sidAnw25, 0 catch up in total 
+2022-04-07 14:27:06,097 nwabc.py [line:105] handel_messages INFO sid: sidAnw24, 0 catch up in total 
+2022-04-07 14:27:06,578 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 44, 0 in total, 0.000000  
+2022-04-07 14:27:06,580 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 44 run: 33.850477, total delivered Txs after warm-up: 442500, average delay after warm-up: 1.582059,  tps after warm-up: 159058.854825, average vaba delay after warm-up: 0.554931 
+2022-04-07 14:27:06,631 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 44, 0 in total, 0.000000  
+2022-04-07 14:27:06,682 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 44, 0 in total, 0.000000  
+2022-04-07 14:27:06,963 nwabc.py [line:105] handel_messages INFO sid: sidAnw10, 0 catch up in total 
+2022-04-07 14:27:07,029 nwabc.py [line:105] handel_messages INFO sid: sidAnw11, 0 catch up in total 
+2022-04-07 14:27:07,240 nwabc.py [line:105] handel_messages INFO sid: sidAnw7, 0 catch up in total 
+2022-04-07 14:27:07,261 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 45, 0 in total, 0.000000  
+2022-04-07 14:27:07,264 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 45 run: 34.533886, total delivered Txs after warm-up: 564000, average delay after warm-up: 1.581062,  tps after warm-up: 162751.876376, average vaba delay after warm-up: 0.576283 
+2022-04-07 14:27:07,315 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 45, 0 in total, 0.000000  
+2022-04-07 14:27:07,345 nwabc.py [line:105] handel_messages INFO sid: sidAnw19, 0 catch up in total 
+2022-04-07 14:27:07,366 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 45, 0 in total, 0.000000  
+2022-04-07 14:27:07,532 nwabc.py [line:105] handel_messages INFO sid: sidAnw6, 0 catch up in total 
+2022-04-07 14:27:07,670 nwabc.py [line:105] handel_messages INFO sid: sidAnw18, 0 catch up in total 
+2022-04-07 14:27:07,976 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 46, 0 in total, 0.000000  
+2022-04-07 14:27:07,979 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 46 run: 35.248789, total delivered Txs after warm-up: 678000, average delay after warm-up: 1.569330,  tps after warm-up: 162189.288909, average vaba delay after warm-up: 0.596034 
+2022-04-07 14:27:08,030 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 46, 0 in total, 0.000000  
+2022-04-07 14:27:08,080 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 46, 0 in total, 0.000000  
+2022-04-07 14:27:09,637 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 47, 0 in total, 0.000000  
+2022-04-07 14:27:09,640 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 47 run: 36.910040, total delivered Txs after warm-up: 771000, average delay after warm-up: 1.680996,  tps after warm-up: 131985.482696, average vaba delay after warm-up: 0.729088 
+2022-04-07 14:27:09,691 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 47, 0 in total, 0.000000  
+2022-04-07 14:27:09,742 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 47, 0 in total, 0.000000  
+2022-04-07 14:27:10,274 nwabc.py [line:105] handel_messages INFO sid: sidAnw12, 0 catch up in total 
+2022-04-07 14:27:10,319 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 48, 0 in total, 0.000000  
+2022-04-07 14:27:10,319 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 48 run: 37.589215, total delivered Txs after warm-up: 1033500, average delay after warm-up: 1.767984,  tps after warm-up: 158494.605065, average vaba delay after warm-up: 0.723501 
+2022-04-07 14:27:10,374 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 48, 0 in total, 0.000000  
+2022-04-07 14:27:10,424 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 48, 0 in total, 0.000000  
+2022-04-07 14:27:10,445 nwabc.py [line:105] handel_messages INFO sid: sidAnw13, 0 catch up in total 
+2022-04-07 14:27:11,072 nwabc.py [line:105] handel_messages INFO sid: sidAnw14, 0 catch up in total 
+2022-04-07 14:27:11,133 nwabc.py [line:105] handel_messages INFO sid: sidAnw15, 0 catch up in total 
+2022-04-07 14:27:11,944 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 49, 0 in total, 0.000000  
+2022-04-07 14:27:11,946 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 49 run: 39.216335, total delivered Txs after warm-up: 1147500, average delay after warm-up: 1.834088,  tps after warm-up: 140834.755786, average vaba delay after warm-up: 0.813642 
+2022-04-07 14:27:11,976 nwabc.py [line:105] handel_messages INFO sid: sidAnw16, 0 catch up in total 
+2022-04-07 14:27:11,997 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 49, 0 in total, 0.000000  
+2022-04-07 14:27:12,048 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 49, 0 in total, 0.000000  
+2022-04-07 14:27:12,531 nwabc.py [line:105] handel_messages INFO sid: sidAnw17, 0 catch up in total 
+2022-04-07 14:27:12,733 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 50, 0 in total, 0.000000  
+2022-04-07 14:27:12,736 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 50 run: 40.005688, total delivered Txs after warm-up: 1390500, average delay after warm-up: 1.875741,  tps after warm-up: 155585.640827, average vaba delay after warm-up: 0.811401 
+2022-04-07 14:27:12,787 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 50, 0 in total, 0.000000  
+2022-04-07 14:27:12,838 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 50, 0 in total, 0.000000  
+2022-04-07 14:27:13,394 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 51, 0 in total, 0.000000  
+2022-04-07 14:27:13,397 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 51 run: 40.666805, total delivered Txs after warm-up: 1518000, average delay after warm-up: 1.847242,  tps after warm-up: 158152.723739, average vaba delay after warm-up: 0.798814 
+2022-04-07 14:27:13,450 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 51, 0 in total, 0.000000  
+2022-04-07 14:27:13,501 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 51, 0 in total, 0.000000  
+2022-04-07 14:27:14,066 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 52, 0 in total, 0.000000  
+2022-04-07 14:27:14,068 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 52 run: 41.338526, total delivered Txs after warm-up: 1615500, average delay after warm-up: 1.824362,  tps after warm-up: 157302.247069, average vaba delay after warm-up: 0.788953 
+2022-04-07 14:27:14,120 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 52, 0 in total, 0.000000  
+2022-04-07 14:27:14,171 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 52, 0 in total, 0.000000  
+2022-04-07 14:27:14,813 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 53, 0 in total, 0.000000  
+2022-04-07 14:27:14,816 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 53 run: 42.086032, total delivered Txs after warm-up: 1710000, average delay after warm-up: 1.811392,  tps after warm-up: 155207.007312, average vaba delay after warm-up: 0.785962 
+2022-04-07 14:27:14,867 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 53, 0 in total, 0.000000  
+2022-04-07 14:27:14,918 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 53, 0 in total, 0.000000  
+2022-04-07 14:27:15,465 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 54, 0 in total, 0.000000  
+2022-04-07 14:27:15,468 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 54 run: 42.737883, total delivered Txs after warm-up: 1845000, average delay after warm-up: 1.788179,  tps after warm-up: 158105.889821, average vaba delay after warm-up: 0.776977 
+2022-04-07 14:27:15,519 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 54, 0 in total, 0.000000  
+2022-04-07 14:27:15,570 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 54, 0 in total, 0.000000  
+2022-04-07 14:27:16,249 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 55, 0 in total, 0.000000  
+2022-04-07 14:27:16,249 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 55 run: 43.519538, total delivered Txs after warm-up: 1944000, average delay after warm-up: 1.774429,  tps after warm-up: 156131.407074, average vaba delay after warm-up: 0.777234 
+2022-04-07 14:27:16,301 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 55, 0 in total, 0.000000  
+2022-04-07 14:27:16,352 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 55, 0 in total, 0.000000  
+2022-04-07 14:27:16,922 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 56, 0 in total, 0.000000  
+2022-04-07 14:27:16,922 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 56 run: 44.192531, total delivered Txs after warm-up: 2046000, average delay after warm-up: 1.762317,  tps after warm-up: 155897.087219, average vaba delay after warm-up: 0.771083 
+2022-04-07 14:27:16,974 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 56, 0 in total, 0.000000  
+2022-04-07 14:27:17,026 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 56, 0 in total, 0.000000  
+2022-04-07 14:27:17,542 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 57, 0 in total, 0.000000  
+2022-04-07 14:27:17,544 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 57 run: 44.814163, total delivered Txs after warm-up: 2160000, average delay after warm-up: 1.746301,  tps after warm-up: 157140.333150, average vaba delay after warm-up: 0.762760 
+2022-04-07 14:27:17,596 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 57, 0 in total, 0.000000  
+2022-04-07 14:27:17,648 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 57, 0 in total, 0.000000  
+2022-04-07 14:27:18,201 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 58, 0 in total, 0.000000  
+2022-04-07 14:27:18,203 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 58 run: 45.473326, total delivered Txs after warm-up: 2266500, average delay after warm-up: 1.729976,  tps after warm-up: 157342.969536, average vaba delay after warm-up: 0.757286 
+2022-04-07 14:27:18,255 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 58, 0 in total, 0.000000  
+2022-04-07 14:27:18,305 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 58, 0 in total, 0.000000  
+2022-04-07 14:27:19,034 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 59, 0 in total, 0.000000  
+2022-04-07 14:27:19,036 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 59 run: 46.306244, total delivered Txs after warm-up: 2359500, average delay after warm-up: 1.724876,  tps after warm-up: 154845.639456, average vaba delay after warm-up: 0.761047 
+2022-04-07 14:27:19,088 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 59, 0 in total, 0.000000  
+2022-04-07 14:27:19,140 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 59, 0 in total, 0.000000  
+2022-04-07 14:27:19,705 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 60, 0 in total, 0.000000  
+2022-04-07 14:27:19,706 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 60 run: 46.975571, total delivered Txs after warm-up: 2485500, average delay after warm-up: 1.715325,  tps after warm-up: 156251.148913, average vaba delay after warm-up: 0.756660 
+2022-04-07 14:27:19,757 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 60, 0 in total, 0.000000  
+2022-04-07 14:27:19,808 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 60, 0 in total, 0.000000  
+2022-04-07 14:27:20,384 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 61, 0 in total, 0.000000  
+2022-04-07 14:27:20,387 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 61 run: 47.657028, total delivered Txs after warm-up: 2601000, average delay after warm-up: 1.703600,  tps after warm-up: 156794.993729, average vaba delay after warm-up: 0.753204 
+2022-04-07 14:27:20,438 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 61, 0 in total, 0.000000  
+2022-04-07 14:27:20,490 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 61, 0 in total, 0.000000  
+2022-04-07 14:27:21,132 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 62, 0 in total, 0.000000  
+2022-04-07 14:27:21,135 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 62 run: 48.404845, total delivered Txs after warm-up: 2686500, average delay after warm-up: 1.698480,  tps after warm-up: 154963.353539, average vaba delay after warm-up: 0.752945 
+2022-04-07 14:27:21,186 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 62, 0 in total, 0.000000  
+2022-04-07 14:27:21,237 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 62, 0 in total, 0.000000  
+2022-04-07 14:27:21,966 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 63, 0 in total, 0.000000  
+2022-04-07 14:27:21,969 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 63 run: 49.238737, total delivered Txs after warm-up: 2797500, average delay after warm-up: 1.700168,  tps after warm-up: 153960.467959, average vaba delay after warm-up: 0.756295 
+2022-04-07 14:27:22,021 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 63, 0 in total, 0.000000  
+2022-04-07 14:27:22,072 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 63, 0 in total, 0.000000  
+2022-04-07 14:27:22,686 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 64, 0 in total, 0.000000  
+2022-04-07 14:27:22,688 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 64 run: 49.958379, total delivered Txs after warm-up: 2929500, average delay after warm-up: 1.699685,  tps after warm-up: 155082.953524, average vaba delay after warm-up: 0.754755 
+2022-04-07 14:27:22,740 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 64, 0 in total, 0.000000  
+2022-04-07 14:27:22,791 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 64, 0 in total, 0.000000  
+2022-04-07 14:27:23,350 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 65, 0 in total, 0.000000  
+2022-04-07 14:27:23,352 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 65 run: 50.622386, total delivered Txs after warm-up: 3060000, average delay after warm-up: 1.691423,  tps after warm-up: 156490.542034, average vaba delay after warm-up: 0.751238 
+2022-04-07 14:27:23,405 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 65, 0 in total, 0.000000  
+2022-04-07 14:27:23,456 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 65, 0 in total, 0.000000  
+2022-04-07 14:27:23,978 nwabc.py [line:105] handel_messages INFO sid: sidAnw0, 0 catch up in total 
+2022-04-07 14:27:24,040 nwabc.py [line:105] handel_messages INFO sid: sidAnw1, 0 catch up in total 
+2022-04-07 14:27:24,077 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 66, 0 in total, 0.000000  
+2022-04-07 14:27:24,079 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 66 run: 51.349285, total delivered Txs after warm-up: 3165000, average delay after warm-up: 1.684459,  tps after warm-up: 156058.953800, average vaba delay after warm-up: 0.750321 
+2022-04-07 14:27:24,131 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 66, 0 in total, 0.000000  
+2022-04-07 14:27:24,182 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 66, 0 in total, 0.000000  
+2022-04-07 14:27:24,439 nwabc.py [line:105] handel_messages INFO sid: sidAnw20, 0 catch up in total 
+2022-04-07 14:27:24,734 nwabc.py [line:105] handel_messages INFO sid: sidAnw21, 0 catch up in total 
+2022-04-07 14:27:24,850 nwabc.py [line:105] handel_messages INFO sid: sidAnw4, 0 catch up in total 
+2022-04-07 14:27:24,945 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 67, 0 in total, 0.000000  
+2022-04-07 14:27:24,948 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 67 run: 52.218069, total delivered Txs after warm-up: 3259500, average delay after warm-up: 1.685249,  tps after warm-up: 154116.530422, average vaba delay after warm-up: 0.754538 
+2022-04-07 14:27:25,000 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 67, 0 in total, 0.000000  
+2022-04-07 14:27:25,051 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 67, 0 in total, 0.000000  
+2022-04-07 14:27:25,297 nwabc.py [line:105] handel_messages INFO sid: sidAnw5, 0 catch up in total 
+2022-04-07 14:27:25,608 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 68, 0 in total, 0.000000  
+2022-04-07 14:27:25,611 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 68 run: 52.880940, total delivered Txs after warm-up: 3415500, average delay after warm-up: 1.679521,  tps after warm-up: 156584.874661, average vaba delay after warm-up: 0.751363 
+2022-04-07 14:27:25,663 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 68, 0 in total, 0.000000  
+2022-04-07 14:27:25,713 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 68, 0 in total, 0.000000  
+2022-04-07 14:27:26,324 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 69, 0 in total, 0.000000  
+2022-04-07 14:27:26,326 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 69 run: 53.596092, total delivered Txs after warm-up: 3511500, average delay after warm-up: 1.673893,  tps after warm-up: 155875.432696, average vaba delay after warm-up: 0.750143 
+2022-04-07 14:27:26,378 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 69, 0 in total, 0.000000  
+2022-04-07 14:27:26,428 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 69, 0 in total, 0.000000  
+2022-04-07 14:27:26,967 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 70, 0 in total, 0.000000  
+2022-04-07 14:27:26,969 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 70 run: 54.239047, total delivered Txs after warm-up: 3622500, average delay after warm-up: 1.667154,  tps after warm-up: 156340.642691, average vaba delay after warm-up: 0.746660 
+2022-04-07 14:27:27,021 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 70, 0 in total, 0.000000  
+2022-04-07 14:27:27,072 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 70, 0 in total, 0.000000  
+2022-04-07 14:27:27,345 nwabc.py [line:105] handel_messages INFO sid: sidAnw26, 0 catch up in total 
+2022-04-07 14:27:27,439 nwabc.py [line:105] handel_messages INFO sid: sidAnw27, 0 catch up in total 
+2022-04-07 14:27:27,681 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 71, 0 in total, 0.000000  
+2022-04-07 14:27:27,685 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 71 run: 54.954656, total delivered Txs after warm-up: 3727500, average delay after warm-up: 1.661776,  tps after warm-up: 156052.660851, average vaba delay after warm-up: 0.745665 
+2022-04-07 14:27:27,736 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 71, 0 in total, 0.000000  
+2022-04-07 14:27:27,787 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 71, 0 in total, 0.000000  
+2022-04-07 14:27:27,991 nwabc.py [line:105] handel_messages INFO sid: sidAnw28, 0 catch up in total 
+2022-04-07 14:27:28,386 nwabc.py [line:105] handel_messages INFO sid: sidAnw29, 0 catch up in total 
+2022-04-07 14:27:28,388 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 72, 0 in total, 0.000000  
+2022-04-07 14:27:28,391 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 72 run: 55.660668, total delivered Txs after warm-up: 3819000, average delay after warm-up: 1.658822,  tps after warm-up: 155293.266431, average vaba delay after warm-up: 0.744451 
+2022-04-07 14:27:28,441 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 72, 0 in total, 0.000000  
+2022-04-07 14:27:28,493 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 72, 0 in total, 0.000000  
+2022-04-07 14:27:28,985 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 73, 0 in total, 0.000000  
+2022-04-07 14:27:28,988 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 73 run: 56.257585, total delivered Txs after warm-up: 3934500, average delay after warm-up: 1.653285,  tps after warm-up: 156198.533489, average vaba delay after warm-up: 0.740095 
+2022-04-07 14:27:29,040 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 73, 0 in total, 0.000000  
+2022-04-07 14:27:29,091 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 73, 0 in total, 0.000000  
+2022-04-07 14:27:29,631 nwabc.py [line:105] handel_messages INFO sid: sidAnw22, 0 catch up in total 
+2022-04-07 14:27:29,696 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 74, 0 in total, 0.000000  
+2022-04-07 14:27:29,699 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 74 run: 56.969376, total delivered Txs after warm-up: 4033500, average delay after warm-up: 1.649431,  tps after warm-up: 155728.250249, average vaba delay after warm-up: 0.739274 
+2022-04-07 14:27:29,751 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 74, 0 in total, 0.000000  
+2022-04-07 14:27:29,803 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 74, 0 in total, 0.000000  
+2022-04-07 14:27:30,386 nwabc.py [line:105] handel_messages INFO sid: sidAnw23, 0 catch up in total 
+2022-04-07 14:27:30,392 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 75, 0 in total, 0.000000  
+2022-04-07 14:27:30,394 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 75 run: 57.664516, total delivered Txs after warm-up: 4135500, average delay after warm-up: 1.646294,  tps after warm-up: 155493.144433, average vaba delay after warm-up: 0.738036 
+2022-04-07 14:27:30,447 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 75, 0 in total, 0.000000  
+2022-04-07 14:27:30,499 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 75, 0 in total, 0.000000  
+2022-04-07 14:27:31,107 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 76, 0 in total, 0.000000  
+2022-04-07 14:27:31,109 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 76 run: 58.379065, total delivered Txs after warm-up: 4240500, average delay after warm-up: 1.644468,  tps after warm-up: 155269.512470, average vaba delay after warm-up: 0.737388 
+2022-04-07 14:27:31,161 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 76, 0 in total, 0.000000  
+2022-04-07 14:27:31,211 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 76, 0 in total, 0.000000  
+2022-04-07 14:27:31,805 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 77, 0 in total, 0.000000  
+2022-04-07 14:27:31,807 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 77 run: 59.077270, total delivered Txs after warm-up: 4369500, average delay after warm-up: 1.640782,  tps after warm-up: 156004.640861, average vaba delay after warm-up: 0.736337 
+2022-04-07 14:27:31,859 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 77, 0 in total, 0.000000  
+2022-04-07 14:27:31,909 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 77, 0 in total, 0.000000  
+2022-04-07 14:27:32,510 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 78, 0 in total, 0.000000  
+2022-04-07 14:27:32,512 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 78 run: 59.781828, total delivered Txs after warm-up: 4468500, average delay after warm-up: 1.637291,  tps after warm-up: 155624.526998, average vaba delay after warm-up: 0.735512 
+2022-04-07 14:27:32,563 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 78, 0 in total, 0.000000  
+2022-04-07 14:27:32,584 nwabc.py [line:105] handel_messages INFO sid: sidAnw8, 0 catch up in total 
+2022-04-07 14:27:32,614 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 78, 0 in total, 0.000000  
+2022-04-07 14:27:33,054 nwabc.py [line:105] handel_messages INFO sid: sidAnw9, 0 catch up in total 
+2022-04-07 14:27:33,217 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 79, 0 in total, 0.000000  
+2022-04-07 14:27:33,220 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 79 run: 60.489746, total delivered Txs after warm-up: 4582500, average delay after warm-up: 1.634359,  tps after warm-up: 155754.729404, average vaba delay after warm-up: 0.734814 
+2022-04-07 14:27:33,271 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 79, 0 in total, 0.000000  
+2022-04-07 14:27:33,321 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 79, 0 in total, 0.000000  
+2022-04-07 14:27:33,871 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 80, 0 in total, 0.000000  
+2022-04-07 14:27:33,873 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 80 run: 61.142965, total delivered Txs after warm-up: 4689000, average delay after warm-up: 1.630449,  tps after warm-up: 155912.934728, average vaba delay after warm-up: 0.732812 
+2022-04-07 14:27:33,924 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 80, 0 in total, 0.000000  
+2022-04-07 14:27:33,974 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 80, 0 in total, 0.000000  
+2022-04-07 14:27:34,636 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 81, 0 in total, 0.000000  
+2022-04-07 14:27:34,639 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 81 run: 61.908583, total delivered Txs after warm-up: 4789500, average delay after warm-up: 1.629122,  tps after warm-up: 155301.080212, average vaba delay after warm-up: 0.733584 
+2022-04-07 14:27:34,689 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 81, 0 in total, 0.000000  
+2022-04-07 14:27:34,740 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 81, 0 in total, 0.000000  
+2022-04-07 14:27:35,366 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 82, 0 in total, 0.000000  
+2022-04-07 14:27:35,368 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 82 run: 62.638062, total delivered Txs after warm-up: 4911000, average delay after warm-up: 1.627738,  tps after warm-up: 155561.173606, average vaba delay after warm-up: 0.733479 
+2022-04-07 14:27:35,420 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 82, 0 in total, 0.000000  
+2022-04-07 14:27:35,472 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 82, 0 in total, 0.000000  
+2022-04-07 14:27:35,585 nwabc.py [line:105] handel_messages INFO sid: sidAnw31, 0 catch up in total 
+2022-04-07 14:27:36,022 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 83, 0 in total, 0.000000  
+2022-04-07 14:27:36,024 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 83 run: 63.293957, total delivered Txs after warm-up: 5016000, average delay after warm-up: 1.625014,  tps after warm-up: 155653.279876, average vaba delay after warm-up: 0.731694 
+2022-04-07 14:27:36,026 nwabc.py [line:105] handel_messages INFO sid: sidAnw30, 0 catch up in total 
+2022-04-07 14:27:36,075 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 83, 0 in total, 0.000000  
+2022-04-07 14:27:36,126 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 83, 0 in total, 0.000000  
+2022-04-07 14:27:36,275 nwabc.py [line:105] handel_messages INFO sid: sidAnw25, 0 catch up in total 
+2022-04-07 14:27:36,318 nwabc.py [line:105] handel_messages INFO sid: sidAnw24, 0 catch up in total 
+2022-04-07 14:27:36,716 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 84, 0 in total, 0.000000  
+2022-04-07 14:27:36,717 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 84 run: 63.986742, total delivered Txs after warm-up: 5125500, average delay after warm-up: 1.622491,  tps after warm-up: 155703.883282, average vaba delay after warm-up: 0.730814 
+2022-04-07 14:27:36,770 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 84, 0 in total, 0.000000  
+2022-04-07 14:27:36,820 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 84, 0 in total, 0.000000  
+2022-04-07 14:27:36,981 nwabc.py [line:105] handel_messages INFO sid: sidAnw2, 0 catch up in total 
+2022-04-07 14:27:37,061 nwabc.py [line:105] handel_messages INFO sid: sidAnw3, 0 catch up in total 
+2022-04-07 14:27:37,398 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 85, 0 in total, 0.000000  
+2022-04-07 14:27:37,401 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 85 run: 64.670983, total delivered Txs after warm-up: 5244000, average delay after warm-up: 1.618610,  tps after warm-up: 156059.840408, average vaba delay after warm-up: 0.729753 
+2022-04-07 14:27:37,452 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 85, 0 in total, 0.000000  
+2022-04-07 14:27:37,503 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 85, 0 in total, 0.000000  
+2022-04-07 14:27:38,178 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 86, 0 in total, 0.000000  
+2022-04-07 14:27:38,180 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 86 run: 65.450428, total delivered Txs after warm-up: 5331000, average delay after warm-up: 1.617802,  tps after warm-up: 155052.331062, average vaba delay after warm-up: 0.730801 
+2022-04-07 14:27:38,231 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 86, 0 in total, 0.000000  
+2022-04-07 14:27:38,282 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 86, 0 in total, 0.000000  
+2022-04-07 14:27:38,793 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 87, 0 in total, 0.000000  
+2022-04-07 14:27:38,795 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 87 run: 66.065367, total delivered Txs after warm-up: 5442000, average delay after warm-up: 1.616231,  tps after warm-up: 155499.583136, average vaba delay after warm-up: 0.728378 
+2022-04-07 14:27:38,847 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 87, 0 in total, 0.000000  
+2022-04-07 14:27:38,898 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 87, 0 in total, 0.000000  
+2022-04-07 14:27:38,902 nwabc.py [line:105] handel_messages INFO sid: sidAnw7, 0 catch up in total 
+2022-04-07 14:27:39,126 nwabc.py [line:105] handel_messages INFO sid: sidAnw6, 0 catch up in total 
+2022-04-07 14:27:39,355 nwabc.py [line:105] handel_messages INFO sid: sidAnw10, 0 catch up in total 
+2022-04-07 14:27:39,463 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 88, 0 in total, 0.000000  
+2022-04-07 14:27:39,465 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 88 run: 66.735343, total delivered Txs after warm-up: 5554500, average delay after warm-up: 1.613843,  tps after warm-up: 155732.825233, average vaba delay after warm-up: 0.727178 
+2022-04-07 14:27:39,517 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 88, 0 in total, 0.000000  
+2022-04-07 14:27:39,568 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 88, 0 in total, 0.000000  
+2022-04-07 14:27:39,627 nwabc.py [line:105] handel_messages INFO sid: sidAnw11, 0 catch up in total 
+2022-04-07 14:27:40,146 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 89, 0 in total, 0.000000  
+2022-04-07 14:27:40,148 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 89 run: 67.418301, total delivered Txs after warm-up: 5661000, average delay after warm-up: 1.611097,  tps after warm-up: 155736.704249, average vaba delay after warm-up: 0.726283 
+2022-04-07 14:27:40,199 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 89, 0 in total, 0.000000  
+2022-04-07 14:27:40,250 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 89, 0 in total, 0.000000  
+2022-04-07 14:27:40,509 nwabc.py [line:105] handel_messages INFO sid: sidAnw19, 0 catch up in total 
+2022-04-07 14:27:40,839 nwabc.py [line:105] handel_messages INFO sid: sidAnw18, 0 catch up in total 
+2022-04-07 14:27:40,879 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 90, 0 in total, 0.000000  
+2022-04-07 14:27:40,882 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 90 run: 68.151946, total delivered Txs after warm-up: 5767500, average delay after warm-up: 1.609299,  tps after warm-up: 155527.568259, average vaba delay after warm-up: 0.726416 
+2022-04-07 14:27:40,934 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 90, 0 in total, 0.000000  
+2022-04-07 14:27:40,985 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 90, 0 in total, 0.000000  
+2022-04-07 14:27:41,787 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 91, 0 in total, 0.000000  
+2022-04-07 14:27:41,789 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 91 run: 69.059387, total delivered Txs after warm-up: 5889000, average delay after warm-up: 1.610954,  tps after warm-up: 155010.808948, average vaba delay after warm-up: 0.729889 
+2022-04-07 14:27:41,840 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 91, 0 in total, 0.000000  
+2022-04-07 14:27:41,891 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 91, 0 in total, 0.000000  
+2022-04-07 14:27:42,491 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 92, 0 in total, 0.000000  
+2022-04-07 14:27:42,494 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 92 run: 69.763683, total delivered Txs after warm-up: 6022500, average delay after warm-up: 1.609924,  tps after warm-up: 155639.479431, average vaba delay after warm-up: 0.729399 
+2022-04-07 14:27:42,545 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 92, 0 in total, 0.000000  
+2022-04-07 14:27:42,596 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 92, 0 in total, 0.000000  
+2022-04-07 14:27:43,208 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 93, 0 in total, 0.000000  
+2022-04-07 14:27:43,210 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 93 run: 70.479896, total delivered Txs after warm-up: 6117000, average delay after warm-up: 1.609154,  tps after warm-up: 155208.868588, average vaba delay after warm-up: 0.729144 
+2022-04-07 14:27:43,261 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 93, 0 in total, 0.000000  
+2022-04-07 14:27:43,312 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 93, 0 in total, 0.000000  
+2022-04-07 14:27:44,822 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 94, 0 in total, 0.000000  
+2022-04-07 14:27:44,824 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 94 run: 72.094176, total delivered Txs after warm-up: 6240000, average delay after warm-up: 1.626209,  tps after warm-up: 152099.826094, average vaba delay after warm-up: 0.745220 
+2022-04-07 14:27:44,875 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 94, 0 in total, 0.000000  
+2022-04-07 14:27:44,926 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 94, 0 in total, 0.000000  
+2022-04-07 14:27:45,683 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 95, 0 in total, 0.000000  
+2022-04-07 14:27:45,685 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 95 run: 72.955275, total delivered Txs after warm-up: 6499500, average delay after warm-up: 1.645190,  tps after warm-up: 155168.264557, average vaba delay after warm-up: 0.747282 
+2022-04-07 14:27:45,737 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 95, 0 in total, 0.000000  
+2022-04-07 14:27:45,787 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 95, 0 in total, 0.000000  
+2022-04-07 14:27:46,315 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 96, 0 in total, 0.000000  
+2022-04-07 14:27:46,317 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 96 run: 73.587106, total delivered Txs after warm-up: 6624000, average delay after warm-up: 1.642481,  tps after warm-up: 155790.576742, average vaba delay after warm-up: 0.745250 
+2022-04-07 14:27:46,369 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 96, 0 in total, 0.000000  
+2022-04-07 14:27:46,419 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 96, 0 in total, 0.000000  
+2022-04-07 14:27:47,011 nwabc.py [line:105] handel_messages INFO sid: sidAnw12, 0 catch up in total 
+2022-04-07 14:27:47,062 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 97, 0 in total, 0.000000  
+2022-04-07 14:27:47,064 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 97 run: 74.333895, total delivered Txs after warm-up: 6730500, average delay after warm-up: 1.640475,  tps after warm-up: 155563.079520, average vaba delay after warm-up: 0.745270 
+2022-04-07 14:27:47,098 nwabc.py [line:105] handel_messages INFO sid: sidAnw13, 0 catch up in total 
+2022-04-07 14:27:47,116 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 97, 0 in total, 0.000000  
+2022-04-07 14:27:47,167 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 97, 0 in total, 0.000000  
+2022-04-07 14:27:47,855 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 98, 0 in total, 0.000000  
+2022-04-07 14:27:47,858 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 98 run: 75.127692, total delivered Txs after warm-up: 6820500, average delay after warm-up: 1.641050,  tps after warm-up: 154803.069551, average vaba delay after warm-up: 0.746070 
+2022-04-07 14:27:47,910 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 98, 0 in total, 0.000000  
+2022-04-07 14:27:47,960 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 98, 0 in total, 0.000000  
+2022-04-07 14:27:48,547 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 99, 0 in total, 0.000000  
+2022-04-07 14:27:48,550 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 99 run: 75.819762, total delivered Txs after warm-up: 6970500, average delay after warm-up: 1.639998,  tps after warm-up: 155760.929179, average vaba delay after warm-up: 0.745162 
+2022-04-07 14:27:48,602 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 99, 0 in total, 0.000000  
+2022-04-07 14:27:48,654 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 99, 0 in total, 0.000000  
+2022-04-07 14:27:48,971 nwabc.py [line:105] handel_messages INFO sid: sidAnw14, 0 catch up in total 
+2022-04-07 14:27:49,059 nwabc.py [line:105] handel_messages INFO sid: sidAnw15, 0 catch up in total 
+2022-04-07 14:27:49,880 nwabc.py [line:105] handel_messages INFO sid: sidAnw20, 0 catch up in total 
+2022-04-07 14:27:50,284 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 100, 0 in total, 0.000000  
+2022-04-07 14:27:50,286 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 100 run: 77.556289, total delivered Txs after warm-up: 7069500, average delay after warm-up: 1.652561,  tps after warm-up: 152072.154609, average vaba delay after warm-up: 0.761407 
+2022-04-07 14:27:50,336 nwabc.py [line:105] handel_messages INFO sid: sidAnw21, 0 catch up in total 
+2022-04-07 14:27:50,339 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 100, 0 in total, 0.000000  
+2022-04-07 14:27:50,390 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 100, 0 in total, 0.000000  
+2022-04-07 14:27:50,397 nwabc.py [line:105] handel_messages INFO sid: sidAnw4, 0 catch up in total 
+2022-04-07 14:27:50,779 nwabc.py [line:105] handel_messages INFO sid: sidAnw5, 0 catch up in total 
+2022-04-07 14:27:50,930 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 101, 0 in total, 0.000000  
+2022-04-07 14:27:50,931 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 101 run: 78.200918, total delivered Txs after warm-up: 7350000, average delay after warm-up: 1.664458,  tps after warm-up: 155943.584119, average vaba delay after warm-up: 0.759517 
+2022-04-07 14:27:50,983 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 101, 0 in total, 0.000000  
+2022-04-07 14:27:51,034 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 101, 0 in total, 0.000000  
+2022-04-07 14:27:51,053 nwabc.py [line:105] handel_messages INFO sid: sidAnw16, 0 catch up in total 
+2022-04-07 14:27:51,437 nwabc.py [line:105] handel_messages INFO sid: sidAnw17, 0 catch up in total 
+2022-04-07 14:27:51,684 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 102, 0 in total, 0.000000  
+2022-04-07 14:27:51,686 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 102 run: 78.956480, total delivered Txs after warm-up: 7444500, average delay after warm-up: 1.662750,  tps after warm-up: 155456.508069, average vaba delay after warm-up: 0.759443 
+2022-04-07 14:27:51,738 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 102, 0 in total, 0.000000  
+2022-04-07 14:27:51,814 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 102, 0 in total, 0.000000  
+2022-04-07 14:27:52,436 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 103, 0 in total, 0.000000  
+2022-04-07 14:27:52,440 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 103 run: 79.709633, total delivered Txs after warm-up: 7569000, average delay after warm-up: 1.661112,  tps after warm-up: 155609.002946, average vaba delay after warm-up: 0.759338 
+2022-04-07 14:27:52,490 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 103, 0 in total, 0.000000  
+2022-04-07 14:27:52,541 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 103, 0 in total, 0.000000  
+2022-04-07 14:27:53,170 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 104, 0 in total, 0.000000  
+2022-04-07 14:27:53,172 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 104 run: 80.442267, total delivered Txs after warm-up: 7680000, average delay after warm-up: 1.659265,  tps after warm-up: 155548.151683, average vaba delay after warm-up: 0.758920 
+2022-04-07 14:27:53,224 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 104, 0 in total, 0.000000  
+2022-04-07 14:27:53,275 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 104, 0 in total, 0.000000  
+2022-04-07 14:27:53,509 nwabc.py [line:105] handel_messages INFO sid: sidAnw27, 0 catch up in total 
+2022-04-07 14:27:53,695 nwabc.py [line:105] handel_messages INFO sid: sidAnw26, 0 catch up in total 
+2022-04-07 14:27:53,947 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 105, 0 in total, 0.000000  
+2022-04-07 14:27:53,950 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 105 run: 81.219844, total delivered Txs after warm-up: 7777500, average delay after warm-up: 1.659245,  tps after warm-up: 155080.554088, average vaba delay after warm-up: 0.759184 
+2022-04-07 14:27:54,002 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 105, 0 in total, 0.000000  
+2022-04-07 14:27:54,053 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 105, 0 in total, 0.000000  
+2022-04-07 14:27:55,212 nwabc.py [line:105] handel_messages INFO sid: sidAnw28, 0 catch up in total 
+2022-04-07 14:27:55,576 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 106, 0 in total, 0.000000  
+2022-04-07 14:27:55,578 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 106 run: 82.848503, total delivered Txs after warm-up: 7918500, average delay after warm-up: 1.674360,  tps after warm-up: 152925.796521, average vaba delay after warm-up: 0.772147 
+2022-04-07 14:27:55,597 nwabc.py [line:105] handel_messages INFO sid: sidAnw29, 0 catch up in total 
+2022-04-07 14:27:55,631 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 106, 0 in total, 0.000000  
+2022-04-07 14:27:55,681 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 106, 0 in total, 0.000000  
+2022-04-07 14:27:56,262 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 107, 0 in total, 0.000000  
+2022-04-07 14:27:56,264 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 107 run: 83.534220, total delivered Txs after warm-up: 8163000, average delay after warm-up: 1.682746,  tps after warm-up: 155587.268805, average vaba delay after warm-up: 0.770870 
+2022-04-07 14:27:56,317 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 107, 0 in total, 0.000000  
+2022-04-07 14:27:56,367 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 107, 0 in total, 0.000000  
+2022-04-07 14:27:57,004 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 108, 0 in total, 0.000000  
+2022-04-07 14:27:57,007 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 108 run: 84.276631, total delivered Txs after warm-up: 8286000, average delay after warm-up: 1.680343,  tps after warm-up: 155728.044764, average vaba delay after warm-up: 0.770451 
+2022-04-07 14:27:57,057 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 108, 0 in total, 0.000000  
+2022-04-07 14:27:57,108 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 108, 0 in total, 0.000000  
+2022-04-07 14:27:57,660 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 109, 0 in total, 0.000000  
+2022-04-07 14:27:57,662 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 109 run: 84.932020, total delivered Txs after warm-up: 8380500, average delay after warm-up: 1.677921,  tps after warm-up: 155587.642351, average vaba delay after warm-up: 0.768800 
+2022-04-07 14:27:57,705 nwabc.py [line:105] handel_messages INFO sid: sidAnw22, 0 catch up in total 
+2022-04-07 14:27:57,714 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 109, 0 in total, 0.000000  
+2022-04-07 14:27:57,765 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 109, 0 in total, 0.000000  
+2022-04-07 14:27:58,089 nwabc.py [line:105] handel_messages INFO sid: sidAnw23, 0 catch up in total 
+2022-04-07 14:27:59,357 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 110, 0 in total, 0.000000  
+2022-04-07 14:27:59,359 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 110 run: 86.629523, total delivered Txs after warm-up: 8487000, average delay after warm-up: 1.688512,  tps after warm-up: 152750.935057, average vaba delay after warm-up: 0.781871 
+2022-04-07 14:27:59,411 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 110, 0 in total, 0.000000  
+2022-04-07 14:27:59,463 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 110, 0 in total, 0.000000  
+2022-04-07 14:28:01,022 nwabc.py [line:105] handel_messages INFO sid: sidAnw8, 0 catch up in total 
+2022-04-07 14:28:01,047 nwabc.py [line:105] handel_messages INFO sid: sidAnw0, 0 catch up in total 
+2022-04-07 14:28:01,079 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 111, 0 in total, 0.000000  
+2022-04-07 14:28:01,081 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 111 run: 88.351492, total delivered Txs after warm-up: 8755500, average delay after warm-up: 1.730054,  tps after warm-up: 152846.383424, average vaba delay after warm-up: 0.794922 
+2022-04-07 14:28:01,133 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 111, 0 in total, 0.000000  
+2022-04-07 14:28:01,176 nwabc.py [line:105] handel_messages INFO sid: sidAnw1, 0 catch up in total 
+2022-04-07 14:28:01,185 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 111, 0 in total, 0.000000  
+2022-04-07 14:28:01,517 nwabc.py [line:105] handel_messages INFO sid: sidAnw9, 0 catch up in total 
+2022-04-07 14:28:01,721 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 112, 0 in total, 0.000000  
+2022-04-07 14:28:01,723 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 112 run: 88.993123, total delivered Txs after warm-up: 9021000, average delay after warm-up: 1.737232,  tps after warm-up: 155736.846218, average vaba delay after warm-up: 0.792816 
+2022-04-07 14:28:01,775 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 112, 0 in total, 0.000000  
+2022-04-07 14:28:01,827 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 112, 0 in total, 0.000000  
+2022-04-07 14:28:02,597 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 113, 0 in total, 0.000000  
+2022-04-07 14:28:02,599 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 113 run: 89.869071, total delivered Txs after warm-up: 9132000, average delay after warm-up: 1.736288,  tps after warm-up: 155304.583541, average vaba delay after warm-up: 0.793934 
+2022-04-07 14:28:02,650 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 113, 0 in total, 0.000000  
+2022-04-07 14:28:02,701 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 113, 0 in total, 0.000000  
+2022-04-07 14:28:03,265 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 114, 0 in total, 0.000000  
+2022-04-07 14:28:03,267 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 114 run: 90.536997, total delivered Txs after warm-up: 9241500, average delay after warm-up: 1.734763,  tps after warm-up: 155401.575755, average vaba delay after warm-up: 0.792248 
+2022-04-07 14:28:03,319 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 114, 0 in total, 0.000000  
+2022-04-07 14:28:03,370 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 114, 0 in total, 0.000000  
+2022-04-07 14:28:04,018 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 115, 0 in total, 0.000000  
+2022-04-07 14:28:04,021 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 115 run: 91.290890, total delivered Txs after warm-up: 9360000, average delay after warm-up: 1.733421,  tps after warm-up: 155423.890634, average vaba delay after warm-up: 0.791732 
+2022-04-07 14:28:04,072 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 115, 0 in total, 0.000000  
+2022-04-07 14:28:04,124 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 115, 0 in total, 0.000000  
+2022-04-07 14:28:04,733 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 116, 0 in total, 0.000000  
+2022-04-07 14:28:04,733 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 116 run: 92.003250, total delivered Txs after warm-up: 9472500, average delay after warm-up: 1.731778,  tps after warm-up: 155453.139161, average vaba delay after warm-up: 0.790691 
+2022-04-07 14:28:04,787 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 116, 0 in total, 0.000000  
+2022-04-07 14:28:04,838 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 116, 0 in total, 0.000000  
+2022-04-07 14:28:05,516 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 117, 0 in total, 0.000000  
+2022-04-07 14:28:05,519 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 117 run: 92.788970, total delivered Txs after warm-up: 9582000, average delay after warm-up: 1.730874,  tps after warm-up: 155248.301849, average vaba delay after warm-up: 0.790597 
+2022-04-07 14:28:05,570 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 117, 0 in total, 0.000000  
+2022-04-07 14:28:05,622 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 117, 0 in total, 0.000000  
+2022-04-07 14:28:06,193 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 118, 0 in total, 0.000000  
+2022-04-07 14:28:06,195 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 118 run: 93.465493, total delivered Txs after warm-up: 9709500, average delay after warm-up: 1.728599,  tps after warm-up: 155608.430637, average vaba delay after warm-up: 0.789145 
+2022-04-07 14:28:06,247 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 118, 0 in total, 0.000000  
+2022-04-07 14:28:06,297 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 118, 0 in total, 0.000000  
+2022-04-07 14:28:06,347 nwabc.py [line:105] handel_messages INFO sid: sidAnw31, 0 catch up in total 
+2022-04-07 14:28:06,396 nwabc.py [line:105] handel_messages INFO sid: sidAnw30, 0 catch up in total 
+2022-04-07 14:28:06,870 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 119, 0 in total, 0.000000  
+2022-04-07 14:28:06,872 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 119 run: 94.142356, total delivered Txs after warm-up: 9811500, average delay after warm-up: 1.726330,  tps after warm-up: 155555.704262, average vaba delay after warm-up: 0.787737 
+2022-04-07 14:28:06,907 nwabc.py [line:105] handel_messages INFO sid: sidAnw25, 0 catch up in total 
+2022-04-07 14:28:06,924 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 119, 0 in total, 0.000000  
+2022-04-07 14:28:06,974 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 119, 0 in total, 0.000000  
+2022-04-07 14:28:07,099 nwabc.py [line:105] handel_messages INFO sid: sidAnw24, 0 catch up in total 
+2022-04-07 14:28:07,742 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 120, 0 in total, 0.000000  
+2022-04-07 14:28:07,743 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 120 run: 95.012541, total delivered Txs after warm-up: 9927000, average delay after warm-up: 1.725684,  tps after warm-up: 155245.087204, average vaba delay after warm-up: 0.788745 
+2022-04-07 14:28:07,796 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 120, 0 in total, 0.000000  
+2022-04-07 14:28:07,848 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 120, 0 in total, 0.000000  
+2022-04-07 14:28:08,407 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 121, 0 in total, 0.000000  
+2022-04-07 14:28:08,409 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 121 run: 95.679468, total delivered Txs after warm-up: 10071000, average delay after warm-up: 1.722396,  tps after warm-up: 155871.339434, average vaba delay after warm-up: 0.787228 
+2022-04-07 14:28:08,460 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 121, 0 in total, 0.000000  
+2022-04-07 14:28:08,511 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 121, 0 in total, 0.000000  
+2022-04-07 14:28:09,096 nwabc.py [line:105] handel_messages INFO sid: sidAnw3, 0 catch up in total 
+2022-04-07 14:28:09,143 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 122, 0 in total, 0.000000  
+2022-04-07 14:28:09,145 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 122 run: 96.415436, total delivered Txs after warm-up: 10161000, average delay after warm-up: 1.720326,  tps after warm-up: 155493.108130, average vaba delay after warm-up: 0.786603 
+2022-04-07 14:28:09,194 nwabc.py [line:105] handel_messages INFO sid: sidAnw2, 0 catch up in total 
+2022-04-07 14:28:09,197 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 122, 0 in total, 0.000000  
+2022-04-07 14:28:09,248 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 122, 0 in total, 0.000000  
+2022-04-07 14:28:09,787 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 123, 0 in total, 0.000000  
+2022-04-07 14:28:09,790 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 123 run: 97.060047, total delivered Txs after warm-up: 10284000, average delay after warm-up: 1.717071,  tps after warm-up: 155838.111938, average vaba delay after warm-up: 0.784908 
+2022-04-07 14:28:09,842 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 123, 0 in total, 0.000000  
+2022-04-07 14:28:09,894 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 123, 0 in total, 0.000000  
+2022-04-07 14:28:10,504 nwabc.py [line:105] handel_messages INFO sid: sidAnw7, 0 catch up in total 
+2022-04-07 14:28:10,536 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 124, 0 in total, 0.000000  
+2022-04-07 14:28:10,539 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 124 run: 97.808949, total delivered Txs after warm-up: 10377000, average delay after warm-up: 1.715230,  tps after warm-up: 155482.893394, average vaba delay after warm-up: 0.784479 
+2022-04-07 14:28:10,583 nwabc.py [line:105] handel_messages INFO sid: sidAnw6, 0 catch up in total 
+2022-04-07 14:28:10,589 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 124, 0 in total, 0.000000  
+2022-04-07 14:28:10,641 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 124, 0 in total, 0.000000  
+2022-04-07 14:28:11,168 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 125, 0 in total, 0.000000  
+2022-04-07 14:28:11,171 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 125 run: 98.440807, total delivered Txs after warm-up: 10482000, average delay after warm-up: 1.712893,  tps after warm-up: 155583.184921, average vaba delay after warm-up: 0.782699 
+2022-04-07 14:28:11,222 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 125, 0 in total, 0.000000  
+2022-04-07 14:28:11,273 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 125, 0 in total, 0.000000  
+2022-04-07 14:28:12,857 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 126, 0 in total, 0.000000  
+2022-04-07 14:28:12,859 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 126 run: 100.129159, total delivered Txs after warm-up: 10591500, average delay after warm-up: 1.720882,  tps after warm-up: 153365.148438, average vaba delay after warm-up: 0.793104 
+2022-04-07 14:28:12,877 nwabc.py [line:105] handel_messages INFO sid: sidAnw10, 0 catch up in total 
+2022-04-07 14:28:12,911 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 126, 0 in total, 0.000000  
+2022-04-07 14:28:12,962 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 126, 0 in total, 0.000000  
+2022-04-07 14:28:13,269 nwabc.py [line:105] handel_messages INFO sid: sidAnw11, 0 catch up in total 
+2022-04-07 14:28:13,532 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 127, 0 in total, 0.000000  
+2022-04-07 14:28:13,535 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 127 run: 100.804883, total delivered Txs after warm-up: 10845000, average delay after warm-up: 1.727192,  tps after warm-up: 155514.204861, average vaba delay after warm-up: 0.791765 
+2022-04-07 14:28:13,586 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 127, 0 in total, 0.000000  
+2022-04-07 14:28:13,637 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 127, 0 in total, 0.000000  
+2022-04-07 14:28:13,912 nwabc.py [line:105] handel_messages INFO sid: sidAnw19, 0 catch up in total 
+2022-04-07 14:28:14,165 nwabc.py [line:105] handel_messages INFO sid: sidAnw18, 0 catch up in total 
+2022-04-07 14:28:14,244 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 128, 0 in total, 0.000000  
+2022-04-07 14:28:14,247 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 128 run: 101.516728, total delivered Txs after warm-up: 10954500, average delay after warm-up: 1.725322,  tps after warm-up: 155497.142207, average vaba delay after warm-up: 0.790862 
+2022-04-07 14:28:14,298 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 128, 0 in total, 0.000000  
+2022-04-07 14:28:14,349 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 128, 0 in total, 0.000000  
+2022-04-07 14:28:14,983 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 129, 0 in total, 0.000000  
+2022-04-07 14:28:14,985 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 129 run: 102.255511, total delivered Txs after warm-up: 11068500, average delay after warm-up: 1.723545,  tps after warm-up: 155484.800732, average vaba delay after warm-up: 0.790275 
+2022-04-07 14:28:15,037 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 129, 0 in total, 0.000000  
+2022-04-07 14:28:15,088 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 129, 0 in total, 0.000000  
+2022-04-07 14:28:15,640 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 130, 0 in total, 0.000000  
+2022-04-07 14:28:15,642 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 130 run: 102.911993, total delivered Txs after warm-up: 11178000, average delay after warm-up: 1.721229,  tps after warm-up: 155588.178107, average vaba delay after warm-up: 0.788796 
+2022-04-07 14:28:15,694 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 130, 0 in total, 0.000000  
+2022-04-07 14:28:15,718 nwabc.py [line:105] handel_messages INFO sid: sidAnw20, 0 catch up in total 
+2022-04-07 14:28:15,744 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 130, 0 in total, 0.000000  
+2022-04-07 14:28:15,817 nwabc.py [line:105] handel_messages INFO sid: sidAnw4, 0 catch up in total 
+2022-04-07 14:28:16,090 nwabc.py [line:105] handel_messages INFO sid: sidAnw21, 0 catch up in total 
+2022-04-07 14:28:16,336 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 131, 0 in total, 0.000000  
+2022-04-07 14:28:16,339 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 131 run: 103.608647, total delivered Txs after warm-up: 11287500, average delay after warm-up: 1.718881,  tps after warm-up: 155603.463759, average vaba delay after warm-up: 0.787782 
+2022-04-07 14:28:16,390 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 131, 0 in total, 0.000000  
+2022-04-07 14:28:16,441 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 131, 0 in total, 0.000000  
+2022-04-07 14:28:16,652 nwabc.py [line:105] handel_messages INFO sid: sidAnw5, 0 catch up in total 
+2022-04-07 14:28:17,045 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 132, 0 in total, 0.000000  
+2022-04-07 14:28:17,046 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 132 run: 104.316368, total delivered Txs after warm-up: 11383500, average delay after warm-up: 1.717218,  tps after warm-up: 155410.642286, average vaba delay after warm-up: 0.786917 
+2022-04-07 14:28:17,100 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 132, 0 in total, 0.000000  
+2022-04-07 14:28:17,151 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 132, 0 in total, 0.000000  
+2022-04-07 14:28:17,758 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 133, 0 in total, 0.000000  
+2022-04-07 14:28:17,759 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 133 run: 105.028859, total delivered Txs after warm-up: 11502000, average delay after warm-up: 1.715329,  tps after warm-up: 155515.714763, average vaba delay after warm-up: 0.786101 
+2022-04-07 14:28:17,812 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 133, 0 in total, 0.000000  
+2022-04-07 14:28:17,863 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 133, 0 in total, 0.000000  
+2022-04-07 14:28:18,581 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 134, 0 in total, 0.000000  
+2022-04-07 14:28:18,583 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 134 run: 105.853073, total delivered Txs after warm-up: 11605500, average delay after warm-up: 1.714790,  tps after warm-up: 155185.725429, average vaba delay after warm-up: 0.786474 
+2022-04-07 14:28:18,634 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 134, 0 in total, 0.000000  
+2022-04-07 14:28:18,686 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 134, 0 in total, 0.000000  
+2022-04-07 14:28:19,185 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 135, 0 in total, 0.000000  
+2022-04-07 14:28:19,187 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 135 run: 106.457346, total delivered Txs after warm-up: 11745000, average delay after warm-up: 1.711834,  tps after warm-up: 155792.253304, average vaba delay after warm-up: 0.784570 
+2022-04-07 14:28:19,239 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 135, 0 in total, 0.000000  
+2022-04-07 14:28:19,290 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 135, 0 in total, 0.000000  
+2022-04-07 14:28:19,629 nwabc.py [line:105] handel_messages INFO sid: sidAnw27, 0 catch up in total 
+2022-04-07 14:28:19,769 nwabc.py [line:105] handel_messages INFO sid: sidAnw26, 0 catch up in total 
+2022-04-07 14:28:19,902 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 136, 0 in total, 0.000000  
+2022-04-07 14:28:19,905 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 136 run: 107.175155, total delivered Txs after warm-up: 11826000, average delay after warm-up: 1.710181,  tps after warm-up: 155387.175614, average vaba delay after warm-up: 0.783877 
+2022-04-07 14:28:19,956 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 136, 0 in total, 0.000000  
+2022-04-07 14:28:20,007 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 136, 0 in total, 0.000000  
+2022-04-07 14:28:20,561 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 137, 0 in total, 0.000000  
+2022-04-07 14:28:20,563 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 137 run: 107.833185, total delivered Txs after warm-up: 11946000, average delay after warm-up: 1.707906,  tps after warm-up: 155618.408176, average vaba delay after warm-up: 0.782589 
+2022-04-07 14:28:20,615 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 137, 0 in total, 0.000000  
+2022-04-07 14:28:20,666 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 137, 0 in total, 0.000000  
+2022-04-07 14:28:21,375 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 138, 0 in total, 0.000000  
+2022-04-07 14:28:21,377 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 138 run: 108.647250, total delivered Txs after warm-up: 12049500, average delay after warm-up: 1.706735,  tps after warm-up: 155319.569994, average vaba delay after warm-up: 0.782902 
+2022-04-07 14:28:21,429 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 138, 0 in total, 0.000000  
+2022-04-07 14:28:21,480 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 138, 0 in total, 0.000000  
+2022-04-07 14:28:22,080 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 139, 0 in total, 0.000000  
+2022-04-07 14:28:22,082 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 139 run: 109.352401, total delivered Txs after warm-up: 12178500, average delay after warm-up: 1.704695,  tps after warm-up: 155568.359770, average vaba delay after warm-up: 0.782119 
+2022-04-07 14:28:22,134 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 139, 0 in total, 0.000000  
+2022-04-07 14:28:22,185 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 139, 0 in total, 0.000000  
+2022-04-07 14:28:22,345 nwabc.py [line:105] handel_messages INFO sid: sidAnw28, 0 catch up in total 
+2022-04-07 14:28:22,754 nwabc.py [line:105] handel_messages INFO sid: sidAnw29, 0 catch up in total 
+2022-04-07 14:28:22,802 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 140, 0 in total, 0.000000  
+2022-04-07 14:28:22,805 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 140 run: 110.074608, total delivered Txs after warm-up: 12271500, average delay after warm-up: 1.703377,  tps after warm-up: 155323.410924, average vaba delay after warm-up: 0.781520 
+2022-04-07 14:28:22,856 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 140, 0 in total, 0.000000  
+2022-04-07 14:28:22,906 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 140, 0 in total, 0.000000  
+2022-04-07 14:28:23,478 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 141, 0 in total, 0.000000  
+2022-04-07 14:28:23,480 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 141 run: 110.749961, total delivered Txs after warm-up: 12391500, average delay after warm-up: 1.701574,  tps after warm-up: 155512.938339, average vaba delay after warm-up: 0.780475 
+2022-04-07 14:28:23,532 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 141, 0 in total, 0.000000  
+2022-04-07 14:28:23,582 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 141, 0 in total, 0.000000  
+2022-04-07 14:28:24,180 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 142, 0 in total, 0.000000  
+2022-04-07 14:28:24,183 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 142 run: 111.452827, total delivered Txs after warm-up: 12495000, average delay after warm-up: 1.699826,  tps after warm-up: 155440.726576, average vaba delay after warm-up: 0.779715 
+2022-04-07 14:28:24,234 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 142, 0 in total, 0.000000  
+2022-04-07 14:28:24,284 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 142, 0 in total, 0.000000  
+2022-04-07 14:28:24,529 nwabc.py [line:105] handel_messages INFO sid: sidAnw12, 0 catch up in total 
+2022-04-07 14:28:24,596 nwabc.py [line:105] handel_messages INFO sid: sidAnw13, 0 catch up in total 
+2022-04-07 14:28:24,885 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 143, 0 in total, 0.000000  
+2022-04-07 14:28:24,888 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 143 run: 112.157905, total delivered Txs after warm-up: 12603000, average delay after warm-up: 1.698261,  tps after warm-up: 155421.021710, average vaba delay after warm-up: 0.778994 
+2022-04-07 14:28:24,940 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 143, 0 in total, 0.000000  
+2022-04-07 14:28:24,990 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 143, 0 in total, 0.000000  
+2022-04-07 14:28:25,687 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 144, 0 in total, 0.000000  
+2022-04-07 14:28:25,689 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 144 run: 112.958635, total delivered Txs after warm-up: 12708000, average delay after warm-up: 1.697721,  tps after warm-up: 155183.504159, average vaba delay after warm-up: 0.779194 
+2022-04-07 14:28:25,740 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 144, 0 in total, 0.000000  
+2022-04-07 14:28:25,791 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 144, 0 in total, 0.000000  
+2022-04-07 14:28:26,157 nwabc.py [line:105] handel_messages INFO sid: sidAnw22, 0 catch up in total 
+2022-04-07 14:28:26,318 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 145, 0 in total, 0.000000  
+2022-04-07 14:28:26,320 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 145 run: 113.590410, total delivered Txs after warm-up: 12828000, average delay after warm-up: 1.696152,  tps after warm-up: 155449.603522, average vaba delay after warm-up: 0.777798 
+2022-04-07 14:28:26,366 nwabc.py [line:105] handel_messages INFO sid: sidAnw23, 0 catch up in total 
+2022-04-07 14:28:26,371 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 145, 0 in total, 0.000000  
+2022-04-07 14:28:26,423 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 145, 0 in total, 0.000000  
+2022-04-07 14:28:26,476 nwabc.py [line:105] handel_messages INFO sid: sidAnw14, 0 catch up in total 
+2022-04-07 14:28:27,028 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 146, 0 in total, 0.000000  
+2022-04-07 14:28:27,030 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 146 run: 114.300405, total delivered Txs after warm-up: 12937500, average delay after warm-up: 1.694417,  tps after warm-up: 155439.169025, average vaba delay after warm-up: 0.777161 
+2022-04-07 14:28:27,035 nwabc.py [line:105] handel_messages INFO sid: sidAnw15, 0 catch up in total 
+2022-04-07 14:28:27,082 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 146, 0 in total, 0.000000  
+2022-04-07 14:28:27,133 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 146, 0 in total, 0.000000  
+2022-04-07 14:28:27,721 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 147, 0 in total, 0.000000  
+2022-04-07 14:28:27,722 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 147 run: 114.991650, total delivered Txs after warm-up: 13041000, average delay after warm-up: 1.692944,  tps after warm-up: 155392.144026, average vaba delay after warm-up: 0.776359 
+2022-04-07 14:28:27,775 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 147, 0 in total, 0.000000  
+2022-04-07 14:28:27,827 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 147, 0 in total, 0.000000  
+2022-04-07 14:28:28,418 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 148, 0 in total, 0.000000  
+2022-04-07 14:28:28,420 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 148 run: 115.690043, total delivered Txs after warm-up: 13159500, average delay after warm-up: 1.691137,  tps after warm-up: 155510.023694, average vaba delay after warm-up: 0.775622 
+2022-04-07 14:28:28,472 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 148, 0 in total, 0.000000  
+2022-04-07 14:28:28,523 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 148, 0 in total, 0.000000  
+2022-04-07 14:28:29,144 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 149, 0 in total, 0.000000  
+2022-04-07 14:28:29,146 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 149 run: 116.416149, total delivered Txs after warm-up: 13255500, average delay after warm-up: 1.689879,  tps after warm-up: 155311.813808, average vaba delay after warm-up: 0.775166 
+2022-04-07 14:28:29,198 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 149, 0 in total, 0.000000  
+2022-04-07 14:28:29,249 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 149, 0 in total, 0.000000  
+2022-04-07 14:28:29,658 nwabc.py [line:105] handel_messages INFO sid: sidAnw8, 0 catch up in total 
+2022-04-07 14:28:29,746 nwabc.py [line:105] handel_messages INFO sid: sidAnw16, 0 catch up in total 
+2022-04-07 14:28:29,937 nwabc.py [line:105] handel_messages INFO sid: sidAnw17, 0 catch up in total 
+2022-04-07 14:28:29,976 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 150, 0 in total, 0.000000  
+2022-04-07 14:28:29,980 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 150 run: 117.249559, total delivered Txs after warm-up: 13371000, average delay after warm-up: 1.689899,  tps after warm-up: 155150.079225, average vaba delay after warm-up: 0.775687 
+2022-04-07 14:28:29,997 nwabc.py [line:105] handel_messages INFO sid: sidAnw9, 0 catch up in total 
+2022-04-07 14:28:30,032 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 150, 0 in total, 0.000000  
+2022-04-07 14:28:30,083 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 150, 0 in total, 0.000000  
+2022-04-07 14:28:30,755 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 151, 0 in total, 0.000000  
+2022-04-07 14:28:30,757 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 151 run: 118.027318, total delivered Txs after warm-up: 13476000, average delay after warm-up: 1.690356,  tps after warm-up: 154969.887388, average vaba delay after warm-up: 0.775698 
+2022-04-07 14:28:30,808 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 151, 0 in total, 0.000000  
+2022-04-07 14:28:30,860 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 151, 0 in total, 0.000000  
+2022-04-07 14:28:31,382 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 152, 0 in total, 0.000000  
+2022-04-07 14:28:31,385 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 152 run: 118.654551, total delivered Txs after warm-up: 13621500, average delay after warm-up: 1.689002,  tps after warm-up: 155521.319510, average vaba delay after warm-up: 0.774379 
+2022-04-07 14:28:31,436 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 152, 0 in total, 0.000000  
+2022-04-07 14:28:31,487 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 152, 0 in total, 0.000000  
+2022-04-07 14:28:32,076 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 153, 0 in total, 0.000000  
+2022-04-07 14:28:32,078 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 153 run: 119.348488, total delivered Txs after warm-up: 13714500, average delay after warm-up: 1.687676,  tps after warm-up: 155352.288644, average vaba delay after warm-up: 0.773668 
+2022-04-07 14:28:32,131 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 153, 0 in total, 0.000000  
+2022-04-07 14:28:32,182 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 153, 0 in total, 0.000000  
+2022-04-07 14:28:32,816 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 154, 0 in total, 0.000000  
+2022-04-07 14:28:32,818 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 154 run: 120.088166, total delivered Txs after warm-up: 13825500, average delay after warm-up: 1.686716,  tps after warm-up: 155308.358407, average vaba delay after warm-up: 0.773369 
+2022-04-07 14:28:32,871 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 154, 0 in total, 0.000000  
+2022-04-07 14:28:32,922 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 154, 0 in total, 0.000000  
+2022-04-07 14:28:33,600 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 155, 0 in total, 0.000000  
+2022-04-07 14:28:33,602 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 155 run: 120.872451, total delivered Txs after warm-up: 13930500, average delay after warm-up: 1.686483,  tps after warm-up: 155121.217561, average vaba delay after warm-up: 0.773459 
+2022-04-07 14:28:33,654 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 155, 0 in total, 0.000000  
+2022-04-07 14:28:33,705 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 155, 0 in total, 0.000000  
+2022-04-07 14:28:34,247 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 156, 0 in total, 0.000000  
+2022-04-07 14:28:34,250 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 156 run: 121.519549, total delivered Txs after warm-up: 14038500, average delay after warm-up: 1.685933,  tps after warm-up: 155205.477052, average vaba delay after warm-up: 0.772374 
+2022-04-07 14:28:34,301 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 156, 0 in total, 0.000000  
+2022-04-07 14:28:34,352 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 156, 0 in total, 0.000000  
+2022-04-07 14:28:35,067 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 157, 0 in total, 0.000000  
+2022-04-07 14:28:35,069 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 157 run: 122.339100, total delivered Txs after warm-up: 14161500, average delay after warm-up: 1.686005,  tps after warm-up: 155159.472764, average vaba delay after warm-up: 0.772770 
+2022-04-07 14:28:35,120 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 157, 0 in total, 0.000000  
+2022-04-07 14:28:35,172 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 157, 0 in total, 0.000000  
+2022-04-07 14:28:36,679 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 158, 0 in total, 0.000000  
+2022-04-07 14:28:36,681 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 158 run: 123.950881, total delivered Txs after warm-up: 14289000, average delay after warm-up: 1.693231,  tps after warm-up: 153839.706247, average vaba delay after warm-up: 0.779816 
+2022-04-07 14:28:36,733 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 158, 0 in total, 0.000000  
+2022-04-07 14:28:36,784 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 158, 0 in total, 0.000000  
+2022-04-07 14:28:37,158 nwabc.py [line:105] handel_messages INFO sid: sidAnw30, 0 catch up in total 
+2022-04-07 14:28:37,264 nwabc.py [line:105] handel_messages INFO sid: sidAnw31, 0 catch up in total 
+2022-04-07 14:28:37,358 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 159, 0 in total, 0.000000  
+2022-04-07 14:28:37,361 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 159 run: 124.630841, total delivered Txs after warm-up: 14550000, average delay after warm-up: 1.697227,  tps after warm-up: 155511.267340, average vaba delay after warm-up: 0.778978 
+2022-04-07 14:28:37,407 nwabc.py [line:105] handel_messages INFO sid: sidAnw25, 0 catch up in total 
+2022-04-07 14:28:37,411 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 159, 0 in total, 0.000000  
+2022-04-07 14:28:37,462 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 159, 0 in total, 0.000000  
+2022-04-07 14:28:37,552 nwabc.py [line:105] handel_messages INFO sid: sidAnw24, 0 catch up in total 
+2022-04-07 14:28:37,959 nwabc.py [line:105] handel_messages INFO sid: sidAnw0, 0 catch up in total 
+2022-04-07 14:28:38,129 nwabc.py [line:105] handel_messages INFO sid: sidAnw1, 0 catch up in total 
+2022-04-07 14:28:38,197 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 160, 0 in total, 0.000000  
+2022-04-07 14:28:38,200 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 160 run: 125.469592, total delivered Txs after warm-up: 14658000, average delay after warm-up: 1.696387,  tps after warm-up: 155273.607469, average vaba delay after warm-up: 0.779468 
+2022-04-07 14:28:38,251 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 160, 0 in total, 0.000000  
+2022-04-07 14:28:38,302 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 160, 0 in total, 0.000000  
+2022-04-07 14:28:38,837 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 161, 0 in total, 0.000000  
+2022-04-07 14:28:38,837 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 161 run: 126.107276, total delivered Txs after warm-up: 14778000, average delay after warm-up: 1.694566,  tps after warm-up: 155494.407058, average vaba delay after warm-up: 0.778300 
+2022-04-07 14:28:38,889 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 161, 0 in total, 0.000000  
+2022-04-07 14:28:38,940 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 161, 0 in total, 0.000000  
+2022-04-07 14:28:39,560 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 162, 0 in total, 0.000000  
+2022-04-07 14:28:39,562 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 162 run: 126.832484, total delivered Txs after warm-up: 14884500, average delay after warm-up: 1.693021,  tps after warm-up: 155428.978285, average vaba delay after warm-up: 0.777860 
+2022-04-07 14:28:39,614 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 162, 0 in total, 0.000000  
+2022-04-07 14:28:39,666 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 162, 0 in total, 0.000000  
+2022-04-07 14:28:41,145 nwabc.py [line:105] handel_messages INFO sid: sidAnw4, 0 catch up in total 
+2022-04-07 14:28:41,203 nwabc.py [line:105] handel_messages INFO sid: sidAnw3, 0 catch up in total 
+2022-04-07 14:28:41,286 nwabc.py [line:105] handel_messages INFO sid: sidAnw2, 0 catch up in total 
+2022-04-07 14:28:41,311 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 163, 0 in total, 0.000000  
+2022-04-07 14:28:41,313 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 163 run: 128.583271, total delivered Txs after warm-up: 14989500, average delay after warm-up: 1.699003,  tps after warm-up: 153715.155317, average vaba delay after warm-up: 0.785700 
+2022-04-07 14:28:41,365 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 163, 0 in total, 0.000000  
+2022-04-07 14:28:41,416 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 163, 0 in total, 0.000000  
+2022-04-07 14:28:41,637 nwabc.py [line:105] handel_messages INFO sid: sidAnw20, 0 catch up in total 
+2022-04-07 14:28:41,891 nwabc.py [line:105] handel_messages INFO sid: sidAnw5, 0 catch up in total 
+2022-04-07 14:28:41,980 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 164, 0 in total, 0.000000  
+2022-04-07 14:28:41,983 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 164 run: 129.252785, total delivered Txs after warm-up: 15250500, average delay after warm-up: 1.704872,  tps after warm-up: 155325.244624, average vaba delay after warm-up: 0.784766 
+2022-04-07 14:28:42,034 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 164, 0 in total, 0.000000  
+2022-04-07 14:28:42,045 nwabc.py [line:105] handel_messages INFO sid: sidAnw21, 0 catch up in total 
+2022-04-07 14:28:42,087 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 164, 0 in total, 0.000000  
+2022-04-07 14:28:42,232 nwabc.py [line:105] handel_messages INFO sid: sidAnw7, 0 catch up in total 
+2022-04-07 14:28:42,601 nwabc.py [line:105] handel_messages INFO sid: sidAnw6, 0 catch up in total 
+2022-04-07 14:28:42,674 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 165, 0 in total, 0.000000  
+2022-04-07 14:28:42,676 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 165 run: 129.946430, total delivered Txs after warm-up: 15376500, average delay after warm-up: 1.703268,  tps after warm-up: 155509.911268, average vaba delay after warm-up: 0.784037 
+2022-04-07 14:28:42,728 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 165, 0 in total, 0.000000  
+2022-04-07 14:28:42,779 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 165, 0 in total, 0.000000  
+2022-04-07 14:28:43,334 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 166, 0 in total, 0.000000  
+2022-04-07 14:28:43,337 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 166 run: 130.606964, total delivered Txs after warm-up: 15463500, average delay after warm-up: 1.702010,  tps after warm-up: 155351.987090, average vaba delay after warm-up: 0.783058 
+2022-04-07 14:28:43,388 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 166, 0 in total, 0.000000  
+2022-04-07 14:28:43,439 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 166, 0 in total, 0.000000  
+2022-04-07 14:28:44,120 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 167, 0 in total, 0.000000  
+2022-04-07 14:28:44,123 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 167 run: 131.393264, total delivered Txs after warm-up: 15586500, average delay after warm-up: 1.701071,  tps after warm-up: 155360.427092, average vaba delay after warm-up: 0.783080 
+2022-04-07 14:28:44,174 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 167, 0 in total, 0.000000  
+2022-04-07 14:28:44,224 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 167, 0 in total, 0.000000  
+2022-04-07 14:28:44,816 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 168, 0 in total, 0.000000  
+2022-04-07 14:28:44,820 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 168 run: 132.089657, total delivered Txs after warm-up: 15687000, average delay after warm-up: 1.700207,  tps after warm-up: 155284.285101, average vaba delay after warm-up: 0.782404 
+2022-04-07 14:28:44,872 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 168, 0 in total, 0.000000  
+2022-04-07 14:28:44,923 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 168, 0 in total, 0.000000  
+2022-04-07 14:28:45,537 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 169, 0 in total, 0.000000  
+2022-04-07 14:28:45,539 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 169 run: 132.808850, total delivered Txs after warm-up: 15802500, average delay after warm-up: 1.699357,  tps after warm-up: 155321.837502, average vaba delay after warm-up: 0.781915 
+2022-04-07 14:28:45,590 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 169, 0 in total, 0.000000  
+2022-04-07 14:28:45,641 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 169, 0 in total, 0.000000  
+2022-04-07 14:28:45,924 nwabc.py [line:105] handel_messages INFO sid: sidAnw10, 0 catch up in total 
+2022-04-07 14:28:46,210 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 170, 0 in total, 0.000000  
+2022-04-07 14:28:46,213 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 170 run: 133.482726, total delivered Txs after warm-up: 15901500, average delay after warm-up: 1.698560,  tps after warm-up: 155266.497259, average vaba delay after warm-up: 0.781085 
+2022-04-07 14:28:46,264 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 170, 0 in total, 0.000000  
+2022-04-07 14:28:46,289 nwabc.py [line:105] handel_messages INFO sid: sidAnw26, 0 catch up in total 
+2022-04-07 14:28:46,322 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 170, 0 in total, 0.000000  
+2022-04-07 14:28:46,448 nwabc.py [line:105] handel_messages INFO sid: sidAnw11, 0 catch up in total 
+2022-04-07 14:28:46,626 nwabc.py [line:105] handel_messages INFO sid: sidAnw27, 0 catch up in total 
+2022-04-07 14:28:46,810 ng_k_s.py [line:318] _run_VABA_round INFO sid: 0: 0 txs batches need to call help in epoch 171, 0 in total, 0.000000  
+2022-04-07 14:28:46,813 ng_k_s.py [line:442] _finalize_output INFO node: 0 epoch: 171 run: 134.082663, total delivered Txs after warm-up: 16023000, average delay after warm-up: 1.696780,  tps after warm-up: 155541.701389, average vaba delay after warm-up: 0.779706 
+2022-04-07 14:28:46,864 ng_k_s.py [line:276] catch INFO sid: 0: 0 txs batches need to call help after 50ms in epoch 171, 0 in total, 0.000000  
+2022-04-07 14:28:46,916 ng_k_s.py [line:290] catch INFO sid: 0: 0 txs batches need to call help after 100ms in epoch 171, 0 in total, 0.000000  
