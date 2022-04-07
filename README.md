@@ -1,6 +1,6 @@
 Proof-of-Concept implementation for Dumbo-NG. 
 The code is forked from the implementation of Honeybadger-BFT protocol.
-So this codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
+This codebase also includes PoC implementations for Dumbo, sDumbo, Dumbo-DL.
 
 1. To run the benchmarks at your machine (with Ubuntu 18.84 LTS), first install all dependencies as follows:
     ```
