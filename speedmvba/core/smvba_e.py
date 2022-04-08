@@ -472,7 +472,6 @@ def speedmvba(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
                                 # print("both vote no and vote yes, move to next round with")
                                 r += 1
                                 my_spbc_input.put_nowait((vote_yes_msg[0], vote_msg[3], r, 'yn'))
-                                # print("------------------------------------", vote_yes_msg)
                                 # my_spbc_input.put_nowait(vote_yes_msg)
 
                                 prevote_no_shares.clear()
