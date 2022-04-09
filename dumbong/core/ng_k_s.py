@@ -346,8 +346,8 @@ class Dumbo_NG_k_s:
                                     self.txs[i * self.K + j][s] = tx
                                     self.sigs[i * self.K + j][s] = sig
                                     self.sts[i * self.K + j][s] = st
-                                    if self.epoch > 50:
-                                        del_p = max(0, cur_view[i * self.K + j] - 50)
+                                    if self.epoch > 200:
+                                        del_p = max(0, cur_view[i * self.K + j] - 200)
                                         try:
                                             for p in list(self.txs[i * self.K + j]):
                                                 if p < del_p:
