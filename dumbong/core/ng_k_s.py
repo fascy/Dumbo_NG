@@ -1,4 +1,7 @@
 from gevent import monkey;
+
+from dumbomvbastar.core.dumbomvba_star import smvbastar
+
 monkey.patch_all(thread=False)
 
 import collections
@@ -171,6 +174,7 @@ class Dumbo_NG_k_s:
 
                 vaba_input = gevent.queue.Queue(1)
                 vaba_output = gevent.queue.Queue(1)
+                # print("vaba tc to send", tx_to_send)
                 vaba_input.put_nowait(tx_to_send)
                 sid_e = sid + ':' + str(self.epoch)
                 self.tx_cnt = 0
@@ -250,15 +254,21 @@ class Dumbo_NG_k_s:
                     return vaba_predicate
 
                 # print("vaba starts....")
+                """
                 vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(self.epoch), pid, N, f,
                                          self.sPK, self.sSK, self.sPK2s, self.sSK2,
                                          vaba_input.get, vaba_output.put_nowait,
                                          recv, send, predicate=make_vaba_predicate(), logger=self.logger)
-
+                """
+                vaba_thread_r = Greenlet(smvbastar, sid_e + 'VABA' + str(self.epoch), pid, N, f,
+                                         self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                         vaba_input.get, vaba_output.put_nowait,
+                                         recv, send, predicate=make_vaba_predicate(), logger=self.logger)
+                # """
                 vaba_thread_r.start()
                 out = vaba_output.get()
                 (view, s, txhash) = out
-
+                # print(view)
                 # print("vaba returns....")
                 def catch(v_s, v, r):
                     catchup = 0
@@ -323,7 +333,6 @@ class Dumbo_NG_k_s:
             def _make_vaba_send(r):
                 def _send(j, o):
                     self._send(j, (r, ('X_VABA', '', o)))
-
                 return _send
 
             # only store TX batch digest and QCs of the latest 200 slots

@@ -14,4 +14,5 @@ while [ "$i" -lt $1 ]; do
     # python3 run_sockets_node.py --sid 'sidA' --id $i --N $1 --f $2 --B $3 --K $4 --S 100  --P "dl" --D True --O True &
 
     i=$(( i + 1 ))
+
 done
