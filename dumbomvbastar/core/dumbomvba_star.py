@@ -1,3 +1,5 @@
+import hashlib
+import pickle
 import traceback
 import gevent
 
@@ -7,6 +9,8 @@ from gevent.event import Event
 from enum import Enum
 from collections import defaultdict
 from gevent.queue import Queue
+
+from crypto.ecdsa.ecdsa import ecdsa_vrfy
 from dumbomvbastar.core.provabledispersal import provabledispersalbroadcast
 from dumbomvbastar.core.recast import recastsubprotocol
 from honeybadgerbft.exceptions import UnknownTagError
@@ -111,6 +115,9 @@ def smvbastar(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
     pd_count = [0 for _ in range(N)]
 
+    def hash(x):
+        return hashlib.sha256(pickle.dumps(x)).digest()
+
     def output_receve():
         def o_recv(j):
             def _recv():
@@ -180,6 +187,20 @@ def smvbastar(sid, pid, N, f, PK, SK, PK2s, SK2, input, decide, receive, send, p
 
         def make_under_predicate():
             def vaba_predicate(vj):
+                (id_j, lock_msg) = vj
+                (roothash, Sigma) = lock_msg
+                try:
+                    # assert stop == 0
+                    digest = hash(str(('STORED', sid + 'PD' + str(id_j), roothash)))
+                    try:
+                        for (k, sig) in Sigma:
+                            assert ecdsa_vrfy(PK2s[k], digest, sig)
+                    except AssertionError as e:
+                        print("Signature failed!", e)
+                        return 0
+                except Exception as e:
+                    print("Failed to validate LOCK message:", e)
+                    return 0
                 return True
 
             return vaba_predicate
