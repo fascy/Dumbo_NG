@@ -1,7 +1,7 @@
 import gevent
 from coincurve import PrivateKey, PublicKey
-from fastecdsa import keys, curve
-from fastecdsa.point import Point
+# from fastecdsa import keys, curve
+# from fastecdsa.point import Point
 from gevent import monkey, Greenlet;
 
 from dumbong.core.ng_k_s import Dumbo_NG_k_s
