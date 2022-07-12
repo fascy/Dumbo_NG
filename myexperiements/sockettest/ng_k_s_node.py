@@ -48,7 +48,7 @@ def load_key(id, N):
 class NGSNode(Dumbo_NG_k_s):
 
     def __init__(self, sid, id, S, Bfast, Bacs, N, f,
-                 bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, K=3, mode='debug',
+                 bft_from_server: Callable, bft_to_client: Callable, ready: mpValue, stop: mpValue, mode='debug',
                  mute=False, tx_buffer=None, countpoint=0):
         self.sPK, self.sPK1, self.sPK2s, self.ePK, self.sSK, self.sSK1, self.sSK2, self.eSK = load_key(id, N)
         self.bft_from_server = bft_from_server
@@ -58,6 +58,12 @@ class NGSNode(Dumbo_NG_k_s):
         self.mode = mode
         self.flag = 0
         self.countpoint = countpoint
+        if N == 4:
+            K = 4
+        elif N == 16:
+            K = 2
+        else:
+            K = 1
         Dumbo_NG_k_s.__init__(self, sid, id, max(S, 10), max(int(Bfast), 1), N, f,
                               self.sPK, self.sSK, self.sPK1, self.sSK1, self.sPK2s, self.sSK2, self.ePK, self.eSK,
                               send=None, recv=None, K=K, countpoint=countpoint, mute=mute)

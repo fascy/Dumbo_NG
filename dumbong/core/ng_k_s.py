@@ -106,7 +106,6 @@ class Dumbo_NG_k_s:
 
     # Entry of the Dumbo-NG protocol
     def run_bft(self):
-
         """Run the Dumbo-NG protocol."""
         self.s_time = time.time()
         if self.mute:
@@ -254,16 +253,18 @@ class Dumbo_NG_k_s:
                     return vaba_predicate
 
                 # print("vaba starts....")
-                """
-                vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(self.epoch), pid, N, f,
-                                         self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                         vaba_input.get, vaba_output.put_nowait,
-                                         recv, send, predicate=make_vaba_predicate(), logger=self.logger)
-                """
-                vaba_thread_r = Greenlet(smvbastar, sid_e + 'VABA' + str(self.epoch), pid, N, f,
-                                         self.sPK, self.sSK, self.sPK2s, self.sSK2,
-                                         vaba_input.get, vaba_output.put_nowait,
-                                         recv, send, predicate=make_vaba_predicate(), logger=self.logger)
+                if N >= 64:
+                    vaba_thread_r = Greenlet(smvbastar, sid_e + 'VABA' + str(self.epoch), pid, N, f,
+                                            self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                            vaba_input.get, vaba_output.put_nowait,
+                                            recv, send, predicate=make_vaba_predicate(), logger=self.logger)
+                else:
+                    vaba_thread_r = Greenlet(speedmvba, sid_e + 'VABA' + str(self.epoch), pid, N, f,
+                                            self.sPK, self.sSK, self.sPK2s, self.sSK2,
+                                            vaba_input.get, vaba_output.put_nowait,
+                                            recv, send, predicate=make_vaba_predicate(), logger=self.logger)
+
+
                 # """
                 vaba_thread_r.start()
                 out = vaba_output.get()

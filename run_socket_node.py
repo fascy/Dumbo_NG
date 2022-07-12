@@ -28,7 +28,7 @@ def instantiate_bft_node(sid, i, B, N, f, K, S, bft_from_server: Callable, bft_t
     elif protocol == 'sdumbo':
         bft = SDumboBFTNode(sid, i, B, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, debug=debug)
     elif protocol == 'ng':
-        bft = NGSNode(sid, i, S, B, F, N, f, bft_from_server, bft_to_client, ready, stop, K, mute=mute, countpoint=countpoint)
+        bft = NGSNode(sid, i, S, B, F, N, f, bft_from_server, bft_to_client, ready, stop, mute=mute, countpoint=countpoint)
     else:
         print("Only support dumbo or sdumbo or ng")
     return bft
@@ -49,8 +49,8 @@ if __name__ == '__main__':
                         help='number of faulties', type=int)
     parser.add_argument('--B', metavar='B', required=True,
                         help='size of batch', type=int)
-    parser.add_argument('--K', metavar='K', required=True,
-                        help='rounds to execute', type=int)
+    parser.add_argument('--K', metavar='K', required=False,
+                        help='instance to execute', type=int)
     parser.add_argument('--S', metavar='S', required=False,
                         help='slots to execute', type=int, default=50)
     parser.add_argument('--P', metavar='P', required=False,
