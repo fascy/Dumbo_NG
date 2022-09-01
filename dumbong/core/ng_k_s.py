@@ -189,6 +189,7 @@ class Dumbo_NG_k_s:
                     def vaba_predicate(vj):
                         siglist = [tuple() for _ in range(N * K)]
                         (view, sigsdata, digestlist) = vj
+                        siglist = pickle.loads(sigsdata)
                         # check n-f gorws
                         cnt2 = 0
                         for i in range(N):
